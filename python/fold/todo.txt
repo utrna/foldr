@@ -1,0 +1,1 @@
+split bin/fold.py into a run file and a module file, module file to go in this subdirectory
