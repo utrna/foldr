@@ -28,4 +28,3 @@
 ### Who do I talk to? ###
 
 * We should probably also establish who the admins should be for this too...
-* So far, if it's just Vishal and Ashton, it's probably fair to assume we're the admins...?
