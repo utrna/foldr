@@ -7,15 +7,17 @@
 ### Contribution guidelines ###
 
 * We should probably discuss and outline these...
+* I think for right now, it's probably best for each individual to fork his/her own branch and make changes there. Once you feel you have a significant amount of work stored there, we can all meet, discuss the changes, and then incorporate the changes into the master branch.
 
 ### Organization ###
 * python
-	* bin      - directory housing run code
-	* fold     - (not created yet) directory that will house various modules for calling within run code
-	* inputs   - inputs for testing purposes and what not
-	* tests    - (not created yet) will house code tests
+	* bin		- directory housing run code
+	* fold		- directory that will house various modules for calling within run code
+	* inputs	- inputs for testing purposes and what not
+	* tests		- will house code tests
 * java
 
 ### Who do I talk to? ###
 
 * We should probably also establish who the admins should be for this too...
+* So far, if it's just Vishal and Ashton, it's probably fair to assume we're the admins...?
