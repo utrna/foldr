@@ -4,18 +4,20 @@ from operator import attrgetter
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("seqFile", help="File containing input sequence", default=None)
-parser.add_argument("energyFile", help="File containing all possible helices and energies", default=None)
+parser.add_argument("-s", "--seqFile", help="File containing input sequence", default=None)
+parser.add_argument("-e", "--energyFile", help="File containing all possible helices and energies", default=None)
 parser.add_argument("-gf", help="Include this flag to create files for 2d matrix to graph", action="store_true")
 args = parser.parse_args()
 
+"""
+usage:
 
+python fold.py -s 16s_seq_bp61-106 -e 16s_energetics_bp61-106
+
+"""
 # import logging
 # import cProfile
 # import re
-
-
-
 
 class Helix:
 	def __init__(self, **kwargs):
