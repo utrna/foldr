@@ -3,6 +3,8 @@
 ### What is this repository for? ###
 
 * RNA Folding project code for Robin Gutell's Lab
+	* Initial code created Spring 2014
+	* Repository initiated Fall 2015
 
 ### Contributors ###
 
