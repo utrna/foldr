@@ -4,6 +4,14 @@
 
 * RNA Folding project code for Robin Gutell's Lab
 
+### Contributors ###
+
+* Contributors:
+	* Robin Gutell		- Principle Investigator, Gutell Lab
+	* Jamie Cannone		- Research Associate, Gutell Lab
+	* Ashton Berger		- Fall 2015 BIO321G student researcher
+	* Vishal Patel		- Fall 2015 BIO321G student researcher
+
 ### Contribution guidelines ###
 
 * We should probably discuss and outline these...
