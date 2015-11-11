@@ -20,12 +20,10 @@
 * I think for right now, it's probably best for each individual to fork his/her own branch and make changes there. Once you feel you have a significant amount of work stored there, we can all meet, discuss the changes, and then incorporate the changes into the master branch.
 
 ### Organization ###
-* python
 	* bin		- directory housing run code
-	* fold		- directory that will house various modules for calling within run code
-	* inputs	- inputs for testing purposes and what not
+	* src		- directory that will house various modules for calling within run code
+	* data		- directories housing various inputs and outputs 
 	* tests		- will house code tests
-* java
 
 ### Who do I talk to? ###
 
