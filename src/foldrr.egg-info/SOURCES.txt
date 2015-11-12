@@ -1,8 +1,0 @@
-setup.py
-src/__init__.py
-src/annotate.py
-src/graphing.py
-src/foldrr.egg-info/PKG-INFO
-src/foldrr.egg-info/SOURCES.txt
-src/foldrr.egg-info/dependency_links.txt
-src/foldrr.egg-info/top_level.txt
