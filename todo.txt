@@ -1,0 +1,5 @@
+- finish statistics file from piesies
+- allow Katie's program to get piesie info and incorporate into graph printing
+- write script to parse genbank for sequences and get fastas
+- get folding code from vishal
+- requirements!!!
