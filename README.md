@@ -35,4 +35,4 @@
 
 ### Who do I talk to? ###
 
-* We should probably also establish who the admins should be for this too...
+* If you have any questions about the software, contact Ashton or Vishal.
