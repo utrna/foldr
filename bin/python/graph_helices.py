@@ -51,6 +51,7 @@ if args.includecorrect:
                     y = [coords[3], coords[2]]
                     print coords
                     plt.plot(x, y, color='red')
+            r.close()
         elif root_search+'bpseq' in os.listdir('data/bpseq'):
             pass
             #generate piesie and plt data
