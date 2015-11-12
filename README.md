@@ -26,11 +26,11 @@
 	* tests		- will house code tests
 
 ### Installation ###
-* First, you will have to update your PYTHONPATH, or else your import statements will not work. Enter this into the command line:
+	* First, you will have to update your PYTHONPATH, or else your import statements will not work. Enter this into the command line:
 	* export PYTHONPATH=${PYTHONPATH}:/path/to/your/clone/of/foldrr
-* Next, run the following from within your cloned directory of foldrr:
+	* Next, run the following from within your cloned directory of foldrr:
 	* python setup.py install
-* Lastly, clean up with the following command and you'll be good to go:
+	* Lastly, clean up with the following command and you'll be good to go:
 	* python setup.py clean
 
 ### Who do I talk to? ###
