@@ -10,16 +10,16 @@ Usage:
 python piesie_annotation.py -i rnasequence.bpseq -o rnasequence.txt
 
 '''
-parser = argparse.ArgumentParser(description="Given an input .bpseq file, outputs a PieSie annotation file.")
+parser = argparse.ArgumentParser(description="Given an input .bpseq file with the -i argument, outputs a PieSie annotation file.")
 parser.add_argument("-i", "--input", help=".bpseq file of interest. Stored in data/bpseq/5s or data/bpseq/16s.")
 parser.add_argument("-o", "--output", help="Desired output file name. If none provided, will use the input name and place in data/piesie/ directory. Output format is tab-delimitted .txt.")
 args = parser.parse_args()
 
 outfile = str(args.output)
 
-if not outfile.endswith('.txt'):
+if not outfile.endswith('.piesie'):
     try:
-        outfile = args.input.strip('bpseq')+'txt'
+        outfile = args.input.strip('bpseq')+'piesie'
     except:
         print "Input file either does not exist or is corrupted! Exception: "
         raise

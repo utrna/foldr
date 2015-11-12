@@ -1,0 +1,55 @@
+LOCUS       V00336                   600 bp    DNA     linear   BCT 18-APR-2005
+DEFINITION  E. coli genes for 23S and 5S rRNAs and tRNA 1 Asp.
+ACCESSION   V00336 J01698
+VERSION     V00336.1  GI:42763
+KEYWORDS    23S ribosomal RNA; 5S ribosomal RNA; ribosomal RNA; transfer RNA;
+            transfer RNA-Asp; unidentified reading frame.
+SOURCE      Escherichia coli
+  ORGANISM  Escherichia coli
+            Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales;
+            Enterobacteriaceae; Escherichia.
+REFERENCE   1  (bases 1 to 600)
+  AUTHORS   Sekiya,T., Mori,M., Takahashi,N. and Nishimura,S.
+  TITLE     Sequence of the distal tRNA1Asp gene and the transcription
+            termination signal in the Escherichia coli ribosomal RNA operon
+            rrnF(or G)
+  JOURNAL   Nucleic Acids Res. 8 (17), 3809-3827 (1980)
+   PUBMED   6255418
+FEATURES             Location/Qualifiers
+     source          1..600
+                     /organism="Escherichia coli"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:562"
+     rRNA            <1..35
+                     /product="23S ribosomal RNA"
+     rRNA            129..248
+                     /product="5S ribosomal RNA"
+     tRNA            301..377
+                     /product="tRNA-Asp"
+     CDS             540..>600
+                     /note="unnamed protein product; reading frame (unknown
+                     protein) (600 is 1st base in codon)"
+                     /codon_start=1
+                     /transl_table=11
+                     /protein_id="CAA23619.1"
+                     /db_xref="GI:42764"
+                     /db_xref="GOA:P30863"
+                     /db_xref="InterPro:IPR001395"
+                     /db_xref="InterPro:IPR018170"
+                     /db_xref="InterPro:IPR020471"
+                     /db_xref="InterPro:IPR023210"
+                     /db_xref="UniProtKB/Swiss-Prot:P30863"
+                     /translation="MAIPAFGLGTFRLKDDVVIS"
+ORIGIN      
+        1 ctaaccggta ctaatgaacc gtgaggctta accttacaac gccgaagctg ttttggcgga
+       61 ttgagagaag attttcagcc tgatacagat taaatcagaa cgcagaagcg gtctgataaa
+      121 acagantttg cctggcggcc gtagcgcggt ggtcccacct gaccccatgc cgaactcaga
+      181 agtgaaacgc cgtagcgccg atggtagtgt ggggtctccc catgcgagag tagggaactg
+      241 ccaggcatca aattaagcag taagccggtc ataaaaccgg tggttgtaaa agaattcggt
+      301 ggagcggtag ttcagtcggt tagaatacct gcctgtcacg cagggggtcg cgggttcgag
+      361 tcccgtccgt tccgccactt attaagaagc ctcgagttaa cgctcgaggt tttttttcgt
+      421 ctgtatatct attattgcca gaatcgcaaa aatcctctgc attttacgct ctttttcctc
+      481 aacagtctga agcccataat cacctcagtt aacgaaaata gcattaaaag aggcatatta
+      541 tggctatccc tgcatttggt ttaggtactt tccgtctgaa agacgacgtt gttatttcat
+//
+
