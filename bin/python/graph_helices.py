@@ -5,7 +5,7 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
-from src import graphing 
+from src import rnaf 
 
 '''
 To run the program with input file:
@@ -28,7 +28,7 @@ parser.add_argument("-o", "--helicesout", help="Include this flag to output the 
 parser.add_argument("-incl", "--includecorrect", help="Include this flag to include correct helices in the graph (if applicable)", action="store_true")
 args = parser.parse_args()
 
-possibleHelices = graphing.rnaf_exec(sys.stdin, sys.stdout, args)
+possibleHelices = rnaf.rnaf_exec(sys.stdin, sys.stdout, args)
 
 for k,v in possibleHelices.iteritems():
     for h in v:
