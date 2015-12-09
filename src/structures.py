@@ -43,6 +43,7 @@ def check_pi_preds(pred_df, piesie):
     print '\n'
     print correct
     print('-------------------------------------------------------------\n\n')
+    return pred_df
 
 class FoldingStrand:
     def __init__(self, sequence, allHelices, windowSize):
