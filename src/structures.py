@@ -43,6 +43,8 @@ def check_pi_preds(pred_df, piesie):
     print '\n'
     print correct
     print('-------------------------------------------------------------\n\n')
+    print 'helix ', sum([int(x) for x in correct["LENGTH"].tolist()])
+    print 'loop ', sum([int(x) for x in correct["LOOPSIZE"].tolist()])
     return pred_df
 
 class FoldingStrand:
