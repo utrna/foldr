@@ -10,7 +10,6 @@ from src import annotate
 
 def predict_pis(df, sq, maxloop=15):
     #filter out the structures with loops that are too big and energies that are too high
-    print len(df)
     pis = df[(df.LOOPSIZE < maxloop) & (df.ENERGY < 0)].copy()
     pis['5SEQ'] = [sq[x:y] for x,y in zip(pis['5START'].tolist(), pis['5STOP'].tolist())]
     pis['3SEQ'] = [sq[x:y] for x,y in zip(pis['3START'].tolist(), pis['3STOP'].tolist())]
@@ -43,8 +42,6 @@ def check_pi_preds(pred_df, piesie):
     print '\n'
     print correct
     print('-------------------------------------------------------------\n\n')
-    print 'helix ', sum([int(x) for x in correct["LENGTH"].tolist()])
-    print 'loop ', sum([int(x) for x in correct["LOOPSIZE"].tolist()])
     return pred_df
 
 class FoldingStrand:
