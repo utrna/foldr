@@ -5,6 +5,7 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
+import mpld3
 from src import rnaf 
 
 '''
@@ -29,14 +30,39 @@ parser.add_argument("-incl", "--includecorrect", help="Include this flag to incl
 args = parser.parse_args()
 
 possibleHelices = rnaf.rnaf_exec(sys.stdin, sys.stdout, args)
+fig = plt.figure(1)
 
 for k,v in possibleHelices.iteritems():
     for h in v:
         # print("("+str(k[0])+','+str(h[1])+"), ("+str(k[1])+','+str(h[0])+")")
-        y = [k[0], k[1]]
-        x = [h[1], h[0]]
-        plt.plot(x, y,color='blue')
-plt.plot([120,0],[120,0], color = 'black')
+        line = None
+        if h[2] > -1.0:
+            y = [k[0], k[1]]
+            x = [h[1], h[0]]
+            line = plt.plot(x, y,color='#0d253d')
+        elif -2.0 < h[2] < -1.0:
+            y = [k[0], k[1]]
+            x = [h[1], h[0]]
+            line = plt.plot(x, y,color='#005d7d')
+        elif -3.0 < h[2] < -2.0:
+            y = [k[0], k[1]]
+            x = [h[1], h[0]]
+            line = plt.plot(x, y,color='#2fade9')
+        elif -4.0 < h[2] < -3.0:
+            y = [k[0], k[1]]
+            x = [h[1], h[0]]
+            line = plt.plot(x, y,color='#19d1ff')
+        elif h[2] < -4.0:
+            y = [k[0], k[1]]
+            x = [h[1], h[0]]
+            line = plt.plot(x, y,color='#8fffe0')
+
+        if line is not None:
+            labelText = ["5' Begin: "+str(k[0]) +","+ " 5' End: "+str(k[1])]
+##            print("line type: " + type(line).__name__)
+##            print("line type: " + type(line[0]).__name__)
+##            sys.stdout.flush()
+            mpld3.plugins.connect(fig, mpld3.plugins.LineLabelTooltip(line[0], label=labelText))
 
 if args.includecorrect:
     if args.filename != None and args.filename.endswith('.fasta'):
@@ -46,16 +72,23 @@ if args.includecorrect:
                 reader = csv.reader(r, delimiter='\t')
                 next(reader, None)
                 for row in reader:
+                    line = None
                     coords = [int(x) for x in row[1:5]]
                     x = [coords[0], coords[1]]
                     y = [coords[3], coords[2]]
                     print coords
-                    plt.plot(x, y, color='red')
+                    line = plt.plot(x, y, color='#ff0000')
+                    if line is not None:
+                        labelText = ["5' Begin: "+str(y[0]) +","+ " 5' End: "+str(y[1])]
+                    ##            print("line type: " + type(line).__name__)
+                    ##            print("line type: " + type(line[0]).__name__)
+                    ##            sys.stdout.flush()
+                        mpld3.plugins.connect(fig, mpld3.plugins.LineLabelTooltip(line[0], label=labelText))
             r.close()
         elif root_search+'bpseq' in os.listdir('data/bpseq'):
             pass
             #generate piesie and plt data
         else:
             print 'Could not find correct helices for the input .fasta'
-
-plt.show()              
+        
+mpld3.show()            
