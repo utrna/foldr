@@ -1,4 +1,9 @@
-# !/usr/bin/python
+#!/usr/bin/env python
+# @author <ashtoncberger@utexas.edu>
+# ------------------------------------------------
+'''
+Module for predicting possible helices, mostly written by other class.
+'''
 import re
 import sys
 import itertools

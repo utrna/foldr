@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# @author <ashtoncberger@utexas.edu>
+# ------------------------------------------------
 import argparse
 import csv
 import os
@@ -9,6 +11,8 @@ import mpld3
 from src import rnaf 
 
 '''
+Plots possible helices for an RNA sequence.
+
 To run the program with input file:
     >python bin/python/graph_helices.py sequence.fasta
 
@@ -34,7 +38,6 @@ fig = plt.figure(1)
 
 for k,v in possibleHelices.iteritems():
     for h in v:
-        # print("("+str(k[0])+','+str(h[1])+"), ("+str(k[1])+','+str(h[0])+")")
         line = None
         if h[2] > -1.0:
             y = [k[0], k[1]]
@@ -59,9 +62,6 @@ for k,v in possibleHelices.iteritems():
 
         if line is not None:
             labelText = ["5' Begin: "+str(k[0]) +","+ " 5' End: "+str(k[1])]
-##            print("line type: " + type(line).__name__)
-##            print("line type: " + type(line[0]).__name__)
-##            sys.stdout.flush()
             mpld3.plugins.connect(fig, mpld3.plugins.LineLabelTooltip(line[0], label=labelText))
 
 if args.includecorrect:
@@ -80,9 +80,6 @@ if args.includecorrect:
                     line = plt.plot(x, y, color='#ff0000')
                     if line is not None:
                         labelText = ["5' Begin: "+str(y[0]) +","+ " 5' End: "+str(y[1])]
-                    ##            print("line type: " + type(line).__name__)
-                    ##            print("line type: " + type(line[0]).__name__)
-                    ##            sys.stdout.flush()
                         mpld3.plugins.connect(fig, mpld3.plugins.LineLabelTooltip(line[0], label=labelText))
             r.close()
         elif root_search+'bpseq' in os.listdir('data/bpseq'):

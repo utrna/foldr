@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# @author <ashtoncberger@utexas.edu>
+# ------------------------------------------------
 import argparse
 import csv
 import os
@@ -7,14 +9,7 @@ import pandas as pd
 from src import annotate
 from src import structures as struct
 '''
-To run the program with input file:
-    >python bin/python/calc_energetics.py sequence.fasta
-
-To run program without input file (manually input sequence):
-    >python bin/python/calc_energetics.py
-
-For help with arguments:
-    >python bin/python/calc_energetics.py -h
+Folds an RNA sequence...eventually. Right now just accomplishes PI predictions.
 '''
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--seqFile", help="File containing input sequence", default=None)
@@ -48,6 +43,11 @@ if args.outpred:
     outfile = 'data/predictions/'+args.energyFile.rstrip('.energetics').split('energetics')[-1]+'.predicted'
     pred_pis.to_csv(outfile, index=False)
 
+'''
+Below is from previous student and is not involved with the above code. 
+Right now, all that is accomplished by this program is PI structure predictions for feeding into Vishal's Java code. 
+Ideally, we would use a wrapper script to automate feeding the PI structures into Vishal's extension algorithm or port his code to Python and include it below here.
+'''
 
 # # max window size = 20
 # def rnaf_fold():

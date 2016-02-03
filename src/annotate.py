@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# @author <ashtoncberger@utexas.edu>
+# ------------------------------------------------
+'''
+Discovered output compared to actual hand-made E. coli 16s rRNA PieSie from Gutell Lab is incorrect. Needs more debugging.
+'''
 from itertools import groupby
 import operator
 

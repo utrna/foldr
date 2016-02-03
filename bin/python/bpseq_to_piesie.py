@@ -1,11 +1,15 @@
 #!/usr/bin/env python
+# @author <ashtoncberger@utexas.edu>
+# ------------------------------------------------
 import argparse
 import sys
 from src import annotate
 
 '''
+Converts .bpseq files to .piesie files
 
-Usage:
+
+Usage example:
 
 python bin/python/piesie_annotation.py -i data/bpseq/rnasequence.bpseq -o data/piesie/rnasequence.piesie
 
