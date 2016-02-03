@@ -32,9 +32,8 @@ setup(
     version='0.0.0',
     description="Ribosomal RNA secondary structure prediction software.",
     long_description=readme,
-    author='Ashton Berger',
+    author='Ashton Berger, Vishal Patel',
     author_email='ashtoncberger@utexas.edu',
-    url='https://ashtoncb@bitbucket.org/ashtoncb/foldrr.git',
     packages=['src'],
     include_package_data=True,
     license="BSD", #is this right?? maybe Academic Free License?

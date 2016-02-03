@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# @author <ashtoncberger@utexas.edu>
+# ------------------------------------------------
 import argparse
 import csv
 import os
@@ -8,14 +10,7 @@ from src import rnaf
 from src import annotate
 
 '''
-To run the program with input file:
-    >python bin/python/calc_energetics.py sequence.fasta
-
-To run program without input file (manually input sequence):
-    >python bin/python/calc_energetics.py
-
-For help with arguments:
-    >python bin/python/calc_energetics.py -h
+All possible helices predictions, mainly written by previous class.
 '''
 parser = argparse.ArgumentParser(description="Give an input .fasta or a user defined sequences, can either show or save a plot of all of the possible sequences as well as the correct sequences for the secondary structure (if applicable).")
 parser.add_argument("-minls", "--minloopsize", help="Minimum loop size", type=int, default=3)
