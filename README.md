@@ -20,7 +20,7 @@
 ### Organization ###
 	* bin		- directory housing run code
 	* src		- package directory that houses various modules for calling within run code
-	* inputs	- inputs for testing purposes and what not
+	* data		- inputs for testing purposes and what not
 	* tests		- will house code tests
 	
 ### Installation ###
