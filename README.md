@@ -33,11 +33,16 @@
 
 ### Usage ###
 * bin/python/
-	* bpseq_to_piesie.py	- Given an input .bpseq, outputs a corresponding .piesie annotation file
-	* fold_sequence.py		- Currently requires a sequence (input as either a .fasta, a .txt file, or manually via the command line) and an energy file .energetics containing the energies of all the possible helices of the sequence. Outputs a tab-delimited .predicted file with corresponding PI hairpin loop predictions. Can also include the .piesie as an option to denote which sequences are the actual sequences.
-	* graph_helices.py		- Given an input sequence via .fasta or manual entry, calculates all possible helices and plots them. Can also include .piesie as an option to include known structures in the plot.
-	* predict_helices.py	- Given an input .fasta or manually entered sequence, will generate a .energetics file which contains all possible helices for the sequence.
-	* seq_search.py			- Searches GenBank records for RNA sequences and will return a .fasta of the sequence. Needs to be run interactively unless the Accession ID is already known.
+	* bpseq_to_piesie.py	
+		* Given an input .bpseq, outputs a corresponding .piesie annotation file
+	* fold_sequence.py
+		* Currently requires a sequence (input as either a .fasta, a .txt file, or manually via the command line) and an energy file .energetics containing the energies of all the possible helices of the sequence. Outputs a tab-delimited .predicted file with corresponding PI hairpin loop predictions. Can also include the .piesie as an option to denote which sequences are the actual sequences.
+	* graph_helices.py
+		* Given an input sequence via .fasta or manual entry, calculates all possible helices and plots them. Can also include .piesie as an option to include known structures in the plot.
+	* predict_helices.py
+		* Given an input .fasta or manually entered sequence, will generate a .energetics file which contains all possible helices for the sequence.
+	* seq_search.py
+		* Searches GenBank records for RNA sequences and will return a .fasta of the sequence. Needs to be run interactively unless the Accession ID is already known.
 
 
 
