@@ -8,14 +8,6 @@ import sys
 '''
 Searches GenBank records for RNA sequences and returns a .fasta.
 
-To run the program with input file:
-    >python bin/python/graph_helices.py sequence.fasta
-
-To run program without input file (manually input sequence):
-    >python bin/python/graph_helices.py
-
-For help with arguments:
-    >python bin/python/graph_helices.py -h
 '''
 
 Entrez.email = "robin.gutell@mail.utexas.edu"
