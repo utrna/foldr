@@ -1,0 +1,96 @@
+//called PeHelicies, but it's just a class that represents a helix object
+//
+public class PeHelicies {
+	//name of the helix
+	private String name;
+	//beginning 5' nucleotide number
+	private int pre_5;
+	//end 5' nucleotide number
+	private int end_5;
+	//beginning 3' nucleotide number
+	private int pre_3;
+	//end 3' nucleotide number
+	private int end_3;
+	//letter of helix, ie. p2b, p2c, p2d
+	private char letter;
+	//RNA sequence
+	private String seq;
+	//simple distance
+	int simpleDist;
+	
+	//constructor
+	//arguments (beg 5', end 5', beg 3', end 3')
+	public PeHelicies(int a, int b, int c, int d,String rnaSeq) {
+		pre_5 = a;
+		end_5 = b;
+		pre_3 = c;
+		end_3 = d;
+	/*	
+		if(e==1)
+			letter = 'A';
+		if(e==2)
+			letter = 'B';
+		if(e==3)
+			letter = 'C';
+	*/
+		seq = rnaSeq;
+
+	}
+	
+	//adds the name of the helix to the helix object
+	public void setName(String name1) {
+		name = name1;
+	}
+	//gets the name of the helix
+	public String getName() {
+		return name;
+	}
+	public int getPre5() {
+		return pre_5 ;
+	}
+	public int getEnd5() {
+		return end_5;
+	}
+	public int getPre3() {
+		return pre_3;
+	}
+	public int getEnd3() {
+		return end_3;
+	}
+	public char getLetter() {
+		return letter;
+	}
+	public int getSimpleDist() {
+		return (pre_3 - end_5);
+	}
+	
+	
+	public void printSequence() {
+		for(int i = pre_5; i <= end_5; i++) {
+			System.out.print((i+1) + ":" + seq.charAt(i) + " ");
+		}
+		
+		System.out.println("");
+		
+		for(int i = end_3; i >= pre_3; i--) {
+			System.out.print((i+1) + ":" + seq.charAt(i) + " ");
+		}
+		System.out.println();
+	}
+	
+	//augments helix
+	public void augmentHelix() {
+		pre_5 += 1;
+		end_5 += 1;
+		pre_3 += 1;
+		end_3 += 1;
+	}
+	
+	//unaugments helix
+	public void unAugmentHelix() {
+		pre_5 -= 1;
+		end_5 -= 1;
+		pre_3 -= 1;
+		end_3 -= 1;
+	}
+}
