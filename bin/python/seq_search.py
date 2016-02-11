@@ -13,6 +13,7 @@ Searches GenBank records for RNA sequences and returns a .fasta.
 Entrez.email = "robin.gutell@mail.utexas.edu"
 
 #if no accession id, prompt the interactive search
+#TODO: allow accession id input
 
 #interactive search error-checking
 searchterm = Entrez.read(Entrez.espell(term=raw_input("Enter the name of the organism you which to search: ")))
