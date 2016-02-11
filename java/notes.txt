@@ -1,5 +1,0 @@
-hey vishal
-
-since you're coding in java and im mostly in python, i figured we could split up the repository into two code bases like this. once we have working algorithms and we are ready to finalize a working version of the software, we can decide where to go from there.
-
-ashton
