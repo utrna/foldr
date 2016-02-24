@@ -34,17 +34,50 @@
 ### Usage ###
 * bin/python/
 	* bpseq_to_piesie.py	
-		* Given an input .bpseq, outputs a corresponding .piesie annotation file
+		* Description:
+			* reads a .bpseq file and produces a .piesie file
+		* Inputs:
+			* .bpseq file
+		* Outputs:
+			* .piesie annotation file
+		* Usage example:
+			* python bin/python/piesie_annotation.py -i data/bpseq/rnasequence.bpseq -o data/piesie/rnasequence.piesie
 	* fold_sequence.py
-		* Currently requires a sequence (input as either a .fasta, a .txt file, or manually via the command line) and an energy file .energetics containing the energies of all the possible helices of the sequence. Outputs a tab-delimited .predicted file with corresponding PI hairpin loop predictions. Can also include the .piesie as an option to denote which sequences are the actual sequences.
+		* Description:
+			* Currently requires a sequence (input as either a .fasta, a .txt file, or manually via the command line) and an energy file .energetics containing the energies of all the possible helices of the sequence. Outputs a tab-delimited .predicted file with corresponding PI hairpin loop predictions. Can also include the .piesie as an option to denote which sequences are the actual sequences.
+		* Inputs:
+			* .fasta file, .energetics file, .piesie file (OPTIONAL)
+		* Outputs:
+			* .predicted file
+		* Usage example:
+			* python bin/python/fold_sequence.py -s data/fasta/rnasequence.fasta -e data/energetics/rnasequence.energetics -p data/piesie/rnasequence.piesie
 	* graph_helices.py
-		* Given an input sequence via .fasta or manual entry, calculates all possible helices and plots them. Can also include .piesie as an option to include known structures in the plot.
+		* Description:
+			* Given an input sequence via .fasta or manual entry, calculates all possible helices and plots them. Can also include .piesie as an option to include known structures in the plot.
+		* Inputs:
+			* .fasta file OR manually enter the sequence via the command line
+		* Outputs:
+			* an interactive graph of all of the possible helices for an RNA sequence
+		* Usage example:
+			* python bin/python/graph_helices.py sequence.fasta
 	* predict_helices.py
-		* Given an input .fasta or manually entered sequence, will generate a .energetics file which contains all possible helices for the sequence.
+		* Description:
+			* Given an input .fasta or manually entered sequence, will generate a .energetics file which contains all possible helices for the sequence.
+		* Inputs:
+			* .fasta file OR manually enter the sequence via the command line
+		* Outputs:
+			* .energetics file
+		* Usage example:
+			* python bin/python/predict_helices.py rnasequence.fasta
 	* seq_search.py
-		* Searches GenBank records for RNA sequences and will return a .fasta of the sequence. Needs to be run interactively unless the Accession ID is already known.
-
-
+		* Description:
+			* Searches GenBank records for RNA sequences and will return a .fasta of the sequence. Needs to be run interactively unless the Accession ID is already known.
+		* Inputs:
+			* accession number OR manually interact with the program via the command line
+		* Outputs:
+			* prints GenBank records to command line
+		* Usage example:
+			* python bin/python/seq_search.py 
 
 ### Who do I talk to? ###
 
