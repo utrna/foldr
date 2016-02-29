@@ -1,0 +1,23 @@
+[start]
+
+Usage: labelrna [-rp] <bpseq-file>...
+
+  -rp   remove pseudoknots
+
+[end]
+
+ 
+
+                So, it has two modes:  1) generate the Alden format, and 2) remove pseudoknots. 
+
+ 
+
+                For the folding work, we have been using pseudoknot-free bpseq files.  Unless you’re certain that a bpseq file is pseudoknot-free, you should probably run the –rp mode first, and then generate the Alden output.
+
+ 
+
+                labelrna will throw errors if there are any discrepancies in a bpseq file (if only one nucleotide of a basepair is properly defined, usually).  If you encounter any of these, please let me know – I thought we had systematically flushed those out several years ago, but we do want to fix any remaining errors.
+
+ 
+
+
