@@ -84,6 +84,11 @@ else:
 
 print accession + " : " + organism + ' : ' + sequence
 
+for n in sequence: 
+	if n.upper() not in ['A', 'G', 'T', 'C', 'U']: 
+		print 'aborting import because sequence contains non-AGTC character'
+		quit()
+
 df['seq'] = ''
 df['seq_length'] = 0
 
@@ -94,6 +99,7 @@ if sequence:
 		if s: 
 			df.set_value(i, 'seq', s)
 			df.set_value(i, 'seq_length', len(s))
+
 
 from sqlalchemy import create_engine
 engine = create_engine('postgres://vmekkobwaemmtz:lmlbGN0CDaUB6ChGv7bBdBFjFt@ec2-54-227-250-148.compute-1.amazonaws.com:5432/d1be1knu2m4p03')
