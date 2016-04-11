@@ -119,14 +119,14 @@ def bpseq_to_alps():
 
 	#Get sequence from bpseq
 	seq = bpseq[1].tolist()
-	sequence = " "
+	sequence = ""
 	for i in seq:
 		sequence += i
-	sequence = '#'+sequence
+	sequence = '#'+sequence+"\n"
 
 	#write output
 	al2 = al + ".alps" #filename
-	f = open(al2, 'a')
+	f = open(al2, 'w')
 	f.write(sequence)
 	alden.to_csv(f, sep=' ', header = None, index=None)
 	f.close()
