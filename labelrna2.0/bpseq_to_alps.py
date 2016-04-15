@@ -16,13 +16,13 @@ from string import ascii_lowercase
 
 def bpseq_to_alps():
 	#Create alden file from bpseq
-	subprocess.call(["./alden", sys.argv[1]])
+	subprocess.call(["alden", sys.argv[1]])
 
 	#Read in alden file
 	al = os.path.splitext(sys.argv[1])[0]
 	al1 = al + ".labels.csv"
-	alden = pd.read_csv(al1, header=None) 
-	
+	alden = pd.read_csv(al1, header=None, na_filter=False) 
+
 	#Add columns
 	alden.insert(3, "ie", np.nan)
 	alden.insert(3, "ps", np.nan)
@@ -116,28 +116,31 @@ def bpseq_to_alps():
 	
 	#Read in bpseq, skips the first 4 rows, if header is a different size change skiprows
 	bpseq = pd.read_csv(sys.argv[1], sep=' ', header=None, skiprows=4)
-
+	header = open(sys.argv[1]).readlines()[:3]
+	print header
 	#Get sequence from bpseq
 	seq = bpseq[1].tolist()
 	sequence = " "
 	for i in seq:
 		sequence += i
-	sequence = '#'+sequence
 
 	#write output
 	al2 = al + ".alps" #filename
-	f = open(al2, 'a')
-	f.write(sequence)
+	f = open(al2, 'w')
+	for line in header: 
+		f.write(line)
+		print line 
+	f.write('Sequence: ' + sequence + '\n')
 	alden.to_csv(f, sep=' ', header = None, index=None)
 	f.close()
 
 	#delete alden file
-	subprocess.call(["rm", al1])
+	# subprocess.call(["rm", al1])
 
 if len(sys.argv) != 2:
 	print("Need to input bpseq")
-elif os.path.isfile(os.getcwd()+"/alden"):
+elif os.path.isfile("/usr/local/bin/alden"):
 	bpseq_to_alps()
 else:
-	print("Need to run make and/or change directory to labelrna2.0")
+	print("You need alden on your path (/usr/local/bin/alden) to work!")
 

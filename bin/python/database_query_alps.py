@@ -1,5 +1,3 @@
-
-#System Imports
 import json
 import static
 import sys
@@ -28,19 +26,27 @@ def query(sql):
 	cursor.execute(sql)
 	return cursor.fetchall()
 
+sql_query = """
+SELECT a.helix, sum(a.seq_length)
+FROM alps a
+WHERE a.type = 'HELIX'
+GROUP BY a.helix
+ORDER BY a.helix;
+"""
+helix_bases = query(sql_query)
+sql_query = """
+SELECT a.helix, sum(a.seq_length)
+FROM alps a
+GROUP BY a.helix
+ORDER BY a.helix;
+"""
+total_bases = query(sql_query)
 
-# GATHER ACCESSIONS TO QUERY 
-sql_query = '''
-SELECT DISTINCT(a.accession)
-FROM aldens a
-WHERE a.type = 'BULGE'; 
-'''
-accessions = query(sql_query)
+
+
+
 print 'Found {} Accessions To Query'.format(len(accessions))
 # print accessions 
-
-fives_total = []
-threes_total = []
 
 print "Testing Accessions For Bulge 5'/3' Distribution:"
 for accession in accessions: 
@@ -87,90 +93,8 @@ for accession in accessions:
 				pass
 			sys.stdout.write('.')
 			sys.stdout.flush()
-		fives_total.append(fives)
-		threes_total.append(threes)
 		print ''
 		print "Bulges on 5': {}  3': {}   5/3: {}".format(fives, threes, float(float(fives)/float(threes)))
-		print fives_total
-		print threes_total
-
-
-
-
-
-
-# HAIRPIN LENGTH DISTRIBUTION 
-sql_query = '''
-SELECT char_length(a.seq), count(char_length(a.seq))
-FROM aldens a
-WHERE a.type = 'HAIRPIN'
-GROUP BY char_length(a.seq)
-ORDER BY char_length(a.seq)
-'''
-
-cursor = conn.cursor()
-cursor.execute(sql_query)
-result = cursor.fetchall()
-
-print 'HAIRPIN LENGTH DISTRIBUTION:'
-for row in result: 
-	print row
-print ''
-
-
-
-
-# HELIX LENGTH DISTRIBUTION 
-sql_query = '''
-SELECT a.seq_length, count(a.seq_length)
-FROM aldens a
-WHERE a.type = 'HELIX'
-GROUP BY a.seq_length
-ORDER BY a.seq_length
-'''
-
-cursor = conn.cursor()
-cursor.execute(sql_query)
-result = cursor.fetchall()
-
-print 'HELIX LENGTH DISTRIBUTION:'
-for row in result: 
-	print row
-print ''
-
-
-
-
-
-
-#BULGE SEQUENCE DISTRIBUTION 
-sql_query = '''
-SELECT
-  a.seq,
-  COUNT (*)
-FROM
-  aldens a
-WHERE
-  a.type = 'BULGE'
-GROUP BY
-  a.seq
-ORDER BY
-  COUNT (*) DESC
-LIMIT 20
-'''
-
-
-cursor.execute(sql_query)
-result = cursor.fetchall()
-
-print 'BULGE SEQUENCE DISTRIBUTION:'
-for row in result: 
-	print row
-
-
-
-
-
 
 
 
