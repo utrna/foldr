@@ -1,0 +1,6 @@
+{
+	"minloopsize": 3,
+  "maxloopsize": 15,
+  "minlength": 2, 
+  "maxlength":15
+}

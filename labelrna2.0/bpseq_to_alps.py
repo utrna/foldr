@@ -120,7 +120,7 @@ def bpseq_to_alps():
 	print header
 	#Get sequence from bpseq
 	seq = bpseq[1].tolist()
-	sequence = " "
+	sequence = ""
 	for i in seq:
 		sequence += i
 
