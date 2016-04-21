@@ -771,8 +771,8 @@ public class RheatApp extends javax.swing.JFrame {
         File outputImage;
         fc = new JFileChooser(System.getProperty("user.dir"));
         fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fc.addChoosableFileFilter(new RheatApp.InputFileFilter("png"));
-        fc.addChoosableFileFilter(new RheatApp.InputFileFilter("jpg"));
+        fc.addChoosableFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("PNG Files", "png"));
+        fc.addChoosableFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("JPEG Files", "jpg"));
         if (fc.showSaveDialog(this) == fc.APPROVE_OPTION){
             outputImage = fc.getSelectedFile();
             try {
@@ -926,7 +926,7 @@ public class RheatApp extends javax.swing.JFrame {
         fc = new JFileChooser((String)pref.get("BPSEQ"));
         fc.setMultiSelectionEnabled(false);
         fc.setAcceptAllFileFilterUsed(false);
-        fc.setFileFilter(new RheatApp.InputFileFilter("bpseq"));
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("BPSEQ Files", "bpseq", "txt"));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == fc.APPROVE_OPTION){
             inputFile = fc.getSelectedFile();
@@ -1030,48 +1030,4 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JComboBox zoomComboBox;
     private javax.swing.JList historyList;
     // End of variables declaration//GEN-END:variables
-    
-    /**
-     * Simple file chooser to accept the proper input files.
-     */
-    class InputFileFilter extends javax.swing.filechooser.FileFilter{
-        
-        private String extension;
-        
-        public InputFileFilter(String ext){
-            extension = ext.toLowerCase();
-        }
-        
-        public boolean accept(java.io.File file) {
-            if (file.isDirectory()) {
-                return true;
-            }
-            
-            String ext = getExtension(file);
-            if (ext != null) {
-                if (ext.equals(this.extension)){
-                    return true;
-                }
-            } else {
-                return false;
-            }
-            
-            return false;
-        }
-        
-        public String getDescription() {
-            return extension.toUpperCase() + " Files";
-        }
-        
-        private String getExtension(File f){
-            String ext = null;
-            String s = f.getName();
-            int i = s.lastIndexOf('.');
-            
-            if (i > 0 &&  i < s.length() - 1) {
-                ext = s.substring(i+1).toLowerCase();
-            }
-            return ext;
-        }
-    }
 }
