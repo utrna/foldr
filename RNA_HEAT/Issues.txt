@@ -1,0 +1,130 @@
+A compilation of things that were tried in the “rheat” app, with
+details on what worked and didn’t work.
+
+Written by Kevin Grant (kmgrant@utexas.edu).
+
+
+Issues
+~~~~~~
+
+The following things were tried and there were problems:
+
+- Menus:
+
+  * "Open" will only recognize files with .bpseq extension.
+
+  * Seems to have trouble opening multiple files in a session
+    (e.g. sometimes a file will not load unless rheat.jar is
+    quit and rerun).
+
+  * Selecting any filter may display an error about Undo files,
+    EVERY time a filter is selected.  (Remove this.)
+
+- Preferences:
+
+  * The "..." button for selecting a directory will only accept a
+    file (not a directory) so it will not work; directories have
+    to be entered manually.
+
+- Filters:
+
+  * Some actions can cause long pauses without any hints.
+
+  * "Energy Filter": Improve error for min-not-less-than-max.
+
+  * "Complex Distance Filter": Out-of-bounds exception when used.
+
+- "Display Window":
+
+  * Dr. Gutell sees no helices when using Windows.
+    UPDATE: Seems that after applying a Base Filter, and using
+    buttons like "Flat View" and back to "2D View", helices may
+    appear.  This could be a display-updating bug.
+
+  * Helices are sometimes hard to select, even when zoomed.
+
+- "Control Window":
+
+  * Clipped on Mac; cannot be resized or scrolled, cannot see the
+    "Actual Helices" field as a result.
+
+  * Zoom level 1.5 does not seem to do anything different than 1.
+
+  * Zoom level 100 runs out of memory.
+
+  * Zoom levels as low as 5 or 10 can also run out of memory if
+    the file that was loaded is quite large (e.g. 2000 helices).
+
+  * Seems like zoom 10 is useful but zoom 100 is too much; may
+    want to add a zoom level 15 or 20, say.
+
+  * Occasionally the "Current Helices", "Total Helices" and
+    "Actual Helices" fields appear to be enabled for typing but
+    I think they are meant to always be disabled/view-only.
+
+- "Filter History":
+
+  * Buttons like "Info..." do nothing unless a filter exists
+    (should probably conditionally disable them).
+
+  * Clicking "Undo" may display an error about saving data.
+
+- General:
+
+  * UI could be tweaked to leave more space for things and have
+    more ways to resize, etc.
+
+- Source Code:
+
+  * Several Java warnings when compiling (should clean up, they
+    may indicate possible bugs in the code).
+
+
+
+Working
+~~~~~~~
+
+The following things were tried and they DO seem to work:
+
+- Menus:
+
+  * On Mac, tried all 4 .bpseq files in "rheat/test/*.bpseq".
+    Also, I can get them working on a Windows 7 laptop.  Jamie
+    can open files on Linux and Windows servers.
+
+  * Have successfully opened files with at least 2904 helices.
+
+  * Preferences seem to work properly if they are set to a valid
+    pair of directories.
+
+- Filters:
+
+  * "Basepair Filter" was tried, checking types on/off.
+
+  * "Helix Filter" was tried, seems to apply correctly.
+
+  * "Diagonal Filter" was tried, seems to apply correctly.
+
+  * "AA / AG Ends" was tried, seems to apply correctly.
+
+  * "E-Loop" was tried, seems to apply correctly.
+
+  * "Energy Filter" was tried, seems to apply correctly if given
+    valid input.
+
+- "Display Window":
+
+  * Clicking will show x, y in "Helix Info" and, if a helix is
+    selected, more information on 5', 3', etc.
+
+- "Control Window":
+
+  * "Flat View" button changes "Display Window" view.
+
+  * "2D View" button restores helix chart.
+
+- Source Code:
+
+  * I can build the program on my Mac (JDK SE 1.7.0_75).
+
+  * Jamie can build it on Linux.
