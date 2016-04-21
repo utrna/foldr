@@ -197,10 +197,21 @@ pmean = primaries_by_hairpin_length['paired_bases'].mean().tolist()
 upstd = primaries_by_hairpin_length['unpaired_bases'].std().tolist()
 pstd = primaries_by_hairpin_length['paired_bases'].std().tolist()
 
+print primaries_by_hairpin_length.indices
 
 # plt.figure()
 # plt.bar(primaries_by_hairpin_length.indices.keys(), pmean, color='g', yerr=pstd)
 # plt.bar(primaries_by_hairpin_length.indices.keys(), upmean, color='r', yerr=upstd)
+# plt.show()
+
+
+plt.figure()
+plt.scatter(primaries['hairpin_bases'], primaries['paired_bases'])
+plt.title('Hairpin Length vs. Paired Bases in Primary Helices')
+plt.ylabel('Paired Bases')
+plt.xlabel('Hairpin Bases')
+plt.show()
+
 
 
 
@@ -235,13 +246,13 @@ pstd = primaries_by_hairpin_length['paired_bases'].std().tolist()
 
 
 
-from collections import Counter
-a = df[df['type']=='HAIRPIN']['seq']
-letter_counts = Counter(a)
-print letter_counts
-plt.figure()
-plt.bar(letter_counts.keys(), letter_counts.values())
-plt.show()
+# from collections import Counter
+# a = df[df['type']=='HAIRPIN']['seq']
+# letter_counts = Counter(a)
+# print letter_counts
+# plt.figure()
+# plt.bar(letter_counts.keys(), letter_counts.values())
+# plt.show()
 
 
 
