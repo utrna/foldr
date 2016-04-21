@@ -13,6 +13,10 @@ The following things were tried and there were problems:
 
   * "Open" will only recognize files with .bpseq extension.
 
+  * Seems to have trouble opening multiple files in a session
+    (e.g. sometimes a file will not load unless rheat.jar is
+    quit and rerun).
+
   * Selecting any filter may display an error about Undo files,
     EVERY time a filter is selected.  (Remove this.)
 
@@ -47,6 +51,9 @@ The following things were tried and there were problems:
   * Zoom level 1.5 does not seem to do anything different than 1.
 
   * Zoom level 100 runs out of memory.
+
+  * Zoom levels as low as 5 or 10 can also run out of memory if
+    the file that was loaded is quite large (e.g. 2000 helices).
 
   * Seems like zoom 10 is useful but zoom 100 is too much; may
     want to add a zoom level 15 or 20, say.
@@ -84,6 +91,8 @@ The following things were tried and they DO seem to work:
   * On Mac, tried all 4 .bpseq files in "rheat/test/*.bpseq".
     Also, I can get them working on a Windows 7 laptop.  Jamie
     can open files on Linux and Windows servers.
+
+  * Have successfully opened files with at least 2904 helices.
 
   * Preferences seem to work properly if they are set to a valid
     pair of directories.
