@@ -1,0 +1,10 @@
+setup.py
+foldrr.egg-info/PKG-INFO
+foldrr.egg-info/SOURCES.txt
+foldrr.egg-info/dependency_links.txt
+foldrr.egg-info/top_level.txt
+src/__init__.py
+src/annotate.py
+src/fold_from_vishals_branch.py
+src/rnaf.py
+src/structures.py

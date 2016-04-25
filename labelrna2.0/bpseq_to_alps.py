@@ -54,8 +54,8 @@ def bpseq_to_alps(bpseq, extension):
 	#Read in alden file
 	al = os.path.splitext(bpseq)[0]
 	al1 = al + ".labels.csv"
-	alden = pd.read_csv(al1, header=None) 
-	
+	alden = pd.read_csv(al1, header=None, na_filter=False) 
+
 	#Add columns
 	alden.insert(3, "ie", np.nan)
 	alden.insert(3, "ps", np.nan)
@@ -158,13 +158,14 @@ def bpseq_to_alps(bpseq, extension):
 	
 	#Read in bpseq, skips the first 4 rows, if header is a different size change skiprows
 	bpseq1 = pd.read_csv(bpseq, sep=' ', header=None, skiprows=4)
-
+	header = open(bpseq).readlines()[:3]
+	print header
+	
 	#Get sequence from bpseq
 	seq = bpseq1[1].tolist()
 	sequence = ""
 	for i in seq:
 		sequence += i
-	sequence = '#'+sequence+"\n"
 
 	#write output
 	if extension == ".alpsx":
@@ -172,7 +173,10 @@ def bpseq_to_alps(bpseq, extension):
 	else:
 		al2 = al + extension #filename
 	f = open(al2, 'w')
-	f.write(sequence)
+	for line in header: 
+		f.write(line)
+		print line 
+	f.write('Sequence: ' + sequence + '\n')
 	alden.to_csv(f, sep=' ', header = None, index=None)
 	f.close()
 
