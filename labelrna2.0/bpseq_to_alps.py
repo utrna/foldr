@@ -5,8 +5,10 @@
 #Creates a temporary alden file from which an alps file is created.
 #Run make to compile and create executable(alden) before running bpseq_to_alps.py
 #Must run bpseq_to_alps.py in the labelrnaA2.0 directory.
-#argv[1]: bpseq file
-#argv[2]: path to output directory 
+#Two options -nostrip takes the bpseq as is and converts to .alps,
+# -strip removes noncanonical basepairs and lone base pairss and converts to .alpsx
+#argv[1]: option
+#argv[2]: bpseq file
 import os
 import subprocess
 import sys
@@ -14,12 +16,43 @@ import pandas as pd
 import numpy as np
 from string import ascii_lowercase
 
-def bpseq_to_alps():
+def strip(bpseq):
+	#get bpseq
+	bps = pd.read_csv(bpseq, sep=' ', header=None, skiprows=4)
+
+	#define canonical
+	canonical = {('A', 'U'), ('U', 'A'), ('G', 'C'), ('C', 'G'), ('G', 'U'), ('U', 'G')}
+	
+	#remove noncanonical base pairs
+	for row in bps.itertuples():
+		i = row[0]
+		pair = row[3]
+		if pair != 0:
+			bp = (bps.ix[i, 1], bps.ix[pair-1, 1])
+			if bp not in canonical:
+				bps.ix[i, 2] = 0
+				bps.ix[pair-1, 2] = 0
+	
+	#remove lone base pairs
+	for row in bps.itertuples():
+		i = row[0]
+		pair = row[3]
+		if pair != 0 and bps.ix[i-1, 2] == 0 and bps.ix[i+1, 2] == 0:
+			bps.ix[i, 2] = 0
+			bps.ix[pair-1, 2] = 0
+	
+	#output new stripped bpseq
+	stripped = os.path.splitext(bpseq)[0] + "1.bpseq"
+	bps.to_csv(stripped, sep=' ', header=None, index=None)
+	
+	return stripped
+
+def bpseq_to_alps(bpseq, extension):
 	#Create alden file from bpseq
-	subprocess.call(["./alden", sys.argv[1]])
+	subprocess.call(["./alden", bpseq])
 
 	#Read in alden file
-	al = os.path.splitext(sys.argv[1])[0]
+	al = os.path.splitext(bpseq)[0]
 	al1 = al + ".labels.csv"
 	alden = pd.read_csv(al1, header=None) 
 	
@@ -28,6 +61,15 @@ def bpseq_to_alps():
 	alden.insert(3, "ps", np.nan)
 	alden.insert(3, "label2", np.nan)
 	alden.insert(3, "label1", np.nan)
+	alden.insert(3, "53", np.nan)
+	
+	#Define 5' and 3' helices
+	helices = alden[alden[2] == "HELIX"]
+	for row in helices.itertuples():
+		if row[1] == row[11]:
+			alden.ix[row[0], "53"] = "5'"
+		else:
+			alden.ix[row[0], "53"] = "3'"
 
 	#Define primary helices
 	hairpins = alden[alden[2] == "HAIRPIN"]
@@ -82,32 +124,32 @@ def bpseq_to_alps():
 	helix = 1
 	letter = 0
 	for row in sec.itertuples():
-		if len(stack) > 0 and row[8] == stack[len(stack)-1][8]:
-			alden.ix[alden[3]==row[8], "ps"] = "SECONDARY"
-			alden.ix[alden[3]==row[8], "label1"] = 'S'+str(helix)
+		if len(stack) > 0 and row[9] == stack[len(stack)-1][9]:
+			alden.ix[alden[3]==row[9], "ps"] = "SECONDARY"
+			alden.ix[alden[3]==row[9], "label1"] = 'S'+str(helix)
 			if alden.ix[row[0]+1, 2] != "MULTISTEM" and alden.ix[row[0]+1, 2] != "FREE" and  alden.ix[stack[len(stack)-1][0]-1, 2] != "MULTISTEM" and alden.ix[stack[len(stack)-1][0]-1, 2] != "FREE":
 				if alden.ix[row[0]+1, 2] == "BULGE" or alden.ix[row[0]+1, 2] == "INTERNAL":
 					alden.ix[row[0]+1, "label1"] = 'S'+str(helix)
 				if  alden.ix[stack[len(stack)-1][0]-1, 2] == "BULGE" or alden.ix[stack[len(stack)-1][0]-1, 2] == "INTERNAL":
 					alden.ix[stack[len(stack)-1][0]-1, "label1"] = 'S'+str(helix) 
 	 			if letter == 0:
-					alden.ix[alden[3]==row[8], "ie"] = "INITIATION"
+					alden.ix[alden[3]==row[9], "ie"] = "INITIATION"
 				else:
-					alden.ix[alden[3]==row[8], "ie"] = "ELONGATION"
+					alden.ix[alden[3]==row[9], "ie"] = "ELONGATION"
 				if row[1] == row[2]:
-					alden.ix[alden[3]==row[8], "label2"] = 'x'
+					alden.ix[alden[3]==row[9], "label2"] = 'x'
 				else:
-					alden.ix[alden[3]==row[8], "label2"] = ascii_lowercase[letter]
+					alden.ix[alden[3]==row[9], "label2"] = ascii_lowercase[letter]
 					letter += 1
 			else:
 				if letter == 0:
-					alden.ix[alden[3]==row[8], "ie"] = "INITIATION"
+					alden.ix[alden[3]==row[9], "ie"] = "INITIATION"
 				else:
-					alden.ix[alden[3]==row[8], "ie"] = "ELONGATION"
+					alden.ix[alden[3]==row[9], "ie"] = "ELONGATION"
 				if row[1] == row[2]:
-					alden.ix[alden[3]==row[8], "label2"] = 'x'
+					alden.ix[alden[3]==row[9], "label2"] = 'x'
 				else:
-					alden.ix[alden[3]==row[8], "label2"] = ascii_lowercase[letter]
+					alden.ix[alden[3]==row[9], "label2"] = ascii_lowercase[letter]
 				helix += 1
 				letter = 0
 			stack.pop()
@@ -115,17 +157,20 @@ def bpseq_to_alps():
 			stack.append(row)	
 	
 	#Read in bpseq, skips the first 4 rows, if header is a different size change skiprows
-	bpseq = pd.read_csv(sys.argv[1], sep=' ', header=None, skiprows=4)
+	bpseq1 = pd.read_csv(bpseq, sep=' ', header=None, skiprows=4)
 
 	#Get sequence from bpseq
-	seq = bpseq[1].tolist()
+	seq = bpseq1[1].tolist()
 	sequence = ""
 	for i in seq:
 		sequence += i
 	sequence = '#'+sequence+"\n"
 
 	#write output
-	al2 = al + ".alps" #filename
+	if extension == ".alpsx":
+		al2 = al[:-1] + extension #filename
+	else:
+		al2 = al + extension #filename
 	f = open(al2, 'w')
 	f.write(sequence)
 	alden.to_csv(f, sep=' ', header = None, index=None)
@@ -134,10 +179,16 @@ def bpseq_to_alps():
 	#delete alden file
 	subprocess.call(["rm", al1])
 
-if len(sys.argv) != 2:
-	print("Need to input bpseq")
-elif os.path.isfile(os.getcwd()+"/alden"):
-	bpseq_to_alps()
-else:
+if len(sys.argv) != 3:
+	print("Incorrect inputs, needs option and bpseq file.")
+elif os.path.isfile(os.getcwd()+"/alden") == False:
 	print("Need to run make and/or change directory to labelrna2.0")
+elif sys.argv[1] == "-strip":
+	bpseq = strip(sys.argv[2])
+	bpseq_to_alps(bpseq, ".alpsx")
+	subprocess.call(["rm", bpseq])
+elif sys.argv[1] == "-nostrip":
+	bpseq_to_alps(sys.argv[2], ".alps")
+else:
+	print("Acceptable options are -strip and -nostrip.")
 
