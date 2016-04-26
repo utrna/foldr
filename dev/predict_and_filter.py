@@ -64,38 +64,46 @@ for helix in to_write:
     tmp_file.write(",".join(helix)+'\n')
 tmp_file.close()
 
+
+### END OF ASHTONS CODE ###
+#Read In Raw Predicted Helices And Apply Stats 
+
 df = pd.read_csv(tmp_handle)
-# pis = struct.predict_pis(df, sq)
-
-### CURRENT REFACTORING - Read In Hairpin Seq Stats
-
 #filter out the structures with loops that are too big and energies that are too high
 pis = df[(df.LOOPSIZE < params['maxloopsize']) & (df.LOOPSIZE >= params['minloopsize']) & (df.ENERGY < 0)].copy()
+
+#filter out helices that are contained within other helices 
+
+
+#add sequence info to potential helices 
 pis['5SEQ'] = [sq[x:y] for x,y in zip(pis['5START'].tolist(), pis['5STOP'].tolist())]
 pis['3SEQ'] = [sq[x:y] for x,y in zip(pis['3START'].tolist(), pis['3STOP'].tolist())]
 pis['LOOPSEQ'] = [sq[x:y-1] for x,y in zip(pis['5STOP'].tolist(), pis['3START'].tolist())]
 
 
+# pis object now contains data neccesary for filtering 
+
+# FILTER ON HAIRPIN LOOP SEQ
 # PROXY UNTIL WE LOAD IN THE REAL THING 
 loop_score_df = pd.DataFrame({'Seq':['uucg', 'cuug'], 'Score': [5.0, 5.0]})
-
 #If Loop Seq Contains A Sequence In LoopDF, Take Max 
 pis['LOOP_SCORE'] = pis['LOOPSEQ'].apply(lambda s: loop_score_df[loop_score_df.apply(lambda x: x['Seq'] in s, axis=1)]['Score'].max())  
 pis['LOOP_SCORE'].fillna(0, inplace=True)
-
 # IF Starts With G and Ends With A. Sloppy but practical... 
 pis['LOOP_SCORE'] = pis.apply(lambda row: row['LOOP_SCORE']+5 if (row['LOOPSEQ'][0]=='g') & (row['LOOPSEQ'][-1]=='a') else row['LOOP_SCORE'], axis=1)
 
 
-
+# CALCULATE MODIFIED ENERGY FROM LOOP_SCORE AND LOOP SIZE 
 pis['E_MOD'] = (pis["ENERGY"] - (pis["LOOP_SCORE"])) / pis["LOOPSIZE"]
 pis = pis.sort_values(by="E_MOD")
 pis.reset_index(inplace=True, drop=True)
 
 
 
+
 print 'Constructed DataFrame Of {} Predited Primary Helices'.format(len(pis))
 print pis.head()
+
 
 
 if args.piesie != None:
