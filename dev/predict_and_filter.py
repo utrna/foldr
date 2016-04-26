@@ -54,8 +54,8 @@ to_write = []
 for k, v in possibleHelices.iteritems():
     for h in v:
         to_write.append([str(k[0]),str(k[1]),str(h[0]),str(h[1]),str(k[1]-k[0]+1),str(h[0]-k[1]-1),str(h[2])])
-to_write.sort(key=lambda x: (int(x[0]),int(x[2])))
-
+to_write.sort(key=lambda x: (int(x[0]),int(x[1])))
+ 
 
 tmp_handle = 'tmpfile.allhelices'
 tmp_file = open(tmp_handle,'w')
@@ -71,8 +71,6 @@ tmp_file.close()
 df = pd.read_csv(tmp_handle)
 #filter out the structures with loops that are too big and energies that are too high
 pis = df[(df.LOOPSIZE < params['maxloopsize']) & (df.LOOPSIZE >= params['minloopsize']) & (df.ENERGY < 0)].copy()
-
-#filter out helices that are contained within other helices 
 
 
 #add sequence info to potential helices 
@@ -100,10 +98,24 @@ pis.reset_index(inplace=True, drop=True)
 
 
 
+print 'Constructed DataFrame Of {} Predicted Primary Helices'.format(len(pis))
 
-print 'Constructed DataFrame Of {} Predited Primary Helices'.format(len(pis))
+print 'Filtering Out Redundant Helices'
+pislist = pis.values.tolist()
+filtered_pis = [] 
+for pi in pislist: 
+    surrounding = pis[(pis['5START'] <= pi[0]) & (pis['5STOP'] >= pi[1]) & (pis['3START'] <= pi[3]) & (pis['3STOP'] >= pi[4])]
+    if len(surrounding) > 1: 
+        pass 
+    else: 
+        filtered_pis.append(pi)
+
+df = pd.DataFrame.from_records(filtered_pis)
+df.columns = pis.columns 
+pis = df 
+
+print 'Filtered DataFrame Of {} Predicted, Nonredundant Primary Helices'.format(len(pis))
 print pis.head()
-
 
 
 if args.piesie != None:
