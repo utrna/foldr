@@ -18,7 +18,8 @@ from string import ascii_lowercase
 
 def strip(bpseq):
 	#get bpseq
-	bps = pd.read_csv(bpseq, sep=' ', header=None, skiprows=4)
+	bps = pd.read_csv(bpseq, sep=' ', header=None, skiprows=4)	
+	header = open(bpseq).readlines()[:4]
 
 	#define canonical
 	canonical = {('A', 'U'), ('U', 'A'), ('G', 'C'), ('C', 'G'), ('G', 'U'), ('U', 'G')}
@@ -42,9 +43,14 @@ def strip(bpseq):
 			bps.ix[pair-1, 2] = 0
 	
 	#output new stripped bpseq
+	header = open(bpseq).readlines()[:4]
 	stripped = os.path.splitext(bpseq)[0] + "1.bpseq"
-	bps.to_csv(stripped, sep=' ', header=None, index=None)
-	
+	f= open(stripped, 'w')
+	for line in header:
+		f.write(line)
+	bps.to_csv(f, sep=' ', header=None, index=None)
+	f.close()
+
 	return stripped
 
 def bpseq_to_alps(bpseq, extension):
@@ -158,8 +164,7 @@ def bpseq_to_alps(bpseq, extension):
 	
 	#Read in bpseq, skips the first 4 rows, if header is a different size change skiprows
 	bpseq1 = pd.read_csv(bpseq, sep=' ', header=None, skiprows=4)
-	header = open(bpseq).readlines()[:3]
-	print header
+	header = open(bpseq).readlines()[:4]
 	
 	#Get sequence from bpseq
 	seq = bpseq1[1].tolist()
@@ -175,7 +180,6 @@ def bpseq_to_alps(bpseq, extension):
 	f = open(al2, 'w')
 	for line in header: 
 		f.write(line)
-		print line 
 	f.write('Sequence: ' + sequence + '\n')
 	alden.to_csv(f, sep=' ', header = None, index=None)
 	f.close()
@@ -190,7 +194,7 @@ elif os.path.isfile(os.getcwd()+"/alden") == False:
 elif sys.argv[1] == "-strip":
 	bpseq = strip(sys.argv[2])
 	bpseq_to_alps(bpseq, ".alpsx")
-	subprocess.call(["rm", bpseq])
+	#subprocess.call(["rm", bpseq])
 elif sys.argv[1] == "-nostrip":
 	bpseq_to_alps(sys.argv[2], ".alps")
 else:
