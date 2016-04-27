@@ -91,28 +91,61 @@ pis['LOOP_SCORE'].fillna(0, inplace=True)
 pis['LOOP_SCORE'] = pis.apply(lambda row: row['LOOP_SCORE']+5 if (row['LOOPSEQ'][0]=='g') & (row['LOOPSEQ'][-1]=='a') else row['LOOP_SCORE'], axis=1)
 
 
+
+# ADD POLE_SCORE FOR LOOP SEQUENCES PRESENT WITH FREQUENCY 
+pole_frequencies = pd.read_csv('Pole.csv')
+#If Loop Seq Contains A Sequence In LoopDF, Take Max 
+pis['POLE_SCORE'] = pis['LOOPSEQ'].apply(lambda s: pole_frequencies[pole_frequencies.apply(lambda x: x['Pole'] in s.upper(), axis=1)]['Frequency'].sum())  
+pis['POLE_SCORE'].fillna(0, inplace=True)
+
+
+
+# FIND NECK SCORE FOR LAST TWO BASES PAIRED ON HELIX
+neck_frequencies = {}
+for x,y in pd.read_csv('Neck.csv').to_dict(orient='split')['data']: 
+    neck_frequencies[x]=y
+print neck_frequencies
+
+def find_neck_score(row): 
+    neck = row['5SEQ'][-1] + row['3SEQ'][0]
+    if neck.upper() in neck_frequencies.keys(): 
+        return neck_frequencies[neck.upper()]
+    else: 
+        return 0.0 
+
+pis['NECK_SCORE'] = pis.apply(lambda row: find_neck_score(row), axis=1)
+
+
+
 # CALCULATE MODIFIED ENERGY FROM LOOP_SCORE AND LOOP SIZE 
-pis['E_MOD'] = (pis["ENERGY"] - (pis["LOOP_SCORE"])) / pis["LOOPSIZE"]
+# pis['E_MOD'] = (pis["ENERGY"] - (pis["LOOP_SCORE"])) / pis["LOOPSIZE"]
+pis['E_MOD'] = (pis["ENERGY"] - (pis["LOOP_SCORE"]) - (pis['NECK_SCORE']) - (pis['POLE_SCORE'])) / pis["LOOPSIZE"]
 pis = pis.sort_values(by="E_MOD")
 pis.reset_index(inplace=True, drop=True)
 
 
 
+
 print 'Constructed DataFrame Of {} Predicted Primary Helices'.format(len(pis))
 
-print 'Filtering Out Redundant Helices'
-pislist = pis.values.tolist()
-filtered_pis = [] 
-for pi in pislist: 
-    surrounding = pis[(pis['5START'] <= pi[0]) & (pis['5STOP'] >= pi[1]) & (pis['3START'] <= pi[3]) & (pis['3STOP'] >= pi[4])]
-    if len(surrounding) > 1: 
-        pass 
-    else: 
-        filtered_pis.append(pi)
+# UNCOMMENT THIS SECTION TO FILTER REDUNDANT HELICES
+# print 'Filtering Out Redundant Helices'
+# pislist = pis.values.tolist()
+# filtered_pis = [] 
+# for pi in pislist: 
+#     surrounding = pis[(pis['5START'] <= pi[0]) & (pis['5STOP'] >= pi[1]) & (pis['3START'] <= pi[3]) & (pis['3STOP'] >= pi[4])]
+#     if len(surrounding) > 1: 
+#         pass 
+#     else: 
+#         filtered_pis.append(pi)
+# df = pd.DataFrame.from_records(filtered_pis)
+# df.columns = pis.columns 
+# pis = df 
 
-df = pd.DataFrame.from_records(filtered_pis)
-df.columns = pis.columns 
-pis = df 
+
+
+
+
 
 print 'Filtered DataFrame Of {} Predicted, Nonredundant Primary Helices'.format(len(pis))
 print pis.head()
