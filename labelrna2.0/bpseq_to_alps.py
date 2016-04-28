@@ -17,14 +17,14 @@ import numpy as np
 from string import ascii_lowercase
 
 def strip(bpseq):
-	#get bpseq
+	#Get bpseq
 	bps = pd.read_csv(bpseq, sep=' ', header=None, skiprows=4)	
 	header = open(bpseq).readlines()[:4]
 
-	#define canonical
+	#Define canonical
 	canonical = {('A', 'U'), ('U', 'A'), ('G', 'C'), ('C', 'G'), ('G', 'U'), ('U', 'G')}
 	
-	#remove noncanonical base pairs
+	#Remove noncanonical base pairs
 	for row in bps.itertuples():
 		i = row[0]
 		pair = row[3]
@@ -34,15 +34,19 @@ def strip(bpseq):
 				bps.ix[i, 2] = 0
 				bps.ix[pair-1, 2] = 0
 	
-	#remove lone base pairs
+	#Remove lone base pairs
 	for row in bps.itertuples():
 		i = row[0]
 		pair = row[3]
-		if pair != 0 and bps.ix[i-1, 2] == 0 and bps.ix[i+1, 2] == 0:
-			bps.ix[i, 2] = 0
-			bps.ix[pair-1, 2] = 0
+		if pair != 0 and bps.ix[i+1, 2] == 0:
+			if i == 0:
+				bps.ix[i, 2] = 0
+				bps.ix[pair-1, 2] = 0
+			elif bps.ix[i-1, 2] == 0:
+				bps.ix[i, 2] = 0
+				bps.ix[pair-1, 2] = 0
 	
-	#output new stripped bpseq
+	#Output new stripped bpseq
 	header = open(bpseq).readlines()[:4]
 	stripped = os.path.splitext(bpseq)[0] + "1.bpseq"
 	f= open(stripped, 'w')
@@ -54,6 +58,7 @@ def strip(bpseq):
 	return stripped
 
 def bpseq_to_alps(bpseq, extension):
+	
 	#Create alden file from bpseq
 	subprocess.call(["./alden", bpseq])
 
@@ -74,6 +79,16 @@ def bpseq_to_alps(bpseq, extension):
 	for row in helices.itertuples():
 		if row[1] == row[11]:
 			alden.ix[row[0], "53"] = "5'"
+	 	else:
+			alden.ix[row[0], "53"] = "3'"
+	
+	#Define 5' and 3' bulges and internals:
+	internal = alden[2] == "INTERNAL"
+	bulge = alden[2] == "BULGE"
+	internals = alden[internal | bulge]
+	for row in internals.itertuples():
+		if alden.ix[row[0]-1, "53"] == "5'":
+			alden.ix[row[0], "53"] = "5'"
 		else:
 			alden.ix[row[0], "53"] = "3'"
 
@@ -82,9 +97,9 @@ def bpseq_to_alps(bpseq, extension):
 	helix = 1
 	for row in hairpins.itertuples():
 		alden.ix[row[0], "label1"] = 'P'+str(helix)
-		up = row[0] + 1 
-		down = row[0] - 1
 		letter = 0
+		up = row[0] + 1
+		down = row[0] -1
 		#initiation
 		i = alden.ix[up, 3]
 		alden.ix[alden[3]==i, "ps"] = "PRIMARY"
@@ -133,7 +148,7 @@ def bpseq_to_alps(bpseq, extension):
 		if len(stack) > 0 and row[9] == stack[len(stack)-1][9]:
 			alden.ix[alden[3]==row[9], "ps"] = "SECONDARY"
 			alden.ix[alden[3]==row[9], "label1"] = 'S'+str(helix)
-			if alden.ix[row[0]+1, 2] != "MULTISTEM" and alden.ix[row[0]+1, 2] != "FREE" and  alden.ix[stack[len(stack)-1][0]-1, 2] != "MULTISTEM" and alden.ix[stack[len(stack)-1][0]-1, 2] != "FREE":
+			if row[0] < sec.size and  len(stack) > 0 and stack[len(stack)-1][0] > 0 and alden.ix[row[0]+1, 2] != "MULTISTEM" and alden.ix[row[0]+1, 2] != "FREE" and  alden.ix[stack[len(stack)-1][0]-1, 2] != "MULTISTEM" and alden.ix[stack[len(stack)-1][0]-1, 2] != "FREE":
 				if alden.ix[row[0]+1, 2] == "BULGE" or alden.ix[row[0]+1, 2] == "INTERNAL":
 					alden.ix[row[0]+1, "label1"] = 'S'+str(helix)
 				if  alden.ix[stack[len(stack)-1][0]-1, 2] == "BULGE" or alden.ix[stack[len(stack)-1][0]-1, 2] == "INTERNAL":
