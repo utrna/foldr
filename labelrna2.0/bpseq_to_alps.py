@@ -187,7 +187,7 @@ def bpseq_to_alps(bpseq, extension):
 	for i in seq:
 		sequence += i
 
-	#write output
+	#Write output
 	if extension == ".alpsx":
 		al2 = al[:-1] + extension #filename
 	else:
@@ -199,7 +199,7 @@ def bpseq_to_alps(bpseq, extension):
 	alden.to_csv(f, sep=' ', header = None, index=None)
 	f.close()
 
-	#delete alden file
+	#Delete alden file
 	subprocess.call(["rm", al1])
 
 if len(sys.argv) != 3:
@@ -209,7 +209,7 @@ elif os.path.isfile(os.getcwd()+"/alden") == False:
 elif sys.argv[1] == "-strip":
 	bpseq = strip(sys.argv[2])
 	bpseq_to_alps(bpseq, ".alpsx")
-	#subprocess.call(["rm", bpseq])
+	subprocess.call(["rm", bpseq])
 elif sys.argv[1] == "-nostrip":
 	bpseq_to_alps(sys.argv[2], ".alps")
 else:
