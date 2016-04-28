@@ -1,0 +1,20 @@
+#!/usr/bin/awk -f
+
+BEGIN { OFS="\t" }
+
+/^RNA/ { print; next }
+
+{
+  key = $1 OFS $2 OFS $3
+
+  # new key or new range, print last line
+  if( key != l_key || l_end+1 < $4 ) {
+    if( FNR>1 && l_key ) { print l_key, s[l_key], l_end }
+    s[key]=$4
+  }
+
+  l_key=key
+  l_end=$5
+}
+
+END { print l_key, s[l_key], l_end } # print final range
