@@ -1,4 +1,4 @@
-#bpseq_to_alps.py
+#bpseq_to_alps.py Claire Palmer 
 #alps = alden and piesie combined format, has header with RNA sequence
 #Converts bpseq to alps using alden program.
 #Takes bpseq (must be pseudo knot free!)
@@ -21,7 +21,7 @@ def strip(bpseq):
 	bps = pd.read_csv(bpseq, sep=' ', header=None, skiprows=4)	
 	header = open(bpseq).readlines()[:4]
 
-	#Define canonical
+	#Define canonical base pairing
 	canonical = {('A', 'U'), ('U', 'A'), ('G', 'C'), ('C', 'G'), ('G', 'U'), ('U', 'G')}
 	
 	#Remove noncanonical base pairs
@@ -100,7 +100,7 @@ def bpseq_to_alps(bpseq, extension):
 		letter = 0
 		up = row[0] + 1
 		down = row[0] -1
-		#initiation
+		#Initiation
 		i = alden.ix[up, 3]
 		alden.ix[alden[3]==i, "ps"] = "PRIMARY"
 		alden.ix[alden[3]==i, "ie"] = "INITIATION"
@@ -110,7 +110,7 @@ def bpseq_to_alps(bpseq, extension):
 		else:
 			alden.ix[alden[3]==i, "label2"] = ascii_lowercase[letter]
 			letter += 1
-		#elongation
+		#Elongation
 		while up < len(alden.index) and alden.ix[up, 2] != "MULTISTEM" and alden.ix[up, 2] != "FREE" and down > 0 and alden.ix[down, 2] != "MULTISTEM" and alden.ix[down, 2] != "FREE":
 			if alden.ix[up, 2] == "BULGE":
 				i = alden.ix[up, 3]
