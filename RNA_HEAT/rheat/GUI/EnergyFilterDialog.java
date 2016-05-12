@@ -165,7 +165,7 @@ public class EnergyFilterDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new EnergyFilterDialog(null, 0, new javax.swing.JFrame()).show();
+        new EnergyFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
     }
     
     

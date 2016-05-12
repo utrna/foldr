@@ -177,7 +177,7 @@ public class PreferenceDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new PreferenceDialog(new javax.swing.JFrame(), true, null, null).show();
+        new PreferenceDialog(new javax.swing.JFrame(), true, null, null).setVisible(true);
     }
     
     

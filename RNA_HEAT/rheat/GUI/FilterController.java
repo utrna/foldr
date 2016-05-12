@@ -65,7 +65,7 @@ public class FilterController {
         if (dialog != null){
             java.awt.Point origin = parent.getCenteredOrigin(dialog);
             dialog.setLocation(origin);
-            dialog.show();
+            dialog.setVisible(true);
         }
         return rna;
     }

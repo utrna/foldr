@@ -206,7 +206,7 @@ public class BasepairFilterDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new BasepairFilterDialog(null, 0, new javax.swing.JFrame()).show();
+        new BasepairFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
     }
     
     

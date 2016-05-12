@@ -162,7 +162,7 @@ public class ComplexFilterDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new ComplexFilterDialog(null, 0, new javax.swing.JFrame()).show();
+        new ComplexFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
     }
     
     

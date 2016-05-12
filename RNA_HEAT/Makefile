@@ -59,7 +59,7 @@ rheat.jar: | $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)
 
 # build source code
 %.class: %.java
-	javac -cp $(CLASSPATH) -Xlint:unchecked $^
+	javac -cp $(CLASSPATH) -Xlint:deprecation -Xlint:unchecked $^
 
 # build documentation
 javadoc/index.html: all

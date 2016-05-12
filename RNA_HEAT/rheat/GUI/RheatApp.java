@@ -133,7 +133,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void updateImage(){
         if (_rna != null /*&& this.helixImgGen != null*/){
-            busyDialog.show();
+            busyDialog.setVisible(true);
             try {
                 System.gc();
                 float zoom = Float.parseFloat((String)this.zoomComboBox.getSelectedItem());
@@ -796,7 +796,7 @@ public class RheatApp extends javax.swing.JFrame {
         javax.swing.JDialog d = new PreferenceDialog(this, true, preffile, pref);
         java.awt.Point origin = getCenteredOrigin(d);
         d.setLocation(origin);
-        d.show();
+        d.setVisible(true);
     }//GEN-LAST:event_preferencesMenuItemActionPerformed
     
     private void viewInfoMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewInfoMenuItemActionPerformed
@@ -851,7 +851,7 @@ public class RheatApp extends javax.swing.JFrame {
     private void contentMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contentMenuItemActionPerformed
         HelpContentJFrame contents = new HelpContentJFrame();
         contents.setLocation(0,0);
-        contents.show();
+        contents.setVisible(true);
     }//GEN-LAST:event_contentMenuItemActionPerformed
     
     private void helixFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helixFilterItemActionPerformed
@@ -880,7 +880,7 @@ public class RheatApp extends javax.swing.JFrame {
         HelpAboutJFrame about = new HelpAboutJFrame();
         Point origin = getCenteredOrigin(about);
         about.setLocation(origin);
-        about.show();
+        about.setVisible(true);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
     
     private void zoomComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_zoomComboBoxItemStateChanged
@@ -973,7 +973,7 @@ public class RheatApp extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new RheatApp().show();
+        new RheatApp().setVisible(true);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

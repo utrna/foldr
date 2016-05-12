@@ -181,7 +181,7 @@ public class HelpContentJFrame extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
          
-        new HelpContentJFrame().show();
+        new HelpContentJFrame().setVisible(true);
     }
     
     

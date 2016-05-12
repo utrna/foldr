@@ -64,9 +64,9 @@ public class BusyWaitDialog extends javax.swing.JDialog {
         dispose();
     }
     
-    public void show(){
+    public void setVisible(boolean isVisible){
         this.setModal(false);
-        super.show();
+        super.setVisible(isVisible);
         //this.setModal(false);
     }
     
@@ -79,7 +79,7 @@ public class BusyWaitDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new BusyWaitDialog(new javax.swing.JFrame(), true).show();
+        new BusyWaitDialog(new javax.swing.JFrame(), true).setVisible(true);
     }
     
     

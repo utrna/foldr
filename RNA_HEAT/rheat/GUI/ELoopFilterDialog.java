@@ -109,7 +109,7 @@ public class ELoopFilterDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new ELoopFilterDialog(null, 0, new javax.swing.JFrame()).show();
+        new ELoopFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
     }
     
     
