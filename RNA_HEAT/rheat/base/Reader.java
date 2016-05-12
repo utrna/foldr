@@ -56,8 +56,8 @@ public class Reader {
      * @return An RNA object from the BPSEQ file read.
      */
     public RNA readBPSEQ(){
-        final ArrayList alist = new ArrayList();
-        final ArrayList realBP = new ArrayList();
+        final ArrayList<String> alist = new ArrayList<String>();
+        final ArrayList<Pair> realBP = new ArrayList<Pair>();
         try {
             StringTokenizer token;
             int pos, align;

@@ -19,9 +19,9 @@ public class HelixArray implements HelixStore {
     
     /** Creates a new instance of HelixGroup */
     public HelixArray(int size) {
-        _helix = new ArrayList(size);
+        _helix = new ArrayList<LinkedList<Helix>>(size);
         for (int i = 0; i < size; i++){
-            _helix.add(i, new LinkedList());
+            _helix.add(i, new LinkedList<Helix>());
         }
         numHelix = 0;
     }
@@ -35,13 +35,13 @@ public class HelixArray implements HelixStore {
         int y = h.getStartY();
         int length = h.getLength();
         for (int i = 0; i < length; i++){
-            LinkedList l = (LinkedList)_helix.get(x + i);
+            LinkedList<Helix> l = (LinkedList<Helix>)_helix.get(x + i);
             //if (!l.contains(h)){
                 l.add(h);
             //}
         }
         for (int i = 0; i < length; i++){
-            LinkedList l = (LinkedList)_helix.get(y + i);
+            LinkedList<Helix> l = (LinkedList<Helix>)_helix.get(y + i);
             //if (!l.contains(h)){
                 l.add(h);
             //}
@@ -67,6 +67,6 @@ public class HelixArray implements HelixStore {
         return _helix.size();
     }
     
-    private ArrayList _helix;
+    private ArrayList<LinkedList<Helix>> _helix;
     private int numHelix;
 }

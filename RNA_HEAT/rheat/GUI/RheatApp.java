@@ -37,7 +37,7 @@ public class RheatApp extends javax.swing.JFrame {
     private HelixImageGenerator helixImgGen;
     private JFileChooser fc = new JFileChooser();
     private BusyWaitDialog busyDialog;
-    private HashMap pref = new HashMap();
+    private HashMap<String, String> pref = new HashMap<String, String>();
     //private String preffile = "j:\\pref.bin";
     //private String undofile = "undo";
     private int undoMax = 20;
@@ -57,7 +57,7 @@ public class RheatApp extends javax.swing.JFrame {
     }
     
     private void addUndo(){
-        String undofile = (String)pref.get("Undo") + File.separator + "undo" + currentUndo;
+        String undofile = pref.get("Undo") + File.separator + "undo" + currentUndo;
         try {
             ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(undofile));
             ois.writeObject(this._rna);
@@ -73,12 +73,13 @@ public class RheatApp extends javax.swing.JFrame {
     }
     
     private void addHistory(FilterInfo fi){
-        DefaultListModel dlm = (DefaultListModel)this.historyList.getModel();
+        @SuppressWarnings({"unchecked"}) DefaultListModel<FilterInfo> dlm =
+                                         (DefaultListModel<FilterInfo>)this.historyList.getModel();
         dlm.addElement(fi);
     }
     
     private void clearHistory(){
-        this.historyList.setModel(new DefaultListModel());
+        this.historyList.setModel(new DefaultListModel<FilterInfo>());
     }
     
     /**
@@ -90,7 +91,9 @@ public class RheatApp extends javax.swing.JFrame {
         ObjectOutputStream oos = null;
         try {
             ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(preffile)));
-            pref = (HashMap)ois.readObject();
+            @SuppressWarnings({"unchecked"}) HashMap<String, String> newPref =
+                                             (HashMap<String, String>)ois.readObject();
+            pref = newPref;
         }
         catch (java.io.FileNotFoundException ex){
             String err ="Your preference file either does not exist, or is corrupted.  A new one will be created.";
@@ -283,7 +286,7 @@ public class RheatApp extends javax.swing.JFrame {
         lengthLabel = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         zoomLevelLabel = new javax.swing.JLabel();
-        zoomComboBox = new javax.swing.JComboBox();
+        zoomComboBox = new javax.swing.JComboBox<String>();
         view2DBtn = new javax.swing.JButton();
         viewFlatBtn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
@@ -296,7 +299,7 @@ public class RheatApp extends javax.swing.JFrame {
         HistoryFrame = new javax.swing.JInternalFrame();
         jPanel4 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        historyList = new javax.swing.JList();
+        historyList = new javax.swing.JList<FilterInfo>();
         jPanel5 = new javax.swing.JPanel();
         undoFilterBtn = new javax.swing.JButton();
         infoFilterBtn = new javax.swing.JButton();
@@ -380,7 +383,7 @@ public class RheatApp extends javax.swing.JFrame {
         jPanel3.add(zoomLevelLabel);
 
         zoomComboBox.setEditable(true);
-        zoomComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0.01", "0.1", "0.5", "1", "1.5", "2", "5", "10", "100" }));
+        zoomComboBox.setModel(new javax.swing.DefaultComboBoxModel<String>(new String[] { "0.01", "0.1", "0.5", "1", "1.5", "2", "5", "10", "100" }));
         zoomComboBox.setSelectedIndex(3);
         zoomComboBox.setPreferredSize(new java.awt.Dimension(100, 26));
         zoomComboBox.setAutoscrolls(true);
@@ -451,7 +454,7 @@ public class RheatApp extends javax.swing.JFrame {
         jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane2.setPreferredSize(new java.awt.Dimension(180, 140));
         jScrollPane2.setAutoscrolls(true);
-        historyList.setModel(new DefaultListModel());
+        historyList.setModel(new DefaultListModel<FilterInfo>());
         historyList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         historyList.setPreferredSize(null);
         jScrollPane2.setViewportView(historyList);
@@ -729,8 +732,8 @@ public class RheatApp extends javax.swing.JFrame {
     private void infoFilterBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_infoFilterBtnActionPerformed
         int select = this.historyList.getSelectedIndex();
         if (select != -1){
-            DefaultListModel dlm = (DefaultListModel)this.historyList.getModel();
-            FilterInfo info = (FilterInfo)dlm.get(select);
+            DefaultListModel<FilterInfo> dlm = (DefaultListModel<FilterInfo>)this.historyList.getModel();
+            FilterInfo info = dlm.get(select);
             JOptionPane.showMessageDialog(this, info.getDescription(), info.toString() + " Information", JOptionPane.INFORMATION_MESSAGE);
         }
     }//GEN-LAST:event_infoFilterBtnActionPerformed
@@ -821,7 +824,7 @@ public class RheatApp extends javax.swing.JFrame {
             try {
                 ObjectInputStream ois = new ObjectInputStream(new FileInputStream(s));
                 RNA old = (RNA)ois.readObject();
-                DefaultListModel dlm = new DefaultListModel();
+                DefaultListModel<FilterInfo> dlm = new DefaultListModel<FilterInfo>();
                 for (int i = 0; i < restore; i++){
                     dlm.addElement(this.historyList.getModel().getElementAt(i));
                 }
@@ -923,7 +926,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         File inputFile;
-        fc = new JFileChooser((String)pref.get("BPSEQ"));
+        fc = new JFileChooser(pref.get("BPSEQ"));
         fc.setMultiSelectionEnabled(false);
         fc.setAcceptAllFileFilterUsed(false);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("BPSEQ Files", "bpseq", "txt"));
@@ -1027,7 +1030,7 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JLabel orgLabel;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenuItem complexFilterItem;
-    private javax.swing.JComboBox zoomComboBox;
-    private javax.swing.JList historyList;
+    private javax.swing.JComboBox<String> zoomComboBox;
+    private javax.swing.JList<FilterInfo> historyList;
     // End of variables declaration//GEN-END:variables
 }

@@ -40,7 +40,7 @@ public class HelixGrid implements HelixStore {
     public HelixGrid(int size) {
         _store = new Helix[size][size];
         numHelix = 0;
-        helices = new ArrayList();
+        helices = new ArrayList<Helix>();
     }
     
     /** Add a Helix to the HelixStore.
@@ -138,6 +138,6 @@ public class HelixGrid implements HelixStore {
     }
 
     Helix[][] _store;
-    ArrayList helices;
+    ArrayList<Helix> helices;
     int numHelix;
 }

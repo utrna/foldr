@@ -18,18 +18,18 @@ import javax.swing.JFileChooser;
  */
 public class PreferenceDialog extends javax.swing.JDialog {
     
-    private HashMap pref;
+    private HashMap<String, String> pref;
     private String preffile;
     private JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
     
     /** Creates new form PreferenceDialog */
-    public PreferenceDialog(java.awt.Frame parent, boolean modal, String file, HashMap p) {
+    public PreferenceDialog(java.awt.Frame parent, boolean modal, String file, HashMap<String, String> p) {
         super(parent, modal);
         initComponents();
         pref = p;
         preffile = file;
-        this.bpseqTextField.setText((String)pref.get("BPSEQ"));
-        this.undoTextField.setText((String)pref.get("Undo"));
+        this.bpseqTextField.setText(pref.get("BPSEQ"));
+        this.undoTextField.setText(pref.get("Undo"));
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     }
     

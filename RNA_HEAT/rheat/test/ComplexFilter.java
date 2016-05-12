@@ -98,7 +98,7 @@ public class ComplexFilter implements Filter {
     }
     
     private HelixStore pickNonIntersectingDiagonals(HelixStore hs){
-        ArrayList helixList = new ArrayList(hs.getCount());
+        ArrayList<Helix> helixList = new ArrayList<Helix>(hs.getCount());
         Iterator itr = hs.iterator();
         while (itr.hasNext()){
             Helix h = (Helix)itr.next();
@@ -107,7 +107,7 @@ public class ComplexFilter implements Filter {
             }
         }
         java.util.Collections.sort(helixList, new HelixComparator());
-        ArrayList permanent = new ArrayList();
+        ArrayList<Helix> permanent = new ArrayList<Helix>();
         permanent.add(helixList.get(0));
         HelixInfo hinfo_1;
         HelixInfo hinfo_2;
@@ -233,13 +233,11 @@ public class ComplexFilter implements Filter {
 }
 
 
-class HelixComparator implements java.util.Comparator{
+class HelixComparator implements java.util.Comparator<Helix>{
     public HelixComparator(){
     }
     
-    public int compare(Object obj, Object obj1) {
-        Helix h = (Helix)obj;
-        Helix j = (Helix)obj1;
+    public int compare(Helix h, Helix j) {
         if (h.getEnergy() < j.getEnergy()){
             return -1;
         }

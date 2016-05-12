@@ -11,8 +11,6 @@ The following things were tried and there were problems:
 
 - Menus:
 
-  * "Open" will only recognize files with .bpseq extension.
-
   * Seems to have trouble opening multiple files in a session
     (e.g. sometimes a file will not load unless rheat.jar is
     quit and rerun).
@@ -73,6 +71,17 @@ The following things were tried and there were problems:
 
   * UI could be tweaked to leave more space for things and have
     more ways to resize, etc.
+
+
+
+Now Fixed
+~~~~~~~~~
+
+The following items are now FIXED (moved from list above):
+
+- Menus:
+
+  * "Open" will only recognize files with .bpseq extension.
 
 - Source Code:
 
