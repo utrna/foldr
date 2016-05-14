@@ -63,8 +63,11 @@ public class RheatApp extends javax.swing.JFrame {
             ois.writeObject(this._rna);
         }
         catch (java.io.IOException ex){
-            String s = "Cannot save undo information.  Please check undo directory is correct";
-            JOptionPane.showMessageDialog(this, s, "Error", JOptionPane.ERROR_MESSAGE);
+            String s = "Cannot save undo information.  Please check undo directory is correct.";
+            // do not display a dialog here; if the write fails then the
+            // user sees a message EVERY time a filter action occurs!
+            //JOptionPane.showMessageDialog(this, s, "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println(s);
         }
     }
     
@@ -140,9 +143,7 @@ public class RheatApp extends javax.swing.JFrame {
                 helixImgGen.setZoomLevel(zoom);
                 img = helixImgGen.drawImage(_rna);
                 Point p = this.DisplayScrollPane.getViewport().getViewPosition();
-                if ((int)zoom != 1){
-                    img = helixImgGen.zoomImage(img);
-                }
+                img = helixImgGen.zoomImage(img);
                 busyDialog.close();
                 JLabel gpanel = new JLabel(new ImageIcon(img));
                 gpanel.setBackground(Color.white);
@@ -383,7 +384,7 @@ public class RheatApp extends javax.swing.JFrame {
         jPanel3.add(zoomLevelLabel);
 
         zoomComboBox.setEditable(true);
-        zoomComboBox.setModel(new javax.swing.DefaultComboBoxModel<String>(new String[] { "0.01", "0.1", "0.5", "1", "1.5", "2", "5", "10", "100" }));
+        zoomComboBox.setModel(new javax.swing.DefaultComboBoxModel<String>(new String[] { "0.01", "0.1", "0.5", "1", "1.5", "2", "5", "10", "15", "20" }));
         zoomComboBox.setSelectedIndex(3);
         zoomComboBox.setPreferredSize(new java.awt.Dimension(100, 26));
         zoomComboBox.setAutoscrolls(true);
@@ -973,6 +974,11 @@ public class RheatApp extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         new RheatApp().setVisible(true);
     }
     

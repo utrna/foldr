@@ -15,15 +15,6 @@ The following things were tried and there were problems:
     (e.g. sometimes a file will not load unless rheat.jar is
     quit and rerun).
 
-  * Selecting any filter may display an error about Undo files,
-    EVERY time a filter is selected.  (Remove this.)
-
-- Preferences:
-
-  * The "..." button for selecting a directory will only accept a
-    file (not a directory) so it will not work; directories have
-    to be entered manually.
-
 - Filters:
 
   * Some actions can cause long pauses without any hints.
@@ -43,18 +34,10 @@ The following things were tried and there were problems:
 
 - "Control Window":
 
-  * Clipped on Mac; cannot be resized or scrolled, cannot see the
-    "Actual Helices" field as a result.
-
-  * Zoom level 1.5 does not seem to do anything different than 1.
-
   * Zoom level 100 runs out of memory.
 
   * Zoom levels as low as 5 or 10 can also run out of memory if
     the file that was loaded is quite large (e.g. 2000 helices).
-
-  * Seems like zoom 10 is useful but zoom 100 is too much; may
-    want to add a zoom level 15 or 20, say.
 
   * Occasionally the "Current Helices", "Total Helices" and
     "Actual Helices" fields appear to be enabled for typing but
@@ -82,6 +65,19 @@ The following items are now FIXED (moved from list above):
 - Menus:
 
   * "Open" will only recognize files with .bpseq extension.
+
+  * Selecting any filter may display an error about Undo files,
+    EVERY time a filter is selected.  (Remove this.)
+
+- "Control Window":
+
+  * Clipped on Mac; cannot be resized or scrolled, cannot see the
+    "Actual Helices" field as a result.
+
+  * Zoom level 1.5 does not seem to do anything different than 1.
+
+  * Seems like zoom 10 is useful but zoom 100 is too much; may
+    want to add a zoom level 15 or 20, say.
 
 - Source Code:
 
