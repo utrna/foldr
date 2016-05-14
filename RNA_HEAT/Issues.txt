@@ -30,8 +30,6 @@ The following things were tried and there were problems:
     buttons like "Flat View" and back to "2D View", helices may
     appear.  This could be a display-updating bug.
 
-  * Helices are sometimes hard to select, even when zoomed.
-
 - "Control Window":
 
   * Zoom level 100 runs out of memory.
@@ -68,6 +66,10 @@ The following items are now FIXED (moved from list above):
 
   * Selecting any filter may display an error about Undo files,
     EVERY time a filter is selected.  (Remove this.)
+
+- "Display Window":
+
+  * Helices are sometimes hard to select, even when zoomed.
 
 - "Control Window":
 

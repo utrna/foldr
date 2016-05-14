@@ -154,10 +154,19 @@ public class HelixImageGenerator {
                 y1 = y0 + 3 * h.getLength();
                 Line2D.Double line = new Line2D.Double(x0, y0, x1, y1);
                 
-                if (clicked != null && this.contains(x0, y0, x1, y1, clicked)){
+                // scan for clicks slightly outside the target line
+                // as well, to make helices easier to select
+                if (clicked != null &&
+                    (this.contains(x0, y0, x1, y1, clicked) ||
+                     this.contains(x0, y0 - 1, x1, y1 - 1, clicked) ||
+                     this.contains(x0, y0 + 1, x1, y1 + 1, clicked))) {
                     //System.out.println("Found Point... " + clicked);
                     helixGraphics.setColor(Color.blue);
                     helixGraphics.draw(line);
+                    // draw "handles" (blobs on each end) so that the
+                    // selection is more distinct
+                    helixGraphics.fillRect(x0 - 1, y0 - 1, 3, 3);
+                    helixGraphics.fillRect(x1 - 1, y1 - 1, 3, 3);
                     setInfoText(h, rna);
                     clicked = null;
                     helixGraphics.setColor(Color.red);
