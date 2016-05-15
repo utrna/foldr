@@ -3,12 +3,13 @@ import java.util.ArrayList;
 
 public class CompoundHelix {
 
-	//number of helicies that make up the compound helix
-	private int numHelicies;
+
 	//name of the compound helix
 	private String name;
 	//array list of the helicies that make up the compound helix
 	private ArrayList<PeHelicies> heliciesList;
+	//number of helicies that make up the compound helix
+	private int numHelicies;
 	//the average distance between helicies on the 5' end and the 3' end
 	double dist5Avg = 0;
 	double dist3Avg = 0;
@@ -27,6 +28,7 @@ public class CompoundHelix {
 	//max distance between helicies on the 5' end and the 3'end in a compound helix
 	private int maxDist5 = 0;
 	private int maxDist3 = 0;
+	private double compHelixEnergy;
 
 	
 	//constructor
@@ -44,6 +46,11 @@ public class CompoundHelix {
 	public void addHelix(PeHelicies helixToAdd) {
 		heliciesList.add(helixToAdd);
 		numHelicies = heliciesList.size();
+		//compHelixEnergy += helixToAdd.getHelixEnergy();
+	}
+	//gets the size of the compound helix
+	public int getSize() {
+		return numHelicies;
 	}
 	//gets the name of the compound helix
 	public String getName() {
@@ -146,11 +153,11 @@ public class CompoundHelix {
 	}
 	
 	//generates the distance between 2 helicies on the 5' end
-	public int distBetweenHelicies5(PeHelicies helixA, PeHelicies helixB) {
+	public static int distBetweenHelicies5(PeHelicies helixA, PeHelicies helixB) {
 		return Math.abs((helixA.getPre5() - helixB.getEnd5())-1);
 	}
 	//generates the distance between 2 helicies on the 3' end
-	public int distBetweenHelicies3(PeHelicies helixA, PeHelicies helixB) {
+	public static int distBetweenHelicies3(PeHelicies helixA, PeHelicies helixB) {
 		return Math.abs((helixB.getPre3() - helixA.getEnd3())-1);
 	}
 	//gets the average distance between helicies on the 5' end
@@ -241,17 +248,118 @@ public class CompoundHelix {
 	public PeHelicies getHelix(int n) {
 		return heliciesList.get(n);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	//gets a helix given a name
+	public PeHelicies getHelix(String name) {
+		for(PeHelicies helix: heliciesList) {
+			if(helix.getName()==name)
+				return helix;
+		}
+		return null;
+	}
+	//prints all the helicies in the compound helix
+	public void printCompHelix() {
+		System.out.println("Ratio: "+ ((double)(this.getTotalNumPairedNucleotides())/(double)(this.getTotalHelixLength())));
+		for(PeHelicies helix: heliciesList) {
+			System.out.println(helix.getName());
+			System.out.println(helix.getHelixME());
+			helix.printSequence();
+		}
+	}
+	//returns the energy of the entire compound helix
+	public double getCompHelixEnergy() {
+		double totalME = 0.0;
+		for(PeHelicies helix: heliciesList) {
+			totalME += helix.getHelixME();
+		}
+		return totalME;
+	}
+	//replaces a helix in the compound helix with one passed in as an argument
+	public void replaceHelix(int n , PeHelicies helix) {
+		heliciesList.set(n, helix);
+	}
+	//removes a helix
+	public void removeHelix(int n) {
+		heliciesList.remove(n);
+		numHelicies --;
+	}
+	//returns all the helicies as an ArrayList
+	public ArrayList<PeHelicies> getAllHelicies() {
+		return heliciesList;
+	}
+	//decreases the size of the helix by one
+	public void decreaseSizeByOne() {
+		numHelicies--;
+	}
+	//returns total conditional distance of the helix, all the CDs' added together
+	public int getTotalCD() {
+		int totalCD = 0;
+		for(PeHelicies helix: heliciesList) {
+			totalCD += helix.getCD();
+		}
+		return totalCD;
+	}
+	//returns the total length of the helix in basepairs
+	public int getTotalHelixLength() {
+		//5' sequence length
+		int length5 = 0;
+		//3' sequence length
+		int length3 = 0;		
+		length5 = heliciesList.get(0).getEnd5() - heliciesList.get(heliciesList.size()-1).getPre5();
+		length3 =  heliciesList.get(heliciesList.size()-1).getEnd3() - heliciesList.get(0).getPre3();
+		return length5+length3+2;
+
+	}
+	//get total number of paired nucleotides
+	public int getTotalNumPairedNucleotides() {
+		int totalPairedNucleotides = 0;
+		for(PeHelicies helix: heliciesList) {
+			totalPairedNucleotides += helix.getTotalPairedNuc();
+		}
+		return totalPairedNucleotides;
+	}
+	//get hairpin loop sequence {
+	public String getHairpinSeq() {
+		return rnaSeq.substring(heliciesList.get(0).getEnd5(), heliciesList.get(0).getPre3()-1);
+	}
+	//get the total distance between helices for the 5' sequence
+	public int getUnpairedDist5() {
+		int dist5 = 0;
+		for(int i = 1; i < numHelicies; i++) {
+			dist5 = distBetweenHelicies5(heliciesList.get(i-1), heliciesList.get(i));
+		}
+		return dist5;
+	}
+	//get the total distance between helices for the 5' sequence
+	public int getUnpairedDist3() {
+		int dist3 = 0;
+		for(int i = 1; i < numHelicies; i++) {
+			dist3 = distBetweenHelicies3(heliciesList.get(i-1), heliciesList.get(i));
+		}
+		return dist3;
+	}
+ 	//get the four base pair on the 5' end of the sequence, 2 from the first part of the Pa helix, and 2 from the first part of the hairpin loop sequence
+	public String get5End4BPSeq() {
+		int start5 = heliciesList.get(0).getEnd5()-2;
+		int end5 = heliciesList.get(0).getEnd5()+2;
+		//if the start5 is less than 0
+		/*
+		if(start5 < 0) {
+			return "-1" + rnaSeq.substring(0,end5);
+		}
+		*/
+		return rnaSeq.substring(start5, end5);
+	}
+ 	//get the four base pair on the 3' end of the sequence, 2 from the first part of the Pa helix, and 2 from the first part of the hairpin loop sequence
+	//reverses seq so that first 2 basepairs in sequence are from helix and next two base pairs are from hairpin loop
+	public String get3End4BPSeq() {
+		int start3 = heliciesList.get(0).getPre3()-3;
+		int end3 = heliciesList.get(0).getPre3() + 1;
+		String input = rnaSeq.substring(start3, end3);
+		StringBuilder input1 = new StringBuilder();
+		input1.append(input);
+		input1=input1.reverse(); 
+		return input1.toString();
+	}
 	
 	
 }

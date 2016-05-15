@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,16 +22,16 @@ public class generateStatistics {
 		compHeliciesList= generateCompoundHelicies(helicies, rnaSeq);
 		
 		//should be called generate statistics, but this essentially gets all the statistics and prints to stdout
-		generateDistances(compHeliciesList);
+		//generateDistances(compHeliciesList);
 		
 		
 	}
 	
 	//method reads in file on helicies
 	public static ArrayList<PeHelicies> readHeliciesFile(String rnaSeq) {
-        // The name of the file to open.
+        // The name of the file to open.  5sEcoliHelicies.txt
         String fileName = "16sEcoliHelicies.txt";
-
+        
         String line = null;
         StringBuilder  stringBuilder = new StringBuilder();
         
@@ -60,7 +61,14 @@ public class generateStatistics {
                 
             	stringBuilder.append(line);
             	stringBuilder.append("\n");
-            	
+            	/*
+            	System.out.println(line);
+            	System.out.println(line.substring(6, 10));
+            	System.out.println(line.substring(11, 16));
+            	System.out.println(line.substring(16, 21));
+            	System.out.println(line.substring(21, 27));
+            	System.out.println("sub:" + line.substring(27,32));
+            	*/
             	//gets the name of the helix
             	helixName = line.substring(6, 10);
             	
@@ -80,6 +88,7 @@ public class generateStatistics {
             	beg3Num = Integer.parseInt(beg3);
             	
             	//gets end 3' of helix
+            	//System.out.println(line.substring(27,32));
             	end3 = line.substring(27, 32);
             	end3 = end3.trim();
             	end3Num = Integer.parseInt(end3);
@@ -110,7 +119,7 @@ public class generateStatistics {
 	
 	//reads in RNA sequence from text file and returns as a String
 		public static String readRNAFile() {
-	        // The name of the file to open.
+	        // The name of the file to open. C:\\Users\\Vishal\\git\\simple-distance-folding-project\\Ecoli5Sseq
 	        String fileName = "RNAseq.txt";
 
 	        // This will reference one line at a time
@@ -154,7 +163,12 @@ public class generateStatistics {
 			
 			//generates an arraylist of compound helicies
 			ArrayList<CompoundHelix> compHelixList = new ArrayList<CompoundHelix>();
-			
+			/*
+			for(PeHelicies helix: heliciesList) {
+				System.out.println(helix.getName());
+				helix.printSequence();
+			}
+			*/
 			
 			for(PeHelicies helix : heliciesList) {
 				
@@ -166,7 +180,6 @@ public class generateStatistics {
 				//gets the number of the helix
 				int helixNum = Integer.parseInt(name.replaceAll("[\\D]", ""));
 				
-				
 				//the name of the compound helix the current helix should be a part of
 				String nameCompHelix = "" + helixType + helixNum;
 				
@@ -177,7 +190,7 @@ public class generateStatistics {
 					compHelix.addHelix(helix);
 					compHelixList.add(compHelix);
 				}
-				
+
 				//otherwise checks to see if this helix should be added to an existing compound helix or a new compound helix should be created and added to the list of compound helicies
 				else {
 					boolean isInList = false;
