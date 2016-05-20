@@ -10,16 +10,18 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
-import javax.swing.*;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Canvas;
 import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.lang.Math;
-import javax.imageio.ImageIO;
 import java.util.HashMap;
 import java.util.Vector;
+import javax.imageio.ImageIO;
+import javax.swing.*;
 /*
  * TestAppGUI.java
  *
@@ -45,6 +47,7 @@ public class RheatApp extends javax.swing.JFrame {
     //private String preffile = "D:\\temp\\pref.bin";
     private String preffile = System.getProperty("user.dir") + System.getProperty("file.separator") + "pref.bin";
     private Image img;
+    static private boolean isMac = false;
     
     /** Creates new form TestAppGUI */
     public RheatApp() {
@@ -473,7 +476,7 @@ public class RheatApp extends javax.swing.JFrame {
 
         jPanel5.add(undoFilterBtn);
 
-        infoFilterBtn.setText("Info...");
+        infoFilterBtn.setText("Info…");
         infoFilterBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 infoFilterBtnActionPerformed(evt);
@@ -505,8 +508,10 @@ public class RheatApp extends javax.swing.JFrame {
 
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
+
         openMenuItem.setMnemonic('o');
-        openMenuItem.setText("Open ...");
+        setKey(openMenuItem, KeyEvent.VK_O);
+        openMenuItem.setText("Open…");
         openMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 openMenuItemActionPerformed(evt);
@@ -516,6 +521,7 @@ public class RheatApp extends javax.swing.JFrame {
         fileMenu.add(openMenuItem);
 
         closeMenuItem.setMnemonic('C');
+        setKey(closeMenuItem, KeyEvent.VK_W);
         closeMenuItem.setText("Close");
         closeMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -526,7 +532,8 @@ public class RheatApp extends javax.swing.JFrame {
         fileMenu.add(closeMenuItem);
 
         saveAsMenuItem.setMnemonic('A');
-        saveAsMenuItem.setText("Save As ...");
+        setKey(saveAsMenuItem, KeyEvent.VK_S);
+        saveAsMenuItem.setText("Save As…");
         saveAsMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveAsMenuItemActionPerformed(evt);
@@ -536,7 +543,8 @@ public class RheatApp extends javax.swing.JFrame {
         fileMenu.add(saveAsMenuItem);
 
         exitMenuItem.setMnemonic('x');
-        exitMenuItem.setText("Exit");
+        setKey(exitMenuItem, KeyEvent.VK_Q);
+        exitMenuItem.setText((isMac) ? "Quit" : "Exit");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 exitMenuItemActionPerformed(evt);
@@ -549,8 +557,10 @@ public class RheatApp extends javax.swing.JFrame {
 
         editMenu.setMnemonic('E');
         editMenu.setText("Edit");
-        preferencesMenuItem.setMnemonic('p');
-        preferencesMenuItem.setText("Preferences...");
+
+        //preferencesMenuItem.setMnemonic('p');
+        setKey(preferencesMenuItem, KeyEvent.VK_SEMICOLON);
+        preferencesMenuItem.setText("Preferences…");
         preferencesMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 preferencesMenuItemActionPerformed(evt);
@@ -563,8 +573,10 @@ public class RheatApp extends javax.swing.JFrame {
 
         filterMenu.setMnemonic('t');
         filterMenu.setText("Filters");
+
         basepairFilterItem.setMnemonic('B');
-        basepairFilterItem.setText("Basepair Filter ...");
+        setKey(basepairFilterItem, KeyEvent.VK_1);
+        basepairFilterItem.setText("Basepair Filter…");
         basepairFilterItem.setEnabled(false);
         basepairFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -575,7 +587,8 @@ public class RheatApp extends javax.swing.JFrame {
         filterMenu.add(basepairFilterItem);
 
         helixFilterItem.setMnemonic('H');
-        helixFilterItem.setText("Helix Filter ...");
+        setKey(helixFilterItem, KeyEvent.VK_2);
+        helixFilterItem.setText("Helix Filter…");
         helixFilterItem.setEnabled(false);
         helixFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -586,7 +599,8 @@ public class RheatApp extends javax.swing.JFrame {
         filterMenu.add(helixFilterItem);
 
         diagonalFilterItem.setMnemonic('D');
-        diagonalFilterItem.setText("Diagonal Filter ...");
+        setKey(diagonalFilterItem, KeyEvent.VK_3);
+        diagonalFilterItem.setText("Diagonal Filter…");
         diagonalFilterItem.setEnabled(false);
         diagonalFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -597,7 +611,8 @@ public class RheatApp extends javax.swing.JFrame {
         filterMenu.add(diagonalFilterItem);
 
         aa_agFilterItem.setMnemonic('A');
-        aa_agFilterItem.setText("AA / AG Ends Filter ...");
+        setKey(aa_agFilterItem, KeyEvent.VK_4);
+        aa_agFilterItem.setText("AA / AG Ends Filter…");
         aa_agFilterItem.setEnabled(false);
         aa_agFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -607,7 +622,9 @@ public class RheatApp extends javax.swing.JFrame {
 
         filterMenu.add(aa_agFilterItem);
 
-        eLoopFilterItem.setText("E-Loop Filter ...");
+        eLoopFilterItem.setMnemonic('E');
+        setKey(eLoopFilterItem, KeyEvent.VK_5);
+        eLoopFilterItem.setText("E-Loop Filter…");
         eLoopFilterItem.setEnabled(false);
         eLoopFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -618,7 +635,8 @@ public class RheatApp extends javax.swing.JFrame {
         filterMenu.add(eLoopFilterItem);
 
         energyFilterItem.setMnemonic('g');
-        energyFilterItem.setText("Energy Filter ...");
+        setKey(energyFilterItem, KeyEvent.VK_6);
+        energyFilterItem.setText("Energy Filter…");
         energyFilterItem.setEnabled(false);
         energyFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -628,7 +646,9 @@ public class RheatApp extends javax.swing.JFrame {
 
         filterMenu.add(energyFilterItem);
 
-        complexFilterItem.setText("Complex Distance Filter...");
+        complexFilterItem.setMnemonic('C');
+        setKey(complexFilterItem, KeyEvent.VK_6);
+        complexFilterItem.setText("Complex Distance Filter…");
         complexFilterItem.setEnabled(false);
         complexFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -672,6 +692,8 @@ public class RheatApp extends javax.swing.JFrame {
 
         viewMenu.add(viewHistoryMenuItem);
 
+        viewInfoMenuItem.setMnemonic('I');
+        setKey(viewInfoMenuItem, KeyEvent.VK_I);
         viewInfoMenuItem.setText("Info Window");
         viewInfoMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -685,7 +707,9 @@ public class RheatApp extends javax.swing.JFrame {
 
         helpMenu.setMnemonic('H');
         helpMenu.setText("Help");
+
         contentMenuItem.setText("Contents");
+        setKey(contentMenuItem, KeyEvent.VK_SLASH);
         contentMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 contentMenuItemActionPerformed(evt);
@@ -969,17 +993,37 @@ public class RheatApp extends javax.swing.JFrame {
         close();
         System.exit(0);
     }//GEN-LAST:event_exitForm
+
+    /**
+     * @param item the menu item to set a keyboard short-cut for
+     * @param keyCode e.g. "KeyEvent.VK_C" for the letter "C"
+     */
+    private void setKey(JMenuItem item, int keyCode) {
+        item.setAccelerator(KeyStroke.getKeyStroke(keyCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+    }
     
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
         try {
+            // set cross-platform interface because GUI layout
+            // currently does not look good when translated to
+            // other systems (e.g. can be truncated on Mac)
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+
+            // can be useful to determine the platform sometimes
+            String osName = System.getProperty("os.name");
+            System.err.println("RNA HEAT for " + osName);
+            if (osName.contains("Mac")) {
+                isMac = true;
+            }
+
+            RheatApp app = new RheatApp();
+            app.setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        new RheatApp().setVisible(true);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -48,7 +48,7 @@ CLASS_PREFIXES += rheat/test/Tester
 all: rheat.jar
 
 # build an archive to make the program easy to move as a unit
-rheat.jar: | $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)
+rheat.jar: $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)
 	@# since additional class files may be generated for
 	@# inner classes and they have dollar signs, a search
 	@# is performed and the results are quoted
