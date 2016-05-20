@@ -1,35 +1,20 @@
 package rheat.GUI;
 
-import rheat.test.*;
-import rheat.base.*;
+import rheat.base.Reader;
 import rheat.filter.*;
-import java.io.File;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
-import java.awt.Color;
-import java.awt.Point;
-import java.awt.Canvas;
-import java.awt.Image;
-import java.awt.Toolkit;
+import rheat.test.*;
+import java.io.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.lang.Math;
-import java.util.HashMap;
-import java.util.Vector;
+import java.util.*;
 import javax.imageio.ImageIO;
 import javax.script.*;
 import javax.swing.*;
-/*
- * TestAppGUI.java
- *
- * Created on March 17, 2003, 1:18 PM
- */
 
 /**
+ * Main entry point to RNA HEAT application.
  *
  * @author  jyzhang
  */
@@ -52,7 +37,7 @@ public class RheatApp extends javax.swing.JFrame {
     static private boolean isMac = false;
     
     /** Creates new form TestAppGUI */
-    public RheatApp() {
+    public RheatApp(String[] args) {
         initComponents();
         initPreferences();
         try {
@@ -60,6 +45,19 @@ public class RheatApp extends javax.swing.JFrame {
         } catch (ScriptException e) {
             e.printStackTrace();
             System.err.println("Scripting is not available.");
+        }
+        if (args.length > 0) {
+            // load any requested JavaScript files
+            for (String filePath : args) {
+                try {
+                    scriptEngine.eval(new java.io.FileReader(filePath));
+                } catch (FileNotFoundException e) {
+                    System.err.println(e);
+                } catch (ScriptException e) {
+                    System.err.println(e);
+                    System.err.println("…while evaluating '" + filePath + "'.");
+                }
+            }
         }
         this.setBounds(0, 0 , 700, 700);
         busyDialog = new BusyWaitDialog(this, false);
@@ -1045,7 +1043,7 @@ public class RheatApp extends javax.swing.JFrame {
                 isMac = true;
             }
 
-            RheatApp app = new RheatApp();
+            RheatApp app = new RheatApp(args);
             app.setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();

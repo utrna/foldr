@@ -78,7 +78,8 @@ viewdoc: javadoc/index.html
 run: all
 	java \
 		-Dapple.laf.useScreenMenuBar="true" \
-		-jar rheat.jar
+		-jar rheat.jar \
+		$(RUN_ARGS)
 
 # remove files that can be rebuilt
 clean:
