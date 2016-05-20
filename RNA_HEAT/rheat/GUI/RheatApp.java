@@ -21,6 +21,7 @@ import java.lang.Math;
 import java.util.HashMap;
 import java.util.Vector;
 import javax.imageio.ImageIO;
+import javax.script.*;
 import javax.swing.*;
 /*
  * TestAppGUI.java
@@ -47,12 +48,19 @@ public class RheatApp extends javax.swing.JFrame {
     //private String preffile = "D:\\temp\\pref.bin";
     private String preffile = System.getProperty("user.dir") + System.getProperty("file.separator") + "pref.bin";
     private Image img;
+    private ScriptEngine scriptEngine; // used to execute external scripts
     static private boolean isMac = false;
     
     /** Creates new form TestAppGUI */
     public RheatApp() {
         initComponents();
         initPreferences();
+        try {
+            initScriptingEngine();
+        } catch (ScriptException e) {
+            e.printStackTrace();
+            System.err.println("Scripting is not available.");
+        }
         this.setBounds(0, 0 , 700, 700);
         busyDialog = new BusyWaitDialog(this, false);
         Point origin = getCenteredOrigin(busyDialog);
@@ -271,6 +279,24 @@ public class RheatApp extends javax.swing.JFrame {
             frontY = Math.max(0, backY - diffHeight);
         }
         return new Point(frontX, frontY);
+    }
+
+    /**
+     * Creates the scripting engine (JavaScript) and runs a
+     * basic test to print a message.
+     */
+    private void initScriptingEngine() throws ScriptException {
+        // set up an engine to interpret user scripts
+        ScriptEngineManager engineMgr = new ScriptEngineManager();
+        boolean debugEngines = false;
+        if (debugEngines) {
+            // might want to see what scripting languages are available…
+            for (ScriptEngineFactory ef : engineMgr.getEngineFactories()) {
+                System.err.println("INFO: Available scripting engine: '" + ef.getEngineName() + "'.");
+            }
+        }
+        scriptEngine = engineMgr.getEngineByName("JavaScript");
+        scriptEngine.eval("println('JavaScript engine loaded successfully.')");
     }
     
     /** This method is called from within the constructor to
