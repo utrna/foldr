@@ -336,6 +336,7 @@ public class RheatApp extends javax.swing.JFrame {
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openMenuItem = new javax.swing.JMenuItem();
+        runMenuItem = new javax.swing.JMenuItem();
         closeMenuItem = new javax.swing.JMenuItem();
         saveAsMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
@@ -358,7 +359,7 @@ public class RheatApp extends javax.swing.JFrame {
         contentMenuItem = new javax.swing.JMenuItem();
         aboutMenuItem = new javax.swing.JMenuItem();
 
-        setTitle("RNA HEAT (Pre-Alpha)");
+        setTitle("RNA HEAT");
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 exitForm(evt);
@@ -534,7 +535,7 @@ public class RheatApp extends javax.swing.JFrame {
 
         openMenuItem.setMnemonic('o');
         setKey(openMenuItem, KeyEvent.VK_O);
-        openMenuItem.setText("Open…");
+        openMenuItem.setText("Open Helices File…");
         openMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 openMenuItemActionPerformed(evt);
@@ -542,6 +543,18 @@ public class RheatApp extends javax.swing.JFrame {
         });
 
         fileMenu.add(openMenuItem);
+
+        runMenuItem.setMnemonic('r');
+        setKey(runMenuItem, KeyEvent.VK_R);
+        runMenuItem.setText("Run Script…");
+        runMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                runMenuItemActionPerformed(evt);
+            }
+        });
+
+        fileMenu.add(runMenuItem);
+        fileMenu.addSeparator();
 
         closeMenuItem.setMnemonic('C');
         setKey(closeMenuItem, KeyEvent.VK_W);
@@ -564,6 +577,7 @@ public class RheatApp extends javax.swing.JFrame {
         });
 
         fileMenu.add(saveAsMenuItem);
+        fileMenu.addSeparator();
 
         exitMenuItem.setMnemonic('x');
         setKey(exitMenuItem, KeyEvent.VK_Q);
@@ -953,7 +967,7 @@ public class RheatApp extends javax.swing.JFrame {
      * Private method to do clean up when closing the current session.
      */
     private void close(){
-        setTitle("RNA HEAT (Pre-Alpha)");
+        setTitle("RNA HEAT");
         _rna = null;
         System.gc();
         this.DisplayScrollPane.getViewport().setView(null);
@@ -998,7 +1012,24 @@ public class RheatApp extends javax.swing.JFrame {
             updateImage();
         }
     }//GEN-LAST:event_openMenuItemActionPerformed
-    
+
+    private void runMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        File inputFile;
+        fc = new JFileChooser(pref.get("BPSEQ")); // for now, assume same location for scripts/inputs
+        fc.setMultiSelectionEnabled(false);
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("JavaScript Files", "js", "txt"));
+        int returnVal = fc.showOpenDialog(this);
+        if (returnVal == fc.APPROVE_OPTION){
+            inputFile = fc.getSelectedFile();
+            try {
+                scriptEngine.eval(new java.io.FileReader(inputFile));
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Error Running Script", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     private void viewControlMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewControlMenuItemActionPerformed
         bringToFront(this.ControlFrame);
     }//GEN-LAST:event_viewControlMenuItemActionPerformed
@@ -1096,6 +1127,7 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JLabel accNumLabel;
     private javax.swing.JButton view2DBtn;
     private javax.swing.JMenuItem openMenuItem;
+    private javax.swing.JMenuItem runMenuItem;
     private javax.swing.JLabel lengthLabel;
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JMenuItem closeMenuItem;
