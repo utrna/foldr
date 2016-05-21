@@ -4,7 +4,7 @@
  * Created on February 14, 2003, 3:43 PM
  */
 
-package rheat.test;
+package rheat.base;
 
 import java.util.ArrayList;
 import java.io.OutputStream;

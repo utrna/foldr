@@ -6,7 +6,9 @@
 
 package rheat.GUI;
 
-import rheat.test.*;
+import rheat.base.*;
+import rheat.filter.ELoopHelicesFilter;
+
 /**
  *
  * @author  jyzhang

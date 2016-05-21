@@ -4,7 +4,10 @@
  * Created on April 11, 2003, 2:57 PM
  */
 
-package rheat.test;
+package rheat.filter;
+
+import rheat.base.*;
+
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.lang.Object;

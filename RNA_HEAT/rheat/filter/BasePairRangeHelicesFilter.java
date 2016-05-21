@@ -1,17 +1,18 @@
 /*
  *
- * MaxMinFilter.java
+ * BasePairRangeHelicesFilter.java
  *
  * Created on April 4, 2003, 2:44 PM
  */
 
-/** This Filter outputs helices with length in the range MinLength and 
- * MaxLength
+/** This Filter outputs helices with length in a given range
+ * 
  */    
 
 
+package rheat.filter;
 
-package rheat.test;
+import rheat.base.*;
 
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -21,22 +22,21 @@ import java.util.ArrayList;
  * @author  TEAM MATRIX
  */
 
-public class MaxMinFilter implements Filter {
+public class BasePairRangeHelicesFilter implements Filter {
     
-    private int MaxLength;
-    private int MinLength;
+    private int rangeMin, rangeMax;
     
-    /** Creates a new instance of MaxMinFilter */
-    public MaxMinFilter() {
-        MaxLength = Integer.MAX_VALUE;
-        MinLength = 1;
+    /** Creates a new instance of BasePairRangeHelicesFilter */
+    public BasePairRangeHelicesFilter() {
+        rangeMax = Integer.MAX_VALUE;
+        rangeMin = 0;
     }
     
  /** 
   * @param rna The Input RNA
   * @return Modified RNA after application of this filter.    
   */  
-    /*
+/*
     public RNA apply(RNA rna) {
         ArrayList sequence = rna.getSequence();
         boolean[][] bp_temp = new boolean[sequence.size()][sequence.size()];            
@@ -47,7 +47,8 @@ public class MaxMinFilter implements Filter {
         for (int i = 0; i < rna.getBasePairs().length; ++i) {
             System.arraycopy(bp_master[i], 0, bp_temp[i], 0, rna.getBasePairs().length);                        
         }
-        HelixStore OldStore = rna.getHelices();
+        
+        HelixStore OldStore = rna.getHelices();        
         HelixStore hstore = new HelixGrid(sequence.size()); 
         //helices = rna.getHelices();
         int helixCount = -1;
@@ -65,45 +66,49 @@ public class MaxMinFilter implements Filter {
                         ++helixLength;
                         if (temp_i==sequence.size() || (temp_j<0))
                             break;
-                    } while((bp_temp[temp_i][temp_j] == true));
-
-                    if ((helixLength <= MaxLength) && (helixLength >= MinLength)){
+                    } while((bp_temp[temp_i][temp_j] == true));                                         
+                    
+                    if ( ( (startX - startY) <= rangeMax ) && ( (startX - startY) >= rangeMin ) )
+                    {
                         Helix h = new Helix(startX, startY, helixLength);
                         if (OldStore.hasHelix(h)) {
                             ++helixCount;
                             hstore.addHelix(h);
                         }
                     }
-                } //if
+                }
             }//j
         }//i        
         System.out.println("\nTotal Number of Helices: " + helixCount);
         rna.setHelices(hstore);
         System.gc();
-        return rna;
+        return rna;                   
     } // apply
-    */
-    
+ 
+*/
     public RNA apply(RNA rna){
         HelixStore hs = rna.getHelices();
         HelixGrid hg = new HelixGrid(rna.getSequence().size());
         Iterator itr = hs.iterator();
         while(itr.hasNext()){
             Helix h = (Helix)itr.next();
-            if ((h.getLength() >= MinLength) && (h.getLength() <= MaxLength)){
+            if ( ( ( h.getStartX() - h.getStartY() ) <= rangeMax) && ( ( h.getStartX() - h.getStartY() ) >= rangeMin) )
+            {
                 hg.addHelix(h);
             }
         }
         rna.setHelices(hg);
         return rna;
-    }
+    }    
+ 
     
 /** Sets Arguments for the Filter
- * @param min The Minimum Length of Helix
- * @param max The Maximum Length of Helix
- */    
-    public void setArguments(int min, int max){
-        MaxLength = max;
-        MinLength = min;
+ * @param range The distance (range) between both positions that are 
+ * Base Paired
+ */
+
+    public void setArguments(int RangeMin, int RangeMax){
+        rangeMin = RangeMin;
+        rangeMax = RangeMax;
     }
 }

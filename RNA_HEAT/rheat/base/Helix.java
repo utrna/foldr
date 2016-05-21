@@ -6,7 +6,7 @@
  */
 
 
-package rheat.test;
+package rheat.base;
 
 /** This class represents one helix that could form.  Helix is defined as a
  * consecutive sequence of basepairs, with length of one or more.  A single

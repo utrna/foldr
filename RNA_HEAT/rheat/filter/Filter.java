@@ -4,7 +4,9 @@
  * Created on April 4, 2003, 2:43 PM
  */
 
-package rheat.test;
+package rheat.filter;
+
+import rheat.base.RNA;
 
 /**
  *

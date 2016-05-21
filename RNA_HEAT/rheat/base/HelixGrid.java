@@ -6,7 +6,7 @@
  * Created on February 27, 2003, 6:44 PM
  */
 
-package rheat.test;
+package rheat.base;
 
 import java.io.PrintStream;
 import java.util.ArrayList;

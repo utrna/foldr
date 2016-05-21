@@ -1,8 +1,7 @@
 package rheat.GUI;
 
-import rheat.base.Reader;
+import rheat.base.*;
 import rheat.filter.*;
-import rheat.test.*;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -983,7 +982,7 @@ public class RheatApp extends javax.swing.JFrame {
         if (returnVal == fc.APPROVE_OPTION){
             inputFile = fc.getSelectedFile();
             try {
-                Reader reader = new Reader(inputFile);
+                rheat.base.Reader reader = new rheat.base.Reader(inputFile);
                 _rna = reader.readBPSEQ();
                 this.helixActualField.setText("" + _rna.getActual().getCount());
                 this.setTitle(this.getTitle() + ": " + _rna.getUID());

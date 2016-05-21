@@ -6,7 +6,10 @@
 
 package rheat.GUI;
 
-import rheat.test.*;
+import rheat.base.*;
+import rheat.filter.AllHelicesFilter;
+import rheat.filter.BPFilter;
+
 /**
  *
  * @author  jyzhang

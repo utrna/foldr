@@ -6,8 +6,6 @@
 
 package rheat.base;
 
-import rheat.test.RNA;
-
 import java.io.FileNotFoundException;
 import java.io.File;
 import java.io.InputStreamReader;

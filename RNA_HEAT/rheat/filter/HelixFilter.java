@@ -4,8 +4,12 @@
  * Created on February 24, 2003, 3:01 PM
  */
 
-package rheat.test;
+package rheat.filter;
+
+import rheat.base.*;
+
 import java.util.ArrayList;
+
 /** This filter adds Helices to an RNA.  Currently this Filter only finds all
  * helices (length 1 or more), in antiparallel orientation only.
  * @author Team MatriX

@@ -6,9 +6,10 @@
 
 package rheat.GUI;
 
-import rheat.test.*;
+import rheat.base.*;
 import javax.swing.JFrame;
 import javax.swing.JDialog;
+
 /**
  *
  * @author  jyzhang

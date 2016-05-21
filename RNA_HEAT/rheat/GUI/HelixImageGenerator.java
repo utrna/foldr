@@ -6,7 +6,7 @@
 
 package rheat.GUI;
 
-import rheat.test.*;
+import rheat.base.*;
 import java.awt.image.BufferedImage;
 import java.awt.Image;
 import java.awt.Graphics2D;

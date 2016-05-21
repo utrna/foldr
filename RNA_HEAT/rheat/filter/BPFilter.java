@@ -4,7 +4,9 @@
  * Created on February 21, 2003, 2:28 PM
  */
 
-package rheat.test;
+package rheat.filter;
+
+import rheat.base.*;
 
 import java.util.ArrayList;
 import java.util.BitSet;

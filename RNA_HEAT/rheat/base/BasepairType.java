@@ -5,7 +5,7 @@
  * Created on April 11, 2003, 4:42 PM
  */
 
-package rheat.test;
+package rheat.base;
 
 import java.util.BitSet;
 /**

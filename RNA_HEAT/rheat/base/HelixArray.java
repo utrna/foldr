@@ -4,7 +4,7 @@
  * Created on February 27, 2003, 2:01 PM
  */
 
-package rheat.test;
+package rheat.base;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

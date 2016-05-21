@@ -5,13 +5,15 @@
  */
 
 package rheat.test;
-//import rheat.base.*;
+
+import rheat.base.*;
+import rheat.filter.*;
+
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.io.FileNotFoundException;
 import java.util.Date;
-import rheat.base.*;
 
 /** This is a class used for debugging and running tests only.  It will not appear
  * in the finished product.

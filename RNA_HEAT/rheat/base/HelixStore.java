@@ -5,7 +5,7 @@
  * Created on February 27, 2003, 6:20 PM
  */
 
-package rheat.test;
+package rheat.base;
 
 import java.util.Iterator;
 /** This is a generic interface specifying the functionality of a HelixStore.  The

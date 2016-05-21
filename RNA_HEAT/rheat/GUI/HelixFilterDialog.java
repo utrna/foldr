@@ -6,8 +6,10 @@
 
 package rheat.GUI;
 
-import rheat.test.*;
+import rheat.base.*;
+import rheat.filter.MaxMinFilter;
 import javax.swing.JOptionPane;
+
 /**
  *
  * @author  jyzhang

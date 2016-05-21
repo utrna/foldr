@@ -9,7 +9,9 @@
  */    
 
 
-package rheat.test;
+package rheat.filter;
+
+import rheat.base.*;
 
 import java.util.Iterator;
 import java.util.ArrayList;
