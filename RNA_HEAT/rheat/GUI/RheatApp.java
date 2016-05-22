@@ -13,82 +13,39 @@ import javax.script.*;
 import javax.swing.*;
 
 /**
- * Main entry point to RNA HEAT application.
+ * Main window of RNA HEAT application.
  *
  * @author  jyzhang
  */
 public class RheatApp extends javax.swing.JFrame {
     
     // PRIVATE DATAMEMBERS RELEVANT TO RNAHEAT
-    private String fileSep = System.getProperty("file.separator");
-    private RNA _rna;
+    private AppMain appMain;
     private HelixImageGenerator helixImgGen;
     private JFileChooser fc = new JFileChooser();
     private BusyWaitDialog busyDialog;
-    private HashMap<String, String> pref = new HashMap<String, String>();
     private int undoMax = 20;
     private int currentUndo = 0;
-    private String preferencesDir = System.getProperty("user.home") + fileSep + ".rheat";
-    private String preferencesFile = preferencesDir + fileSep + "pref.bin";
     private Image img;
-    private ScriptEngine scriptEngine; // used to execute external scripts
-    private boolean noGUI = false;
-    static private boolean isMac = false;
 
     /**
-     * Main application class; "args" should come from
-     * the main() command line.
+     * Main window, using an AppMain object to manage
+     * state that is not GUI-specific.
      */
-    public RheatApp(String[] args) throws IOException, ScriptException {
+    public RheatApp(AppMain appMain) {
+        this.appMain = appMain;
         initComponents();
-        initPreferences();
-        try {
-            initScriptingEngine();
-        } catch (ScriptException e) {
-            e.printStackTrace();
-            System.err.println("Scripting is not available.");
-        }
-        if (args.length > 0) {
-            // load any requested JavaScript files
-            for (String argument : args) {
-                if (argument.equals("-noGUI")) {
-                    this.noGUI = true;
-                    continue;
-                }
-                // treat anything else as a file location
-                runScript(argument);
-            }
-        }
-        if (this.noGUI) {
-            // FIXME: temporary; should separate main interface
-            // front-end into a different class so that the GUI
-            // attribute will not have to be checked everywhere
-            return;
-        }
         this.setBounds(0, 0 , 700, 700);
         busyDialog = new BusyWaitDialog(this, false);
         Point origin = getCenteredOrigin(busyDialog);
         busyDialog.setLocation(origin);
     }
 
-    private void runScript(String filePath) throws IOException, ScriptException {
-        BufferedReader reader = new BufferedReader(new FileReader(filePath));
-        // for convenience, ignore any Unix "#!" line (the default
-        // JavaScript reader will NOT do this...)
-        reader.mark(255/* max. char. to backtrack */);
-        String line = reader.readLine();
-        if ((line.length() > 1) && ((line.charAt(0) != '#') || (line.charAt(1) != '!'))) {
-            // no #!-line; keep the original line
-            reader.reset();
-        }
-        scriptEngine.eval(reader);
-    }
-
     private void addUndo(){
-        String undofile = pref.get("Undo") + File.separator + "undo" + currentUndo;
+        String undofile = appMain.getPrefUndoDir() + File.separator + "undo" + currentUndo;
         try {
             ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(undofile));
-            ois.writeObject(this._rna);
+            ois.writeObject(this.appMain.rnaData);
         }
         catch (java.io.IOException ex){
             String s = "Cannot save undo information.  Please check undo directory is correct.";
@@ -113,64 +70,14 @@ public class RheatApp extends javax.swing.JFrame {
         this.historyList.setModel(new DefaultListModel<FilterInfo>());
     }
     
-    /**
-     * Initialize and read the preference files.  Creates a new preference file
-     * if the old one does not exist.
-     */
-    private void initPreferences(){
-        ObjectInputStream ois = null;
-        ObjectOutputStream oos = null;
-        try {
-            new File(preferencesDir).mkdirs(); // ensure parent directories exist; ignore "boolean" result
-            ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(preferencesFile)));
-            @SuppressWarnings({"unchecked"}) HashMap<String, String> newPref =
-                                             (HashMap<String, String>)ois.readObject();
-            pref = newPref;
-        }
-        catch (java.io.FileNotFoundException ex){
-            //String err = "Your preference file either does not exist, or is corrupted.  A new one will be created.";
-            //JOptionPane.showMessageDialog(this, err, "Cannot find Preferences", JOptionPane.ERROR_MESSAGE);
-            pref.put("BPSEQ", System.getProperties().getProperty("user.dir"));
-            pref.put("Undo", System.getProperties().getProperty("user.dir"));
-            try {
-                oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(preferencesFile))));
-                oos.writeObject(pref);
-            }
-            catch (Exception ex2){
-                ex2.printStackTrace();
-            }
-        }
-        catch (Exception ex){
-            ex.printStackTrace();
-        }
-        finally{
-            if (oos != null){
-                try {
-                    oos.close();
-                }
-                catch (Exception ex){
-                    ex.printStackTrace();
-                }
-            }
-            if (ois != null){
-                try {
-                    ois.close();
-                }
-                catch (Exception ex){
-                    ex.printStackTrace();
-                }
-            }
-        }
-    }
-    
     private void updateImage(){
-        if (_rna != null /*&& this.helixImgGen != null*/){
+        if (appMain.rnaData != null /*&& this.helixImgGen != null*/){
             busyDialog.setVisible(true);
             try {
                 System.gc();
                 float zoom = Float.parseFloat((String)this.zoomComboBox.getSelectedItem());
                 helixImgGen.setZoomLevel(zoom);
-                img = helixImgGen.drawImage(_rna);
+                img = helixImgGen.drawImage(appMain.rnaData);
                 Point p = this.DisplayScrollPane.getViewport().getViewPosition();
                 img = helixImgGen.zoomImage(img);
                 busyDialog.close();
@@ -178,8 +85,8 @@ public class RheatApp extends javax.swing.JFrame {
                 gpanel.setBackground(Color.white);
                 this.DisplayScrollPane.setViewportView(gpanel);
                 this.DisplayScrollPane.getViewport().setViewPosition(p);
-                if (_rna.getHelices() != null){
-                    this.helixNumField.setText("" + _rna.getHelices().getCount());
+                if (appMain.rnaData.getHelices() != null){
+                    this.helixNumField.setText("" + appMain.rnaData.getHelices().getCount());
                 }
             }
             catch (NumberFormatException ex){
@@ -192,11 +99,11 @@ public class RheatApp extends javax.swing.JFrame {
     }
     
     private void setControlLabels(){
-        if (_rna != null){
-            this.uidLabel.setText(_rna.getUID());
-            this.orgLabel.setText(_rna.getOrganism());
-            this.accNumLabel.setText(_rna.getAccession());
-            this.lengthLabel.setText(_rna.getSize());
+        if (appMain.rnaData != null){
+            this.uidLabel.setText(appMain.rnaData.getUID());
+            this.orgLabel.setText(appMain.rnaData.getOrganism());
+            this.accNumLabel.setText(appMain.rnaData.getAccession());
+            this.lengthLabel.setText(appMain.rnaData.getSize());
         }
         else {
             this.uidLabel.setText("");
@@ -297,24 +204,6 @@ public class RheatApp extends javax.swing.JFrame {
             frontY = Math.max(0, backY - diffHeight);
         }
         return new Point(frontX, frontY);
-    }
-
-    /**
-     * Creates the scripting engine (JavaScript) and runs a
-     * basic test to print a message.
-     */
-    private void initScriptingEngine() throws ScriptException {
-        // set up an engine to interpret user scripts
-        ScriptEngineManager engineMgr = new ScriptEngineManager();
-        boolean debugEngines = false;
-        if (debugEngines) {
-            // might want to see what scripting languages are available…
-            for (ScriptEngineFactory ef : engineMgr.getEngineFactories()) {
-                System.err.println("INFO: Available scripting engine: '" + ef.getEngineName() + "'.");
-            }
-        }
-        scriptEngine = engineMgr.getEngineByName("JavaScript");
-        scriptEngine.eval("println('JavaScript engine loaded successfully.')");
     }
     
     /** This method is called from within the constructor to
@@ -602,7 +491,7 @@ public class RheatApp extends javax.swing.JFrame {
 
         exitMenuItem.setMnemonic('x');
         setKey(exitMenuItem, KeyEvent.VK_Q);
-        exitMenuItem.setText((isMac) ? "Quit" : "Exit");
+        exitMenuItem.setText((appMain.isMac()) ? "Quit" : "Exit");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 exitMenuItemActionPerformed(evt);
@@ -794,7 +683,7 @@ public class RheatApp extends javax.swing.JFrame {
 
     private void complexFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_complexFilterItemActionPerformed
         addUndo();
-        _rna = FilterController.showFilterDialog(_rna, this, FilterController.COMPLEX);
+        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.COMPLEX);
         if (FilterController.success){
             this.updateImage();
             addHistory(new FilterInfo("Complex Distance Filter", FilterController.description));
@@ -804,7 +693,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void energyFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_energyFilterItemActionPerformed
         addUndo();
-        _rna = FilterController.showFilterDialog(_rna, this, FilterController.ENERGY);
+        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.ENERGY);
         if (FilterController.success){
             this.updateImage();
             addHistory(new FilterInfo("Energy Filter", FilterController.description));
@@ -823,7 +712,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void eLoopFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eLoopFilterItemActionPerformed
         addUndo();
-        _rna = FilterController.showFilterDialog(_rna, this, FilterController.ELOOP);
+        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.ELOOP);
         if (FilterController.success){
             this.updateImage();
             addHistory(new FilterInfo("E-Loop Filter", FilterController.description));
@@ -834,7 +723,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void aa_agFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aa_agFilterItemActionPerformed
         addUndo();
-        _rna = FilterController.showFilterDialog(_rna, this, FilterController.AA_AG);
+        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.AA_AG);
         if (FilterController.success){
             this.updateImage();
             addHistory(new FilterInfo("AA/AG Filter", FilterController.description));
@@ -845,7 +734,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void diagonalFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_diagonalFilterItemActionPerformed
         addUndo();
-        _rna = FilterController.showFilterDialog(_rna, this, FilterController.DIAGONAL);
+        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.DIAGONAL);
         if (FilterController.success){
             this.updateImage();
             addHistory(new FilterInfo("Diagonal Filter", FilterController.description));
@@ -876,7 +765,7 @@ public class RheatApp extends javax.swing.JFrame {
     }//GEN-LAST:event_saveAsMenuItemActionPerformed
     
     private void preferencesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_preferencesMenuItemActionPerformed
-        javax.swing.JDialog d = new PreferenceDialog(this, true, preferencesFile, pref);
+        javax.swing.JDialog d = new PreferenceDialog(this, true, appMain);
         java.awt.Point origin = getCenteredOrigin(d);
         d.setLocation(origin);
         d.setVisible(true);
@@ -903,7 +792,7 @@ public class RheatApp extends javax.swing.JFrame {
     private void undoFilterBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_undoFilterBtnActionPerformed
         if (this.historyList.getSelectedIndex() >= 0){
             int restore = this.historyList.getSelectedIndex();
-            String s = pref.get("Undo") + File.separator + "undo" + restore;
+            String s = appMain.getPrefUndoDir() + File.separator + "undo" + restore;
             try {
                 ObjectInputStream ois = new ObjectInputStream(new FileInputStream(s));
                 RNA old = (RNA)ois.readObject();
@@ -912,7 +801,7 @@ public class RheatApp extends javax.swing.JFrame {
                     dlm.addElement(this.historyList.getModel().getElementAt(i));
                 }
                 this.historyList.setModel(dlm);
-                _rna = old;
+                appMain.rnaData = old;
                 this.updateImage(); 
                 this.currentUndo = restore;
             }
@@ -939,7 +828,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void helixFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helixFilterItemActionPerformed
         addUndo();
-        _rna = FilterController.showFilterDialog(_rna, this, FilterController.HELIX);
+        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.HELIX);
         if (FilterController.success){
             this.updateImage();
             addHistory(new FilterInfo("Helix Filter", FilterController.description));
@@ -950,11 +839,11 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void basepairFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_basepairFilterItemActionPerformed
         addUndo();
-        _rna = FilterController.showFilterDialog(_rna, this, FilterController.BASEPAIR);
+        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.BASEPAIR);
         if (FilterController.success){
             this.enableFilterMenuItems(true);
             addHistory(new FilterInfo("Basepair Filter", FilterController.description));
-            this.helixTotalField.setText("" + _rna.getHelices().getCount());
+            this.helixTotalField.setText("" + appMain.rnaData.getHelices().getCount());
             this.incrementUndo();
         }
     }//GEN-LAST:event_basepairFilterItemActionPerformed
@@ -989,7 +878,7 @@ public class RheatApp extends javax.swing.JFrame {
      */
     private void close(){
         setTitle("RNA HEAT");
-        _rna = null;
+        appMain.cleanUp();
         System.gc();
         this.DisplayScrollPane.getViewport().setView(null);
         this.enableFilterMenuItems(false);
@@ -1009,7 +898,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         File inputFile;
-        fc = new JFileChooser(pref.get("BPSEQ"));
+        fc = new JFileChooser(appMain.getPrefHelixDataDir());
         fc.setMultiSelectionEnabled(false);
         fc.setAcceptAllFileFilterUsed(false);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("BPSEQ Files", "bpseq", "txt"));
@@ -1018,11 +907,11 @@ public class RheatApp extends javax.swing.JFrame {
             inputFile = fc.getSelectedFile();
             try {
                 rheat.base.Reader reader = new rheat.base.Reader(inputFile);
-                _rna = reader.readBPSEQ();
-                this.helixActualField.setText("" + _rna.getActual().getCount());
-                this.setTitle(this.getTitle() + ": " + _rna.getUID());
-                helixImgGen = new HelixImageGenerator(_rna.getLength());
-                //this.helixGraphicsLabel = new HelixGraphicsLabel(_rna.getLength());
+                appMain.rnaData = reader.readBPSEQ();
+                this.helixActualField.setText("" + appMain.rnaData.getActual().getCount());
+                this.setTitle(this.getTitle() + ": " + appMain.rnaData.getUID());
+                helixImgGen = new HelixImageGenerator(appMain.rnaData.getLength());
+                //this.helixGraphicsLabel = new HelixGraphicsLabel(appMain.rnaData.getLength());
                 setControlLabels();
                 basepairFilterItem.setEnabled(true);
                 this.updateImage();
@@ -1036,7 +925,7 @@ public class RheatApp extends javax.swing.JFrame {
 
     private void runMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         File inputFile;
-        fc = new JFileChooser(pref.get("BPSEQ")); // for now, assume same location for scripts/inputs
+        fc = new JFileChooser(appMain.getPrefScriptDir());
         fc.setMultiSelectionEnabled(false);
         fc.setAcceptAllFileFilterUsed(false);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("JavaScript Files", "js", "txt"));
@@ -1044,7 +933,7 @@ public class RheatApp extends javax.swing.JFrame {
         if (returnVal == fc.APPROVE_OPTION){
             inputFile = fc.getSelectedFile();
             try {
-                runScript(inputFile.getAbsolutePath());
+                appMain.runScript(inputFile.getAbsolutePath());
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Error Running Script", JOptionPane.ERROR_MESSAGE);
             }
@@ -1054,15 +943,15 @@ public class RheatApp extends javax.swing.JFrame {
     private void viewControlMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewControlMenuItemActionPerformed
         bringToFront(this.ControlFrame);
     }//GEN-LAST:event_viewControlMenuItemActionPerformed
-    
+
     private void viewDisplayMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewDisplayMenuItemActionPerformed
         bringToFront(this.DisplayFrame);
     }//GEN-LAST:event_viewDisplayMenuItemActionPerformed
-    
+
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
         System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
-    
+
     /** Exit the Application */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
         close();
@@ -1076,41 +965,7 @@ public class RheatApp extends javax.swing.JFrame {
     private void setKey(JMenuItem item, int keyCode) {
         item.setAccelerator(KeyStroke.getKeyStroke(keyCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     }
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        try {
-            // set cross-platform interface because GUI layout
-            // currently does not look good when translated to
-            // other systems (e.g. can be truncated on Mac)
-            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 
-            // can be useful to determine the platform sometimes
-            String osName = System.getProperty("os.name");
-            System.err.println("RNA HEAT for " + osName);
-            if (osName.contains("Mac")) {
-                isMac = true;
-            }
-
-            RheatApp app = null;
-            app = new RheatApp(args);
-            // constructing the object will execute any scripts
-            // given in "args"; therefore, in no-GUI mode, there
-            // is nothing left to do
-            if (app.noGUI) {
-                System.exit(0);
-            }
-
-            // display the GUI
-            app.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JInternalFrame DisplayFrame;
     private javax.swing.JMenu viewMenu;

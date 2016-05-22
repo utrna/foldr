@@ -7,6 +7,7 @@ SHELL := /bin/bash
 CLASSPATH := .
 
 CLASS_PREFIXES := 
+CLASS_PREFIXES += rheat/base/AppMain
 CLASS_PREFIXES += rheat/base/BasepairType
 CLASS_PREFIXES += rheat/base/Helix
 CLASS_PREFIXES += rheat/base/HelixArray
