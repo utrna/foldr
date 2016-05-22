@@ -9,10 +9,7 @@ package rheat.test;
 import rheat.base.*;
 import rheat.filter.*;
 
-import java.io.PrintStream;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.Date;
 
 /** This is a class used for debugging and running tests only.  It will not appear
@@ -42,8 +39,14 @@ public class Tester {
             System.exit(1);
         }
         
-        //Reader r = new Reader("d.233.b.A.calcoaceticus.bpseq");
-        Reader r = new Reader("d.5.b.A.tumefaciens.bpseq");
+        rheat.base.Reader r = null;
+        try {
+            //r = new rheat.base.Reader("d.233.b.A.calcoaceticus.bpseq");
+            r = new rheat.base.Reader("d.5.b.A.tumefaciens.bpseq");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
 
         RNA rna = r.readBPSEQ();
         

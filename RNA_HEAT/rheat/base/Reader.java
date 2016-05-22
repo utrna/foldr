@@ -27,26 +27,15 @@ public class Reader {
     /** Constructor for a Reader.
      * @param filename The name of the input file.
      */
-    public Reader(String filename){
+    public Reader(String absPath) throws IOException {
         FileInputStream fis;
-        try {
-            //fis = new FileInputStream("d:\\school\\bio337j\\rheat\\test\\" + filename);
-            fis = new FileInputStream("j:\\Java Source\\rheat\\test\\" + filename);
-            reader = new BufferedReader(new InputStreamReader(fis));
-        }
-        catch (FileNotFoundException ex){
-            System.out.println("Error: File not found.");
-        }
+        fis = new FileInputStream(absPath);
+        reader = new BufferedReader(new InputStreamReader(fis));
     }
     
-    public Reader(File f){
-        try {
-            FileInputStream fis = new FileInputStream(f);
-            reader = new BufferedReader(new InputStreamReader(fis));
-        }
-        catch (FileNotFoundException ex){
-            throw new RuntimeException("Error: File not found.");
-        }
+    public Reader(File f) throws IOException {
+        FileInputStream fis = new FileInputStream(f);
+        reader = new BufferedReader(new InputStreamReader(fis));
     }
     
     /** Reads a BPSEQ file and outputs the RNA read.  It also reads some other

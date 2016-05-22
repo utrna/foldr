@@ -895,7 +895,21 @@ public class RheatApp extends javax.swing.JFrame {
     private void closeMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeMenuItemActionPerformed
         close();
     }//GEN-LAST:event_closeMenuItemActionPerformed
-    
+
+    /**
+     * Updates the display to reflect current RNA data.
+     * Used after opening helix files.
+     */
+    public void refreshForNewHelixFile() {
+        this.helixActualField.setText("" + appMain.rnaData.getActual().getCount());
+        this.setTitle(this.getTitle() + ": " + appMain.rnaData.getUID());
+        helixImgGen = new HelixImageGenerator(appMain.rnaData.getLength());
+        //this.helixGraphicsLabel = new HelixGraphicsLabel(appMain.rnaData.getLength());
+        setControlLabels();
+        basepairFilterItem.setEnabled(true);
+        this.updateImage();
+    }
+
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         File inputFile;
         fc = new JFileChooser(appMain.getPrefHelixDataDir());
@@ -906,18 +920,10 @@ public class RheatApp extends javax.swing.JFrame {
         if (returnVal == fc.APPROVE_OPTION){
             inputFile = fc.getSelectedFile();
             try {
-                rheat.base.Reader reader = new rheat.base.Reader(inputFile);
-                appMain.rnaData = reader.readBPSEQ();
-                this.helixActualField.setText("" + appMain.rnaData.getActual().getCount());
-                this.setTitle(this.getTitle() + ": " + appMain.rnaData.getUID());
-                helixImgGen = new HelixImageGenerator(appMain.rnaData.getLength());
-                //this.helixGraphicsLabel = new HelixGraphicsLabel(appMain.rnaData.getLength());
-                setControlLabels();
-                basepairFilterItem.setEnabled(true);
-                this.updateImage();
-            }
-            catch(RuntimeException ex){
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
+                // openHelixFile() will call refreshForNewHelixFile()
+                appMain.openHelixFile(inputFile.getAbsolutePath());
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
             }
             updateImage();
         }

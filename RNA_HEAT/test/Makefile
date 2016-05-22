@@ -19,16 +19,27 @@ all: check
 
 # run all tests
 check:
-	@for T in $(shell find 'no_gui_cases' -name '*.t' -type d) ; do \
+	@nfail=0 ; npass=0 ; \
+	for T in $(shell find 'no_gui_cases' -name '*.t' -type d) ; do \
 		echo "=============================" ; \
 		echo "  $$T" ; \
 		echo "=============================" ; \
 		echo $${T}/run_test.js ; \
-		$${T}/run_test.js  && echo "Test PASSED." ; \
-	done
-	@echo "============================="
-	@echo "  Test iterations complete."
-	@echo "============================="
+		$${T}/run_test.js ; \
+		if [ "x$$?" = "x0" ] ; then \
+		    echo "Test PASSED." ; \
+		    npass=$$((npass+1)) ; \
+		else \
+		    echo "!!!!!!!!!!!!!!!!!!!" ; \
+		    echo "!!! Test FAILED !!!" ; \
+		    echo "!!!!!!!!!!!!!!!!!!!" ; \
+		    nfail=$$((nfail+1)) ; \
+		fi ; \
+	done ; \
+	echo "=============================" ; \
+	echo "  Test iterations complete." ; \
+	echo "  FAILED: $$nfail    OK: $$npass" ; \
+	echo "============================="
 
 # remove temporary test results
 clean:
