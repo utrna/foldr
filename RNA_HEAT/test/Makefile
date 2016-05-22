@@ -34,8 +34,6 @@ check:
 clean:
 	@# remove temporary files based on name
 	find no_gui_cases -name 'tmp*' -exec rm -f {} +
-	@# remove generated pref.bin
-	find . -name 'pref.bin' -exec rm -f {} +
 
 # tell "make" not to treat these as file names:
 .PHONY: all check clean

@@ -20,17 +20,16 @@ import javax.swing.*;
 public class RheatApp extends javax.swing.JFrame {
     
     // PRIVATE DATAMEMBERS RELEVANT TO RNAHEAT
+    private String fileSep = System.getProperty("file.separator");
     private RNA _rna;
     private HelixImageGenerator helixImgGen;
     private JFileChooser fc = new JFileChooser();
     private BusyWaitDialog busyDialog;
     private HashMap<String, String> pref = new HashMap<String, String>();
-    //private String preffile = "j:\\pref.bin";
-    //private String undofile = "undo";
     private int undoMax = 20;
     private int currentUndo = 0;
-    //private String preffile = "D:\\temp\\pref.bin";
-    private String preffile = System.getProperty("user.dir") + System.getProperty("file.separator") + "pref.bin";
+    private String preferencesDir = System.getProperty("user.home") + fileSep + ".rheat";
+    private String preferencesFile = preferencesDir + fileSep + "pref.bin";
     private Image img;
     private ScriptEngine scriptEngine; // used to execute external scripts
     private boolean noGUI = false;
@@ -122,26 +121,27 @@ public class RheatApp extends javax.swing.JFrame {
         ObjectInputStream ois = null;
         ObjectOutputStream oos = null;
         try {
-            ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(preffile)));
+            new File(preferencesDir).mkdirs(); // ensure parent directories exist; ignore "boolean" result
+            ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(preferencesFile)));
             @SuppressWarnings({"unchecked"}) HashMap<String, String> newPref =
                                              (HashMap<String, String>)ois.readObject();
             pref = newPref;
         }
         catch (java.io.FileNotFoundException ex){
-            String err ="Your preference file either does not exist, or is corrupted.  A new one will be created.";
-            JOptionPane.showMessageDialog(this, err , "Cannot find Preferences", JOptionPane.ERROR_MESSAGE);
+            //String err = "Your preference file either does not exist, or is corrupted.  A new one will be created.";
+            //JOptionPane.showMessageDialog(this, err, "Cannot find Preferences", JOptionPane.ERROR_MESSAGE);
             pref.put("BPSEQ", System.getProperties().getProperty("user.dir"));
             pref.put("Undo", System.getProperties().getProperty("user.dir"));
             try {
-                oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(preffile))));
+                oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(preferencesFile))));
                 oos.writeObject(pref);
             }
             catch (Exception ex2){
-                
+                ex2.printStackTrace();
             }
         }
         catch (Exception ex){
-            
+            ex.printStackTrace();
         }
         finally{
             if (oos != null){
@@ -149,7 +149,7 @@ public class RheatApp extends javax.swing.JFrame {
                     oos.close();
                 }
                 catch (Exception ex){
-                    
+                    ex.printStackTrace();
                 }
             }
             if (ois != null){
@@ -157,7 +157,7 @@ public class RheatApp extends javax.swing.JFrame {
                     ois.close();
                 }
                 catch (Exception ex){
-                    
+                    ex.printStackTrace();
                 }
             }
         }
@@ -876,7 +876,7 @@ public class RheatApp extends javax.swing.JFrame {
     }//GEN-LAST:event_saveAsMenuItemActionPerformed
     
     private void preferencesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_preferencesMenuItemActionPerformed
-        javax.swing.JDialog d = new PreferenceDialog(this, true, preffile, pref);
+        javax.swing.JDialog d = new PreferenceDialog(this, true, preferencesFile, pref);
         java.awt.Point origin = getCenteredOrigin(d);
         d.setLocation(origin);
         d.setVisible(true);

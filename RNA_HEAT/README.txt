@@ -30,7 +30,7 @@ Automated Testing
 ~~~~~~~~~~~~~~~~~
 
 From a shell, you can use "make check".  Or, you can pick any of
-the tests in "test/cases/..." and run them individually.
+the tests under "test/.../..." and run them individually.
 
 
 Building
