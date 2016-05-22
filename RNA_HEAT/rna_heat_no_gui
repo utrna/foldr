@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+# vim: set encoding=utf-8 :
+
+# See "rna_heat" for details.
+
+import os
+import sys
+
+# find the directory that contains this script
+current_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+
+try:
+    new_argv = ["%s/rna_heat" % current_dir]
+    new_argv.append('-noGUI')
+    new_argv.extend(sys.argv[1:])
+    os.execvpe(new_argv[0], new_argv, os.environ) # does not return unless there is an error
+except OSError as e:
+    print >>sys.stderr, "Exception raised while attempting to run", \
+                        new_argv[0], new_argv, ":", e
+sys.exit(1)

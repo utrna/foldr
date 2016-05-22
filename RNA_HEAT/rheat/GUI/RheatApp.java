@@ -33,10 +33,14 @@ public class RheatApp extends javax.swing.JFrame {
     private String preffile = System.getProperty("user.dir") + System.getProperty("file.separator") + "pref.bin";
     private Image img;
     private ScriptEngine scriptEngine; // used to execute external scripts
+    private boolean noGUI = false;
     static private boolean isMac = false;
-    
-    /** Creates new form TestAppGUI */
-    public RheatApp(String[] args) {
+
+    /**
+     * Main application class; "args" should come from
+     * the main() command line.
+     */
+    public RheatApp(String[] args) throws IOException, ScriptException {
         initComponents();
         initPreferences();
         try {
@@ -47,23 +51,40 @@ public class RheatApp extends javax.swing.JFrame {
         }
         if (args.length > 0) {
             // load any requested JavaScript files
-            for (String filePath : args) {
-                try {
-                    scriptEngine.eval(new java.io.FileReader(filePath));
-                } catch (FileNotFoundException e) {
-                    System.err.println(e);
-                } catch (ScriptException e) {
-                    System.err.println(e);
-                    System.err.println("…while evaluating '" + filePath + "'.");
+            for (String argument : args) {
+                if (argument.equals("-noGUI")) {
+                    this.noGUI = true;
+                    continue;
                 }
+                // treat anything else as a file location
+                runScript(argument);
             }
+        }
+        if (this.noGUI) {
+            // FIXME: temporary; should separate main interface
+            // front-end into a different class so that the GUI
+            // attribute will not have to be checked everywhere
+            return;
         }
         this.setBounds(0, 0 , 700, 700);
         busyDialog = new BusyWaitDialog(this, false);
         Point origin = getCenteredOrigin(busyDialog);
         busyDialog.setLocation(origin);
     }
-    
+
+    private void runScript(String filePath) throws IOException, ScriptException {
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+        // for convenience, ignore any Unix "#!" line (the default
+        // JavaScript reader will NOT do this...)
+        reader.mark(255/* max. char. to backtrack */);
+        String line = reader.readLine();
+        if ((line.length() > 1) && ((line.charAt(0) != '#') || (line.charAt(1) != '!'))) {
+            // no #!-line; keep the original line
+            reader.reset();
+        }
+        scriptEngine.eval(reader);
+    }
+
     private void addUndo(){
         String undofile = pref.get("Undo") + File.separator + "undo" + currentUndo;
         try {
@@ -1023,7 +1044,7 @@ public class RheatApp extends javax.swing.JFrame {
         if (returnVal == fc.APPROVE_OPTION){
             inputFile = fc.getSelectedFile();
             try {
-                scriptEngine.eval(new java.io.FileReader(inputFile));
+                runScript(inputFile.getAbsolutePath());
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Error Running Script", JOptionPane.ERROR_MESSAGE);
             }
@@ -1073,10 +1094,20 @@ public class RheatApp extends javax.swing.JFrame {
                 isMac = true;
             }
 
-            RheatApp app = new RheatApp(args);
+            RheatApp app = null;
+            app = new RheatApp(args);
+            // constructing the object will execute any scripts
+            // given in "args"; therefore, in no-GUI mode, there
+            // is nothing left to do
+            if (app.noGUI) {
+                System.exit(0);
+            }
+
+            // display the GUI
             app.setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
     

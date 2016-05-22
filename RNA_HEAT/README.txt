@@ -26,6 +26,13 @@ it should be possible to say "java.exe rheat.jar" from a command
 prompt, in the same directory as the rheat.jar file.
 
 
+Automated Testing
+~~~~~~~~~~~~~~~~~
+
+From a shell, you can use "make check".  Or, you can pick any of
+the tests in "test/cases/..." and run them individually.
+
+
 Building
 ~~~~~~~~
 

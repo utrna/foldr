@@ -76,10 +76,12 @@ viewdoc: javadoc/index.html
 
 # run program
 run: all
-	java \
-		-Dapple.laf.useScreenMenuBar="true" \
-		-jar rheat.jar \
-		$(RUN_ARGS)
+	$(CURDIR)/rna_heat $(RUN_ARGS)
+
+# alias for running test cases from "test/",
+# except that it also triggers an implicit build
+check: all
+	$(MAKE) -C test/ check
 
 # remove files that can be rebuilt
 clean:
@@ -90,6 +92,8 @@ clean:
 	rm -f tmp-*
 	@# remove documentation files
 	rm -Rf javadoc/
+	@# remove temporary test results
+	$(MAKE) -C test/ clean
 
 # tell "make" not to treat these as file names:
-.PHONY: all clean doc run viewdoc
+.PHONY: all check clean doc run viewdoc

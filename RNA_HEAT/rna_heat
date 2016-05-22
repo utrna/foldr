@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+# vim: set encoding=utf-8 :
+
+# This script is a convenient front-end that launches the main
+# program and passes in arguments.
+#
+# IMPORTANT: This is relied upon for automation under "tests/",
+#            and it is used by the top-level "make run".
+
+import os
+import sys
+
+# find the directory that contains this script
+current_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+
+# create argument array
+new_argv = ['java']
+
+# when running in no-GUI mode, Java launches might still cause a
+# Dock icon to appear briefly on the Mac; this option forces the
+# application to have no icon, which is more consistent with the
+# behavior of a background script process (it must be set prior
+# to launching "java" so it’s set here and not in the Java code)
+if "-noGUI" in sys.argv:
+    new_argv.append('-Dapple.awt.UIElement=true')
+
+# run the program with any given options; note that the property
+# "apple.laf.useScreenMenuBar" will move menu items into the
+# main Mac menu bar if the system look-and-feel is in use
+new_argv.append('-Dapple.laf.useScreenMenuBar=true')
+
+# specify the archive that is built from the RHEAT code
+new_argv.extend(['-jar', "%s/rheat.jar" % current_dir])
+
+# include all options given to this script
+new_argv.extend(sys.argv[1:])
+
+# run the program
+try:
+    print "Running:", new_argv
+    os.execvpe(new_argv[0], new_argv, os.environ) # does not return unless there is an error
+except OSError as e:
+    print >>sys.stderr, "Exception raised while attempting to run", \
+                        new_argv[0], new_argv, ":", e
+sys.exit(1)
