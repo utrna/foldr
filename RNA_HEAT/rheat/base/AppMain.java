@@ -22,9 +22,9 @@ public class AppMain {
     public static final int ERROR = 2;
 
     private String fileSep = System.getProperty("file.separator");
-    private HashMap<String, String> pref = new HashMap<String, String>();
+    private HashMap<String, String> preferencesMap = new HashMap<String, String>();
     private String preferencesDir = System.getProperty("user.home") + fileSep + ".rheat";
-    private String preferencesFile = preferencesDir + fileSep + "pref.bin";
+    private String preferencesScript = preferencesDir + fileSep + "prefs.js";
     private ArrayList<String> startupScripts = new ArrayList<String>();
     private String previousDir = null; // see beginOpenFile()
     private ScriptEngine scriptEngine; // used to execute external scripts
@@ -37,7 +37,6 @@ public class AppMain {
      * the main() command line.
      */
     public AppMain(String[] args) throws IOException, ScriptException {
-        initPreferences();
         try {
             initScriptingEngine();
         } catch (ScriptException e) {
@@ -112,32 +111,42 @@ public class AppMain {
     }
 
     /**
+     * Sets a particular preference key and value.  Currently the
+     * recognized keys are: "BPSEQ" to set the location for the
+     * helix data and scripts, and "Undo" to set the location for
+     * undo-files.
+     */
+    public void setPreference(String key, String value) {
+        preferencesMap.put(key, value);
+    }
+
+    /**
      * Returns all user preferences as a map.  Avoid doing this
      * except for file I/O; prefer more specific methods below.
      */
     public Map<String, String> getPreferencesMap() {
-        return pref;
+        return preferencesMap;
     }
 
     /**
      * Returns user-specified directory for helix data.
      */
     public String getPrefHelixDataDir() {
-        return pref.get("BPSEQ");
+        return preferencesMap.get("BPSEQ");
     }
 
     /**
      * Returns user-specified directory for scripts.
      */
     public String getPrefScriptDir() {
-        return pref.get("BPSEQ"); // for now, assume same location for scripts/inputs
+        return preferencesMap.get("BPSEQ"); // for now, assume same location for scripts/inputs
     }
 
     /**
      * Returns user-specified directory for undo-files.
      */
     public String getPrefUndoDir() {
-        return pref.get("Undo");
+        return preferencesMap.get("Undo");
     }
 
     /**
@@ -156,7 +165,7 @@ public class AppMain {
      * @returns the absolute path to the specified file
      */
     private String beginOpenFile(String filePath) throws IOException {
-        log(INFO, new String[]{"Request to open: '", filePath, "'."});
+        log(INFO, new String[]{"Opening: '", filePath, "'."});
         // since scripts might contain references to files with relative
         // locations (e.g. file name only), a logical starting point has
         // to be set; choose the location of the script itself
@@ -252,11 +261,28 @@ public class AppMain {
 
     /**
      * Calls runScript() for any scripts found in the main
-     * argument list at startup time.
+     * argument list at startup time, and for any existing
+     * preferences file.  If there is no preferences file,
+     * a new one is created with default values.
      */
     private void runStartupScripts() throws IOException, ScriptException {
         for (String scriptPath : startupScripts) {
             runScript(scriptPath);
+        }
+        if (new File(this.preferencesScript).exists()) {
+            log(INFO, "Running script to restore user preferences…");
+            try {
+                runScript(this.preferencesScript);
+            } catch (Exception e) {
+                log(WARN, "Unable to restore preferences: '" + e.getMessage() + "'.");
+            }
+        } else {
+            // initialize new preferences file (the keys used below
+            // should be consistent with other uses of the keys)
+            log(INFO, "Creating a new preferences file.");
+            preferencesMap.put("BPSEQ", System.getProperties().getProperty("user.dir"));
+            preferencesMap.put("Undo", System.getProperties().getProperty("user.dir"));
+            savePreferences();
         }
     }
 
@@ -264,61 +290,16 @@ public class AppMain {
      * Writes the preferences map to disk.
      */
     public void savePreferences() throws IOException {
-        ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(preferencesFile))));
-        oos.writeObject(pref);
-        oos.flush();
+        new File(this.preferencesDir).mkdirs(); // ensure parent directories exist; ignore "boolean" result
+        PrintWriter pw = new PrintWriter(this.preferencesScript);
+        for (Map.Entry<String, String> entry : this.preferencesMap.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            pw.println("rheat.setPreference(\"" + key + "\", \"" + value + "\")");
+        }
+        pw.close();
     }
 
-    /**
-     * Initialize and read the preference files.  Creates a new preference file
-     * if the old one does not exist.
-     */
-    private void initPreferences(){
-        ObjectInputStream ois = null;
-        ObjectOutputStream oos = null;
-        try {
-            new File(preferencesDir).mkdirs(); // ensure parent directories exist; ignore "boolean" result
-            ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(preferencesFile)));
-            @SuppressWarnings({"unchecked"}) HashMap<String, String> newPref =
-                                             (HashMap<String, String>)ois.readObject();
-            pref = newPref;
-        }
-        catch (java.io.FileNotFoundException ex){
-            //String err = "Your preference file either does not exist, or is corrupted.  A new one will be created.";
-            //JOptionPane.showMessageDialog(this, err, "Cannot find Preferences", JOptionPane.ERROR_MESSAGE);
-            pref.put("BPSEQ", System.getProperties().getProperty("user.dir"));
-            pref.put("Undo", System.getProperties().getProperty("user.dir"));
-            try {
-                oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(preferencesFile))));
-                oos.writeObject(pref);
-            }
-            catch (Exception ex2){
-                ex2.printStackTrace();
-            }
-        }
-        catch (Exception ex){
-            ex.printStackTrace();
-        }
-        finally{
-            if (oos != null){
-                try {
-                    oos.close();
-                }
-                catch (Exception ex){
-                    ex.printStackTrace();
-                }
-            }
-            if (ois != null){
-                try {
-                    ois.close();
-                }
-                catch (Exception ex){
-                    ex.printStackTrace();
-                }
-            }
-        }
-    }
-    
     /**
      * Creates the scripting engine (JavaScript).  Note that the
      * engine is not going to be very useful until a main object
@@ -365,7 +346,8 @@ public class AppMain {
                 appMain.gui.setVisible(true);
             }
 
-            // run any scripts given on the command line
+            // run any scripts given on the command line, and run any
+            // other special scripts (such as the preferences file)
             try {
                 appMain.setScriptMain(new ScriptMain(appMain)); // sets "rheat" variable in scripts
                 appMain.scriptEngine.eval("rheat.log(rheat.INFO, 'JavaScript engine loaded successfully.')"); // trivial test

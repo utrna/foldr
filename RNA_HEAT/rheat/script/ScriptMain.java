@@ -73,4 +73,15 @@ public class ScriptMain {
         }
     }
 
+    /**
+     * Script interface for AppMain.setPreference().
+     */
+    public void setPreference(String key, String value) throws ScriptException {
+        try {
+            appMain.setPreference(key, value);
+        } catch (Exception e) {
+            throw new ScriptException(e.getMessage());
+        }
+    }
+
 }
