@@ -836,16 +836,24 @@ public class RheatApp extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_helixFilterItemActionPerformed
-    
-    private void basepairFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_basepairFilterItemActionPerformed
+
+    /**
+     * The implementation of the base-pair filter action.
+     */
+    private void showBasePairFilterDialog() {
         addUndo();
         appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.BASEPAIR);
         if (FilterController.success){
+            this.updateImage();
             this.enableFilterMenuItems(true);
             addHistory(new FilterInfo("Basepair Filter", FilterController.description));
             this.helixTotalField.setText("" + appMain.rnaData.getHelices().getCount());
             this.incrementUndo();
         }
+    }
+
+    private void basepairFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_basepairFilterItemActionPerformed
+        showBasePairFilterDialog();
     }//GEN-LAST:event_basepairFilterItemActionPerformed
     
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
@@ -922,6 +930,9 @@ public class RheatApp extends javax.swing.JFrame {
             try {
                 // openHelixFile() will call refreshForNewHelixFile()
                 appMain.openHelixFile(inputFile.getAbsolutePath());
+                // automatically request a base-pair filter, since
+                // otherwise the default display is not very useful
+                showBasePairFilterDialog();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
             }

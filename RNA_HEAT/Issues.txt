@@ -23,12 +23,7 @@ The following things were tried and there were problems:
 
   * "Complex Distance Filter": Out-of-bounds exception when used.
 
-- "Display Window":
-
-  * Dr. Gutell sees no helices when using Windows.
-    UPDATE: Seems that after applying a Base Filter, and using
-    buttons like "Flat View" and back to "2D View", helices may
-    appear.  This could be a display-updating bug.
+  * Undoing a filter in the list will remove all those below.
 
 - "Control Window":
 
@@ -45,8 +40,6 @@ The following things were tried and there were problems:
 
   * Buttons like "Info..." do nothing unless a filter exists
     (should probably conditionally disable them).
-
-  * Clicking "Undo" may display an error about saving data.
 
 - General:
 
@@ -71,6 +64,11 @@ The following items are now FIXED (moved from list above):
 
   * Helices are sometimes hard to select, even when zoomed.
 
+  * Dr. Gutell sees no helices when using Windows.
+    UPDATE: Seems that after applying a Base Filter, and using
+    buttons like "Flat View" and back to "2D View", helices may
+    appear.  This could be a display-updating bug.
+
 - "Control Window":
 
   * Clipped on Mac; cannot be resized or scrolled, cannot see the
@@ -80,6 +78,10 @@ The following items are now FIXED (moved from list above):
 
   * Seems like zoom 10 is useful but zoom 100 is too much; may
     want to add a zoom level 15 or 20, say.
+
+- "Filter History":
+
+  * Clicking "Undo" may display an error about saving data.
 
 - Source Code:
 
