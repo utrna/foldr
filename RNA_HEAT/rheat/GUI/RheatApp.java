@@ -18,7 +18,7 @@ import javax.swing.*;
  * @author  jyzhang
  */
 public class RheatApp extends javax.swing.JFrame {
-    
+
     // PRIVATE DATAMEMBERS RELEVANT TO RNAHEAT
     private AppMain appMain;
     private HelixImageGenerator helixImgGen;
@@ -69,14 +69,53 @@ public class RheatApp extends javax.swing.JFrame {
     private void clearHistory(){
         this.historyList.setModel(new DefaultListModel<FilterInfo>());
     }
-    
+
+    private float getZoomAt(int index) {
+        float result = 1.0f;
+        if (index >= 0) {
+            String itemText = (String)this.zoomComboBox.getItemAt(index);
+            result = Float.parseFloat(itemText);
+        }
+        return result;
+    }
+
+    private float getZoomLevel() {
+        float result = 1.0f;
+        int selectedIndex = this.zoomComboBox.getSelectedIndex();
+        if (selectedIndex >= 0) {
+            result = this.getZoomAt(selectedIndex);
+        }
+        return result;
+    }
+
+    private void zoomIn() {
+        float currentZoom = getZoomLevel();
+        int numLevels = this.zoomComboBox.getItemCount();
+        for (int i = 0; i < numLevels; ++i) {
+            if (getZoomAt(i) > currentZoom) {
+                this.zoomComboBox.setSelectedIndex(i);
+                break;
+            }
+        }
+    }
+
+    private void zoomOut() {
+        float currentZoom = getZoomLevel();
+        int numLevels = this.zoomComboBox.getItemCount();
+        for (int i = numLevels - 1; i >= 0; --i) {
+            if (getZoomAt(i) < currentZoom) {
+                this.zoomComboBox.setSelectedIndex(i);
+                break;
+            }
+        }
+    }
+
     private void updateImage(){
         if (appMain.rnaData != null /*&& this.helixImgGen != null*/){
             busyDialog.setVisible(true);
             try {
                 System.gc();
-                float zoom = Float.parseFloat((String)this.zoomComboBox.getSelectedItem());
-                helixImgGen.setZoomLevel(zoom);
+                helixImgGen.setZoomLevel(this.getZoomLevel());
                 img = helixImgGen.drawImage(appMain.rnaData);
                 Point p = this.DisplayScrollPane.getViewport().getViewPosition();
                 img = helixImgGen.zoomImage(img);
@@ -224,6 +263,8 @@ public class RheatApp extends javax.swing.JFrame {
         jPanel3 = new javax.swing.JPanel();
         zoomLevelLabel = new javax.swing.JLabel();
         zoomComboBox = new javax.swing.JComboBox<String>();
+        zoomInButton = new javax.swing.JButton();
+        zoomOutButton = new javax.swing.JButton();
         view2DBtn = new javax.swing.JButton();
         viewFlatBtn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
@@ -261,6 +302,11 @@ public class RheatApp extends javax.swing.JFrame {
         energyFilterItem = new javax.swing.JMenuItem();
         complexFilterItem = new javax.swing.JMenuItem();
         viewMenu = new javax.swing.JMenu();
+        viewType2DMenuItem = new javax.swing.JCheckBoxMenuItem();
+        viewTypeFlatMenuItem = new javax.swing.JCheckBoxMenuItem();
+        zoomOutMenuItem = new javax.swing.JMenuItem();
+        zoomInMenuItem = new javax.swing.JMenuItem();
+        windowMenu = new javax.swing.JMenu();
         viewDisplayMenuItem = new javax.swing.JMenuItem();
         viewControlMenuItem = new javax.swing.JMenuItem();
         viewHistoryMenuItem = new javax.swing.JMenuItem();
@@ -317,13 +363,13 @@ public class RheatApp extends javax.swing.JFrame {
         jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         zoomLevelLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        zoomLevelLabel.setText("Zoom Level");
+        zoomLevelLabel.setText("Zoom:");
         jPanel3.add(zoomLevelLabel);
 
         zoomComboBox.setEditable(true);
         zoomComboBox.setModel(new javax.swing.DefaultComboBoxModel<String>(new String[] { "0.01", "0.1", "0.5", "1", "1.5", "2", "5", "10", "15", "20" }));
         zoomComboBox.setSelectedIndex(3);
-        zoomComboBox.setPreferredSize(new java.awt.Dimension(100, 26));
+        zoomComboBox.setPreferredSize(new java.awt.Dimension(50, 26));
         zoomComboBox.setAutoscrolls(true);
         zoomComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -333,10 +379,30 @@ public class RheatApp extends javax.swing.JFrame {
 
         jPanel3.add(zoomComboBox);
 
+        zoomOutButton.setText("-");
+        zoomOutButton.setMnemonic(KeyEvent.VK_MINUS);
+        zoomOutButton.setDisplayedMnemonicIndex(-1);
+        zoomOutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomOut();
+            }
+        });
+        jPanel3.add(zoomOutButton);
+
+        zoomInButton.setText("+");
+        zoomInButton.setMnemonic(KeyEvent.VK_EQUALS);
+        zoomInButton.setDisplayedMnemonicIndex(-1);
+        zoomInButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomIn();
+            }
+        });
+        jPanel3.add(zoomInButton);
+
         view2DBtn.setText("2D View");
         view2DBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                view2DBtnActionPerformed(evt);
+                setViewType2D();
             }
         });
 
@@ -345,7 +411,7 @@ public class RheatApp extends javax.swing.JFrame {
         viewFlatBtn.setText("Flat View");
         viewFlatBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                viewFlatBtnActionPerformed(evt);
+                setViewTypeFlat();
             }
         });
 
@@ -609,6 +675,56 @@ public class RheatApp extends javax.swing.JFrame {
 
         viewMenu.setMnemonic('V');
         viewMenu.setText("View");
+
+        viewType2DMenuItem.setMnemonic('2');
+        viewType2DMenuItem.setState(true); // initially...
+        viewType2DMenuItem.setText("2D");
+        viewType2DMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setViewType2D();
+            }
+        });
+
+        viewMenu.add(viewType2DMenuItem);
+
+        viewTypeFlatMenuItem.setMnemonic('F');
+        viewTypeFlatMenuItem.setText("Flat");
+        viewTypeFlatMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setViewTypeFlat();
+            }
+        });
+
+        viewMenu.add(viewTypeFlatMenuItem);
+        viewMenu.addSeparator();
+
+        zoomOutMenuItem.setMnemonic('O');
+        setKey(zoomOutMenuItem, KeyEvent.VK_COMMA);
+        zoomOutMenuItem.setText("Zoom Out");
+        zoomOutMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomOut();
+            }
+        });
+
+        viewMenu.add(zoomOutMenuItem);
+
+        zoomInMenuItem.setMnemonic('I');
+        setKey(zoomInMenuItem, KeyEvent.VK_PERIOD);
+        zoomInMenuItem.setText("Zoom In");
+        zoomInMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomIn();
+            }
+        });
+
+        viewMenu.add(zoomInMenuItem);
+
+        menuBar.add(viewMenu);
+
+        windowMenu.setMnemonic('W');
+        windowMenu.setText("Window");
+
         viewDisplayMenuItem.setMnemonic('D');
         viewDisplayMenuItem.setText("Display Window");
         viewDisplayMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -617,7 +733,7 @@ public class RheatApp extends javax.swing.JFrame {
             }
         });
 
-        viewMenu.add(viewDisplayMenuItem);
+        windowMenu.add(viewDisplayMenuItem);
 
         viewControlMenuItem.setMnemonic('C');
         viewControlMenuItem.setText("Control Window");
@@ -627,7 +743,7 @@ public class RheatApp extends javax.swing.JFrame {
             }
         });
 
-        viewMenu.add(viewControlMenuItem);
+        windowMenu.add(viewControlMenuItem);
 
         viewHistoryMenuItem.setMnemonic('H');
         viewHistoryMenuItem.setText("History Window");
@@ -637,7 +753,7 @@ public class RheatApp extends javax.swing.JFrame {
             }
         });
 
-        viewMenu.add(viewHistoryMenuItem);
+        windowMenu.add(viewHistoryMenuItem);
 
         viewInfoMenuItem.setMnemonic('I');
         setKey(viewInfoMenuItem, KeyEvent.VK_I);
@@ -648,9 +764,9 @@ public class RheatApp extends javax.swing.JFrame {
             }
         });
 
-        viewMenu.add(viewInfoMenuItem);
+        windowMenu.add(viewInfoMenuItem);
 
-        menuBar.add(viewMenu);
+        menuBar.add(windowMenu);
 
         helpMenu.setMnemonic('H');
         helpMenu.setText("Help");
@@ -869,17 +985,21 @@ public class RheatApp extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_zoomComboBoxItemStateChanged
     
-    private void viewFlatBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewFlatBtnActionPerformed
+    private void setViewTypeFlat() {
+        viewType2DMenuItem.setState(false);
+        viewTypeFlatMenuItem.setState(true);
         if (helixImgGen != null && helixImgGen.setImageType(HelixImageGenerator.VIEW_FLAT)){
             this.updateImage();
         }
-    }//GEN-LAST:event_viewFlatBtnActionPerformed
+    }
     
-    private void view2DBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_view2DBtnActionPerformed
+    private void setViewType2D() {
+        viewType2DMenuItem.setState(true);
+        viewTypeFlatMenuItem.setState(false);
         if (helixImgGen != null && helixImgGen.setImageType(HelixImageGenerator.VIEW_2D)){
             this.updateImage();
         }
-    }//GEN-LAST:event_view2DBtnActionPerformed
+    }
     
     /**
      * Private method to do clean up when closing the current session.
@@ -985,7 +1105,7 @@ public class RheatApp extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JInternalFrame DisplayFrame;
-    private javax.swing.JMenu viewMenu;
+    private javax.swing.JMenu windowMenu;
     private javax.swing.JTextField helixNumField;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenuItem viewControlMenuItem;
@@ -1038,7 +1158,14 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JLabel orgLabel;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenuItem complexFilterItem;
+    private javax.swing.JMenu viewMenu;
+    private javax.swing.JCheckBoxMenuItem viewType2DMenuItem;
+    private javax.swing.JCheckBoxMenuItem viewTypeFlatMenuItem;
+    private javax.swing.JMenuItem zoomOutMenuItem;
+    private javax.swing.JMenuItem zoomInMenuItem;
     private javax.swing.JComboBox<String> zoomComboBox;
+    private javax.swing.JButton zoomInButton;
+    private javax.swing.JButton zoomOutButton;
     private javax.swing.JList<FilterInfo> historyList;
     // End of variables declaration//GEN-END:variables
 }

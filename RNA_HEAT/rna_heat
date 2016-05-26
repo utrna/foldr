@@ -16,18 +16,20 @@ current_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
 # create argument array
 new_argv = ['java']
 
-# when running in no-GUI mode, Java launches might still cause a
-# Dock icon to appear briefly on the Mac; this option forces the
-# application to have no icon, which is more consistent with the
-# behavior of a background script process (it must be set prior
-# to launching "java" so it’s set here and not in the Java code)
-if "-noGUI" in sys.argv:
-    new_argv.append('-Dapple.awt.UIElement=true')
-
-# run the program with any given options; note that the property
-# "apple.laf.useScreenMenuBar" will move menu items into the
-# main Mac menu bar if the system look-and-feel is in use
-new_argv.append('-Dapple.laf.useScreenMenuBar=true')
+# add platform-specific options
+if "darwin" in sys.platform.lower():
+    if "-noGUI" in sys.argv:
+        # when running in no-GUI mode, Java launches might still cause a
+        # Dock icon to appear briefly on the Mac; this option forces the
+        # application to have no icon, which is more consistent with the
+        # behavior of a background script process (it must be set prior
+        # to launching "java" so it’s set here and not in the Java code)
+        new_argv.append('-Dapple.awt.UIElement=true')
+    # "apple.laf.useScreenMenuBar" moves menu items into the
+    # main Mac menu bar if the system look-and-feel is in use
+    new_argv.append('-Dapple.laf.useScreenMenuBar=true')
+    # "-Xdock:name=" sets the application menu name
+    new_argv.append('-Xdock:name=RNA Heat')
 
 # specify the archive that is built from the RHEAT code
 new_argv.extend(['-jar', "%s/rheat.jar" % current_dir])

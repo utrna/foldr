@@ -109,10 +109,10 @@ public class HelpContentJFrame extends javax.swing.JFrame {
             "MenuBarFilters.html"));
         menubar.add(menubarfilters);
 
-        DefaultMutableTreeNode menubarview
-        = new DefaultMutableTreeNode(new BookInfo("The Menu Bar: View",
-            "MenuBarView.html"));
-        menubar.add(menubarview);
+        DefaultMutableTreeNode menubarwindow
+        = new DefaultMutableTreeNode(new BookInfo("The Menu Bar: Window",
+            "MenuBarWindow.html"));
+        menubar.add(menubarwindow);
 
         DefaultMutableTreeNode menubarhelp
         = new DefaultMutableTreeNode(new BookInfo("The Menu Bar: Help",
