@@ -8,24 +8,32 @@ package rheat.GUI;
 
 import rheat.base.*;
 import rheat.filter.ELoopHelicesFilter;
+import rheat.filter.Filter;
 
 /**
  *
  * @author  jyzhang
  */
-public class ELoopFilterDialog extends javax.swing.JDialog {
-    
-    private int mode;
-    private RNA _rna;
-    
+public class ELoopFilterDialog
+extends javax.swing.JDialog
+implements FilterDialog {
+
     /** Creates new form ELoopFilterDialog */
-    public ELoopFilterDialog(RNA r, int m, java.awt.Frame parent) {
+    public ELoopFilterDialog(java.awt.Frame parent) {
         super(parent, true);
-        _rna = r;
-        mode = m;
         initComponents();
     }
-    
+
+    /**
+     * Implements FilterDialog interface.
+     */
+    public rheat.filter.Filter run() {
+        pack();
+        setLocationRelativeTo(getParent());
+        setVisible(true); // blocks until dialog is done
+        return filter;
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -77,44 +85,34 @@ public class ELoopFilterDialog extends javax.swing.JDialog {
 
         pack();
     }
-    
+
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        ELoopHelicesFilter filter = new ELoopHelicesFilter();
+        ELoopHelicesFilter newFilter = new ELoopHelicesFilter();
         this.setVisible(false);
-        if (mode == FilterController.INTERACTIVE){
-            FilterController.rna = filter.apply(_rna);
-            FilterController.success = true;
-        }
-        else if (mode == FilterController.BATCH){
-            
-        }
         this.close();
+        this.filter = newFilter;
     }
-    
+
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        FilterController.success = false;
         close();
     }
-    
+
     private void close(){
-        
         dispose();
     }
-    
+
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt) {
-        FilterController.success = false;
         close();
     }
-    
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new ELoopFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
+        new ELoopFilterDialog(new javax.swing.JFrame()).setVisible(true);
     }
-    
-    
+
     // Variables declaration - do not modify
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel1;
@@ -122,6 +120,6 @@ public class ELoopFilterDialog extends javax.swing.JDialog {
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration
-    
-}
+    private Filter filter; // null unless dialog was accepted by user
 
+}

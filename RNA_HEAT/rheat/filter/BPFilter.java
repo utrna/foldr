@@ -16,7 +16,8 @@ import java.util.BitSet;
  * basepairs.
  * @author Team MatriX
  */
-public class BPFilter implements Filter{
+public class BPFilter
+extends rheat.filter.Filter {
     
     /** Creates a new instance of BPFilter given an RNA.
      * @param inputRna The RNA to apply this Filter to.
@@ -24,6 +25,10 @@ public class BPFilter implements Filter{
     public BPFilter() {
         int[] defaultrule = {BasepairType.AU, BasepairType.CG, BasepairType.GU};
         bprules = BasepairType.returnBasepairTypes(defaultrule);
+    }
+
+    public BitSet getBasePairs() {
+        return bprules;
     }
     
     /** Apply this filter.
@@ -43,6 +48,7 @@ public class BPFilter implements Filter{
             }
         }
         rna.setBasePairs(bp);
+        rna = new AllHelicesFilter().apply(rna);
         return rna;
     }
     

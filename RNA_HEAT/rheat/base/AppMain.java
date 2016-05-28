@@ -1,5 +1,7 @@
 package rheat.base;
 
+import rheat.filter.AllHelicesFilter;
+import rheat.filter.Filter;
 import rheat.GUI.RheatApp;
 import rheat.script.ScriptMain;
 
@@ -7,13 +9,15 @@ import java.io.*;
 import java.util.*;
 import javax.script.*;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
 /**
  * Main entry point to RNA HEAT application.
  */
 public class AppMain {
-    
+
     /**
      * For the log() method.
      */
@@ -25,10 +29,14 @@ public class AppMain {
     private HashMap<String, String> preferencesMap = new HashMap<String, String>();
     private String preferencesDir = System.getProperty("user.home") + fileSep + ".rheat";
     private String preferencesScript = preferencesDir + fileSep + "prefs.js";
+    private String historyScript = preferencesDir + fileSep + "history.js";
+    private ArrayList<String> historyCommands = new ArrayList<String>();
     private ArrayList<String> startupScripts = new ArrayList<String>();
     private String previousDir = null; // see beginOpenFile()
     private ScriptEngine scriptEngine; // used to execute external scripts
     private rheat.GUI.RheatApp gui = null; // may be null
+    private int undoMax = 20;
+    private int currentUndo = 0;
     static private boolean isMac = false;
     public RNA rnaData = null;
 
@@ -217,16 +225,127 @@ public class AppMain {
      * supported format such as ".bpseq".  If there is a GUI, it
      * will be refreshed automatically.
      */
-    public void openHelixFile(String filePath) throws IOException {
+    public void openRNA(String filePath) throws IOException {
         String realPath = this.beginOpenFile(filePath);
         try {
             rheat.base.Reader reader = new rheat.base.Reader(realPath);
             this.rnaData = reader.readBPSEQ();
-            if (this.gui != null) {
-                this.gui.refreshForNewHelixFile();
-            }
+            removeFilters(); // initialize data and update display
+            //if (this.gui != null) {
+            //    this.gui.refreshForNewRNA();
+            //}
         } finally {
             this.endOpenFile();
+        }
+    }
+
+    /**
+     * Adds another string to the list of lines to be
+     * written to "~/.rheat/history.js" implicitly.
+     * The GUI may also display this command list.
+     */
+    public void addHistoryCommand(String commandLines) {
+        historyCommands.add(commandLines);
+        try {
+            saveHistory();
+        } catch (Exception e) {
+            e.printStackTrace();
+            log(WARN, "Failed to save the history file.");
+        }
+    }
+
+    /**
+     * Erases the list; see addHistoryCommand().
+     */
+    public void clearHistoryCommands() {
+        historyCommands.clear();
+    }
+
+    /**
+     * Creates another snapshot of "rnaData".
+     */
+    public void snapshotRNAData() throws IOException {
+        String undoFile = getPrefUndoDir() + fileSep + "undo" + currentUndo;
+        ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(undoFile));
+        ois.writeObject(this.rnaData);
+    }
+
+    /**
+     * Adds 1 to the current undo index.
+     */
+    public void incrementUndo() {
+        currentUndo = (currentUndo + 1) % undoMax;
+    }
+
+    /**
+     * Returns the current undo level.
+     */
+    public int getUndoIndex() {
+        return currentUndo;
+    }
+
+    /**
+     * Replaces "rnaData" with a previous version, as
+     * captured by a call to snapshotRNAData().
+     */
+    public void revertToPreviousRNA(int undoIndex) throws ClassNotFoundException, IOException {
+        String s = getPrefUndoDir() + File.separator + "undo" + undoIndex;
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(s));
+        RNA old = (RNA)ois.readObject();
+        this.rnaData = old;
+        this.currentUndo = undoIndex;
+    }
+
+    /**
+     * Adds a filter to the history list and applies its effects to
+     * the currently-displayed RNA.
+     */
+    public void addFilter(Filter filter) {
+        // FIXME: create low-level history list (in GUI for now)
+        RNA newData = filter.apply(this.rnaData);
+        if (newData == null) {
+            log(ERROR, "Filter failed to apply.");
+        } else {
+            this.rnaData = newData;
+            if (this.gui != null) {
+                this.gui.refreshForNewRNA();
+            }
+        }
+    }
+
+    /**
+     * Clears the history list and shows all helices.
+     */
+    public void removeFilters() {
+        // FIXME: use low-level history list (in GUI for now)
+        AllHelicesFilter filter = new AllHelicesFilter();
+        RNA newData = filter.apply(this.rnaData);
+        if (newData == null) {
+            log(ERROR, "All-helices filter failed to apply.");
+        } else {
+            this.rnaData = newData;
+            if (this.gui != null) {
+                this.gui.clearHistory();
+                this.gui.refreshForNewRNA();
+            }
+        }
+    }
+
+    /**
+     * Runs the specified code.  The same caveats apply to
+     * this method as for the runScript() method.
+     * @throws ScriptException for script-triggered errors
+     */
+    public void evaluateScriptCode(String code) throws ScriptException {
+        ScriptContext scriptContext = scriptEngine.getContext();
+        // reset current file
+        scriptContext.setAttribute(ScriptEngine.FILENAME, "(inline script)", ScriptContext.ENGINE_SCOPE);
+        try {
+            // run JavaScript code
+            scriptEngine.eval(code);
+        } finally {
+            // reset current file
+            scriptContext.setAttribute(ScriptEngine.FILENAME, "(no file specified)", ScriptContext.ENGINE_SCOPE);
         }
     }
 
@@ -238,6 +357,7 @@ public class AppMain {
      * @throws ScriptException for script-triggered errors
      */
     public void runScript(String filePath) throws IOException, ScriptException {
+        ScriptContext scriptContext = scriptEngine.getContext();
         String realPath = this.beginOpenFile(filePath);
         BufferedReader reader = new BufferedReader(new FileReader(realPath));
         // for convenience, ignore any Unix "#!" line (the default
@@ -250,12 +370,13 @@ public class AppMain {
         }
         try {
             // specify the file so errors are easier to understand
-            ScriptContext scriptContext = scriptEngine.getContext();
             scriptContext.setAttribute(ScriptEngine.FILENAME, realPath, ScriptContext.ENGINE_SCOPE);
             // run the program
             scriptEngine.eval(reader);
         } finally {
             this.endOpenFile();
+            // reset current file
+            scriptContext.setAttribute(ScriptEngine.FILENAME, "(no file specified)", ScriptContext.ENGINE_SCOPE);
         }
     }
 
@@ -266,9 +387,6 @@ public class AppMain {
      * a new one is created with default values.
      */
     private void runStartupScripts() throws IOException, ScriptException {
-        for (String scriptPath : startupScripts) {
-            runScript(scriptPath);
-        }
         if (new File(this.preferencesScript).exists()) {
             log(INFO, "Running script to restore user preferences…");
             try {
@@ -284,6 +402,21 @@ public class AppMain {
             preferencesMap.put("Undo", System.getProperties().getProperty("user.dir"));
             savePreferences();
         }
+        for (String scriptPath : startupScripts) {
+            runScript(scriptPath);
+        }
+    }
+
+    /**
+     * Writes the history list to disk.
+     */
+    public void saveHistory() throws IOException {
+        new File(this.preferencesDir).mkdirs(); // ensure parent directories exist; ignore "boolean" result
+        PrintWriter pw = new PrintWriter(this.historyScript);
+        for (String line : this.historyCommands) {
+            pw.println(line);
+        }
+        pw.close();
     }
 
     /**
@@ -353,9 +486,16 @@ public class AppMain {
                 appMain.scriptEngine.eval("rheat.log(rheat.INFO, 'JavaScript engine loaded successfully.')"); // trivial test
                 appMain.runStartupScripts(); // execute any scripts given on the command line
             } catch (Exception e) {
+                e.printStackTrace();
                 if (appMain.gui != null) {
                     // can display the error graphically
-                    JOptionPane.showMessageDialog(appMain.gui, e.getMessage(), "Error Running Script", JOptionPane.ERROR_MESSAGE);
+                    JTextArea msg = new JTextArea(e.getMessage());
+                    msg.setColumns(65);
+                    msg.setRows(7);
+                    msg.setLineWrap(true);
+                    msg.setWrapStyleWord(true);
+                    JScrollPane scrollPane = new JScrollPane(msg);
+                    JOptionPane.showMessageDialog(appMain.gui, scrollPane, "Error Running Script", JOptionPane.ERROR_MESSAGE);
                 } else {
                     // no GUI; should not display graphically,
                     // only in the terminal
@@ -368,6 +508,9 @@ public class AppMain {
             if (appMain.gui == null) {
                 // nothing else to do
                 System.exit(0);
+            } else {
+                // at exit time, save history (can also save it sooner)
+                appMain.saveHistory();
             }
         } catch (Exception e) {
             e.printStackTrace();

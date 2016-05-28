@@ -22,7 +22,8 @@ import java.util.ArrayList;
  * @author  TEAM MATRIX
  */
 
-public class ExactLengthHelicesFilter implements Filter {
+public class ExactLengthHelicesFilter
+extends rheat.filter.Filter {
     
     private int Length;    
     /** Creates a new instance of ExactLengthHelicesFilter */

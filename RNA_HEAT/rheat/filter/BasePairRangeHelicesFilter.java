@@ -22,16 +22,25 @@ import java.util.ArrayList;
  * @author  TEAM MATRIX
  */
 
-public class BasePairRangeHelicesFilter implements Filter {
-    
+public class BasePairRangeHelicesFilter
+extends rheat.filter.Filter {
+
     private int rangeMin, rangeMax;
-    
+
     /** Creates a new instance of BasePairRangeHelicesFilter */
     public BasePairRangeHelicesFilter() {
         rangeMax = Integer.MAX_VALUE;
         rangeMin = 0;
     }
-    
+
+    public int getRangeMax() {
+        return rangeMax;
+    }
+
+    public int getRangeMin() {
+        return rangeMin;
+    }
+
  /** 
   * @param rna The Input RNA
   * @return Modified RNA after application of this filter.    
@@ -107,7 +116,7 @@ public class BasePairRangeHelicesFilter implements Filter {
  * Base Paired
  */
 
-    public void setArguments(int RangeMin, int RangeMax){
+    public void setArguments(int RangeMax, int RangeMin){
         rangeMin = RangeMin;
         rangeMax = RangeMax;
     }

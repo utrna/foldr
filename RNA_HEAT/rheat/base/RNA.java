@@ -115,6 +115,9 @@ public class RNA implements java.io.Serializable{
      * @param newHelices The new set of Helices that is to replace the current set.
      */    
     public void setHelices(HelixStore newHelices){
+        if (newHelices == null) {
+            throw new RuntimeException("illegal to set helix store to null");
+        }
         helices = newHelices;
     }
 

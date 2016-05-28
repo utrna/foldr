@@ -22,7 +22,8 @@ import java.util.ArrayList;
  * @author  TEAM MATRIX
  */
 
-public class AllHelicesFilter implements Filter {
+public class AllHelicesFilter
+extends rheat.filter.Filter {
     
     /** Creates a new instance of AllHelicesFilter */
     public AllHelicesFilter() {

@@ -7,6 +7,7 @@
 package rheat.GUI;
 
 import rheat.base.*;
+import rheat.filter.Filter;
 import rheat.filter.MaxMinFilter;
 import javax.swing.JOptionPane;
 
@@ -14,19 +15,26 @@ import javax.swing.JOptionPane;
  *
  * @author  jyzhang
  */
-public class HelixFilterDialog extends javax.swing.JDialog {
-    
-    private int mode;
-    private RNA _rna;
-    
+public class HelixFilterDialog
+extends javax.swing.JDialog
+implements FilterDialog {
+
     /** Creates new form HelixFilterDialog */
-    public HelixFilterDialog(RNA rna, int m, java.awt.Frame parent) {
+    public HelixFilterDialog(java.awt.Frame parent) {
         super(parent, true);
-        _rna = rna;
-        mode = m;
         initComponents();
     }
-    
+
+    /**
+     * Implements FilterDialog interface.
+     */
+    public rheat.filter.Filter run() {
+        pack();
+        setLocationRelativeTo(getParent());
+        setVisible(true); // blocks until dialog is done
+        return filter;
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -114,9 +122,9 @@ public class HelixFilterDialog extends javax.swing.JDialog {
 
         pack();
     }//GEN-END:initComponents
-    
-    private void acceptBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_acceptBtnActionPerformed
-        MaxMinFilter mmfilter = new MaxMinFilter();
+
+    private void acceptBtnActionPerformed(java.awt.event.ActionEvent evt) {
+        MaxMinFilter newFilter = new MaxMinFilter();
         try {
             int min = 1; 
             int max = Integer.MAX_VALUE;
@@ -132,19 +140,12 @@ public class HelixFilterDialog extends javax.swing.JDialog {
                 throw new RuntimeException ("Minimum cannot be >= maximum.");
             }
             this.setVisible(false);
-            if (mode == FilterController.INTERACTIVE){
-                String d = "Minimum helix length: " + min + "\n";
-                d += "Maxium helix length: " + max + "\n";
-                mmfilter.setArguments(min, max);
-                FilterController.rna = mmfilter.apply(_rna);
-                FilterController.success = true;
-                FilterController.description = d;
-            }
-            else if (mode == FilterController.BATCH){
-                
-            }
-            //System.out.println("Closing");
+            String d = "Minimum helix length: " + min + "\n";
+            d += "Maxium helix length: " + max + "\n";
+            newFilter.setArguments(max, min);
+            newFilter.setDescription(d);
             this.close();
+            this.filter = newFilter;
         }
         catch (NumberFormatException ex){
             JOptionPane.showMessageDialog(this, "Invalid Input: Bad number", "Error", JOptionPane.ERROR_MESSAGE);
@@ -152,32 +153,29 @@ public class HelixFilterDialog extends javax.swing.JDialog {
         catch (RuntimeException ex){
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }//GEN-LAST:event_acceptBtnActionPerformed
-    
-    private void cancelBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelBtnActionPerformed
-        FilterController.success = false;
+    }
+
+    private void cancelBtnActionPerformed(java.awt.event.ActionEvent evt) {
         close();
-    }//GEN-LAST:event_cancelBtnActionPerformed
-    
-    private void close(){
-        
+    }
+
+    private void close() {
         dispose();
     }
-    
+
     /** Closes the dialog */
-    private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
-        FilterController.success = false;
+    private void closeDialog(java.awt.event.WindowEvent evt) {
         close();
-    }//GEN-LAST:event_closeDialog
-    
+    }
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new HelixFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
+        new HelixFilterDialog(new javax.swing.JFrame()).setVisible(true);
     }
-    
-    
+
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel4;
     private javax.swing.JLabel jLabel1;
@@ -192,5 +190,6 @@ public class HelixFilterDialog extends javax.swing.JDialog {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JButton cancelBtn;
     // End of variables declaration//GEN-END:variables
-    
+    private Filter filter; // null unless dialog was accepted by user
+
 }

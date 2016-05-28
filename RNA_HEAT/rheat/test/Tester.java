@@ -60,17 +60,10 @@ public class Tester {
         long timeInBasicFilter = timeStampAfterBasicFilter - timeStampBeforeBasicFilter; 
         rna.outputBP(bpdebug);
         System.out.println("Time for Application of BASIC Filter: " + timeInBasicFilter + " milliseconds");
-        
-        HelixFilter helixfilter = new HelixFilter(rna); 
+
         Date t3 = new Date();
         long timeStampBeforeHelixFilter = t3.getTime();
-        helixfilter.SetFilterType(0);
-
         
-        //        rna = helixfilter.AllHelicesFilter();        
-        //        rna = helixfilter.MultiStemLoopHelicesFilter();        
-        //        rna = helixfilter.InternalLoopHelicesFilter();                
-
 /****************** Uncomment one of the following for application of the corresponding filter **********/
 
         AllHelicesFilter af = new AllHelicesFilter();

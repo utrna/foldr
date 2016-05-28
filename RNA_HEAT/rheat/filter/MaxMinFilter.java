@@ -23,17 +23,26 @@ import java.util.ArrayList;
  * @author  TEAM MATRIX
  */
 
-public class MaxMinFilter implements Filter {
-    
+public class MaxMinFilter
+extends rheat.filter.Filter {
+
     private int MaxLength;
     private int MinLength;
-    
+
     /** Creates a new instance of MaxMinFilter */
     public MaxMinFilter() {
         MaxLength = Integer.MAX_VALUE;
         MinLength = 1;
     }
-    
+
+    public int getMaxLength() {
+        return this.MaxLength;
+    }
+
+    public int getMinLength() {
+        return this.MinLength;
+    }
+
  /** 
   * @param rna The Input RNA
   * @return Modified RNA after application of this filter.    
@@ -101,10 +110,10 @@ public class MaxMinFilter implements Filter {
     }
     
 /** Sets Arguments for the Filter
- * @param min The Minimum Length of Helix
  * @param max The Maximum Length of Helix
+ * @param min The Minimum Length of Helix
  */    
-    public void setArguments(int min, int max){
+    public void setArguments(int max, int min) {
         MaxLength = max;
         MinLength = min;
     }

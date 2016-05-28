@@ -9,24 +9,32 @@ package rheat.GUI;
 import rheat.base.*;
 import rheat.filter.AllHelicesFilter;
 import rheat.filter.BPFilter;
+import rheat.filter.Filter;
 
 /**
  *
  * @author  jyzhang
  */
-public class BasepairFilterDialog extends javax.swing.JDialog {
-    
-    private int mode;
-    private RNA _rna;
-    
+public class BasepairFilterDialog
+extends javax.swing.JDialog
+implements FilterDialog {
+
     /** Creates new form BasicFilterDialog */
-    public BasepairFilterDialog(RNA rna, int m, java.awt.Frame parent) {
+    public BasepairFilterDialog(java.awt.Frame parent) {
         super(parent, true);
-        _rna = rna;
-        mode = m;
         initComponents();
     }
-    
+
+    /**
+     * Implements FilterDialog interface.
+     */
+    public rheat.filter.Filter run() {
+        pack();
+        setLocationRelativeTo(getParent());
+        setVisible(true); // blocks until dialog is done
+        return filter;
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -131,7 +139,7 @@ public class BasepairFilterDialog extends javax.swing.JDialog {
     }//GEN-END:initComponents
 
     private void acceptBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_acceptBtnActionPerformed
-        BPFilter bpfilter = new BPFilter();
+        BPFilter newFilter = new BPFilter();
         String d = "Basepairs selected: \n";
         this.setVisible(false);
         int[] filterOptions = new int[10];
@@ -176,22 +184,13 @@ public class BasepairFilterDialog extends javax.swing.JDialog {
             filterOptions[9] = BasepairType.UU;
             d += "U-U\n";
         }
-        bpfilter.setArguments(filterOptions);
-        if (mode == FilterController.INTERACTIVE){
-            FilterController.rna = bpfilter.apply(_rna);
-            FilterController.rna = (new AllHelicesFilter()).apply(FilterController.rna);
-            FilterController.success = true;
-            FilterController.description = d;
-        }
-        else if (mode == FilterController.BATCH){
-            
-        }
-        System.out.println("Closing");
+        newFilter.setArguments(filterOptions);
+        newFilter.setDescription(d);
         this.close();
+        this.filter = newFilter;
     }//GEN-LAST:event_acceptBtnActionPerformed
 
     private void cancelBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelBtnActionPerformed
-        FilterController.success = false;
         close();
     }//GEN-LAST:event_cancelBtnActionPerformed
     
@@ -201,7 +200,6 @@ public class BasepairFilterDialog extends javax.swing.JDialog {
     
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
-        FilterController.success = false;
         close();
     }//GEN-LAST:event_closeDialog
     
@@ -209,7 +207,7 @@ public class BasepairFilterDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new BasepairFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
+        new BasepairFilterDialog(new javax.swing.JFrame()).setVisible(true);
     }
     
     
@@ -232,5 +230,6 @@ public class BasepairFilterDialog extends javax.swing.JDialog {
     private javax.swing.JCheckBox guCheckBox;
     private javax.swing.JButton cancelBtn;
     // End of variables declaration//GEN-END:variables
-    
+    private Filter filter; // null unless dialog was accepted by user
+
 }

@@ -8,24 +8,32 @@ package rheat.GUI;
 
 import rheat.base.*;
 import rheat.filter.AAandAGHelicesFilter;
+import rheat.filter.Filter;
 
 /**
  *
  * @author  jyzhang
  */
-public class AAandAGFilterDialog extends javax.swing.JDialog {
-    
-    private int mode;
-    private RNA _rna;
-    
+public class AAandAGFilterDialog
+extends javax.swing.JDialog
+implements FilterDialog {
+
     /** Creates new form AAandAGFilterDialog */
-    public AAandAGFilterDialog(RNA r, int m, java.awt.Frame parent) {
+    public AAandAGFilterDialog(java.awt.Frame parent) {
         super(parent, true);
-        _rna = r;
-        mode = m;
         initComponents();
     }
-    
+
+    /**
+     * Implements FilterDialog interface.
+     */
+    public rheat.filter.Filter run() {
+        pack();
+        setLocationRelativeTo(getParent());
+        setVisible(true); // blocks until dialog is done
+        return filter;
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -79,20 +87,12 @@ public class AAandAGFilterDialog extends javax.swing.JDialog {
     }//GEN-END:initComponents
     
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        AAandAGHelicesFilter filter = new AAandAGHelicesFilter();
+        this.filter = new AAandAGHelicesFilter();
         this.setVisible(false);
-        if (mode == FilterController.INTERACTIVE){
-            FilterController.rna = filter.apply(_rna);
-            FilterController.success = true;
-        }
-        else if (mode == FilterController.BATCH){
-            
-        }
         this.close();
     }//GEN-LAST:event_jButton1ActionPerformed
     
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        FilterController.success = false;
         close();
     }//GEN-LAST:event_jButton2ActionPerformed
     
@@ -102,7 +102,6 @@ public class AAandAGFilterDialog extends javax.swing.JDialog {
     
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
-        FilterController.success = false;
         close();
     }//GEN-LAST:event_closeDialog
     
@@ -110,7 +109,7 @@ public class AAandAGFilterDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new AAandAGFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
+        new AAandAGFilterDialog(new javax.swing.JFrame()).setVisible(true);
     }
     
     
@@ -121,5 +120,6 @@ public class AAandAGFilterDialog extends javax.swing.JDialog {
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
-    
+    private Filter filter; // null unless dialog was accepted by user
+
 }

@@ -21,8 +21,9 @@ import java.util.ArrayList;
  * @author  TEAM MATRIX
  */
 
-public class ComplexFilter implements Filter {
-    
+public class ComplexFilter
+extends rheat.filter.Filter {
+
     private int ComplexDistance;
     private int SimpleDistance;
     //private RNA rna_diagonal;
@@ -34,8 +35,15 @@ public class ComplexFilter implements Filter {
         ComplexDistance = Integer.MAX_VALUE;
         SimpleDistance = Integer.MAX_VALUE;
     }
-    
-    
+
+    public int getComplexDistance() {
+        return this.ComplexDistance;
+    }
+
+    public int getSimpleDistance() {
+        return this.SimpleDistance;
+    }
+
     public RNA apply(RNA rna){
         r = rna;
         //rna_diagonal = rna;
@@ -100,6 +108,10 @@ public class ComplexFilter implements Filter {
     }
     
     private HelixStore pickNonIntersectingDiagonals(HelixStore hs){
+        HelixGrid result = new HelixGrid(hs.getLength());
+        if (hs.getCount() == 0) {
+            return result;
+        }
         ArrayList<Helix> helixList = new ArrayList<Helix>(hs.getCount());
         Iterator itr = hs.iterator();
         while (itr.hasNext()){
@@ -133,7 +145,6 @@ public class ComplexFilter implements Filter {
                 good = true;
             }
         }
-        HelixGrid result = new HelixGrid(hs.getLength());
         for (int i = 0; i < permanent.size(); i++){
             result.addHelix((Helix)permanent.get(i));
         }

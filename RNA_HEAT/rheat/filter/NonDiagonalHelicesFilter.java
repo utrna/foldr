@@ -22,8 +22,9 @@ import java.util.ArrayList;
  * @author  TEAM MATRIX
  */
 
-public class NonDiagonalHelicesFilter implements Filter {
-    
+public class NonDiagonalHelicesFilter
+extends rheat.filter.Filter {
+
     private int rangeMin, rangeMax;
     
     /** Creates a new instance of NonDiagonalHelicesFilter */
@@ -54,7 +55,7 @@ public class NonDiagonalHelicesFilter implements Filter {
  * Base Paired
  */
 
-    public void setArguments(int RangeMin, int RangeMax){
+    public void setArguments(int RangeMax, int RangeMin){
         rangeMin = RangeMin;
         rangeMax = RangeMax;
     }

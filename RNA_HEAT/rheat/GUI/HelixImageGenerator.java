@@ -129,7 +129,7 @@ public class HelixImageGenerator {
             }
         }
         HelixStore hstore = rna.getHelices();
-        System.out.println("redrawing 2D image.");
+        //System.out.println("redrawing 2D image.");
         if (hstore != null){
             //helixGraphics.setColor(Color.red);
             Iterator itr = hstore.iterator();
@@ -255,11 +255,11 @@ public class HelixImageGenerator {
     
     private void setInfoText(Helix h, RNA rna){
         HelixInfo info = new HelixInfo(h, rna);
-        String s = "Helix Length: " + info.getLength() + "; Helix Energy: " + info.getEnergy() +"\n";
+        String s = "Helix Length: " + info.getLength() + "\nHelix Energy: " + info.getEnergy() +"\n";
         s += "5'...." + info.get5PrimeSequence() + "....3'\n";
         s += "3'...." + info.get3PrimeSequence() + "....5'\n";
-        s += "5' Start: " + (info.get5PrimeStart() + 1) + ";\t 5' End: " + (info.get5PrimeEnd() + 1) + "\n";
-        s += "3' Start: " + (info.get3PrimeStart() + 1) + ";\t 3' End: " + (info.get3PrimeEnd() + 1);
+        s += "5' Start: " + (info.get5PrimeStart() + 1) + "\n5' End: " + (info.get5PrimeEnd() + 1) + "\n";
+        s += "3' Start: " + (info.get3PrimeStart() + 1) + "\n3' End: " + (info.get3PrimeEnd() + 1);
         textArea.setText(s);
     }
     

@@ -18,7 +18,8 @@ import java.lang.Object;
  * @author  Team MatriX
  */
 
-public class EnergyMaxMinFilter {
+public class EnergyMaxMinFilter
+extends rheat.filter.Filter {
     
     double minEnergy;
     double maxEnergy;
@@ -55,6 +56,15 @@ public class EnergyMaxMinFilter {
         
         EnergyData = DefaultEnergyData;
     }    
+
+    public double getMinEnergy() {
+        return this.minEnergy;
+    }
+
+    public double getMaxEnergy() {
+        return this.maxEnergy;
+    }
+
     /** for each helix calculate energy and see if in range, if yes keep **/
     public RNA apply(RNA rna) {
         ArrayList sequence = rna.getSequence();
@@ -136,28 +146,25 @@ public class EnergyMaxMinFilter {
         return HelixEnergy;        
     }
 
-
 /** Sets Arguments for the Filter
  * @param min The Minimum Energy of Helix
  * @param max The Maximum Energy of Helix
  */    
-    public void setArguments(double min, double max){
+    public void setArguments(double max, double min) {
         maxEnergy = max;
         minEnergy = min;
     }    
-
 
     /** Sets Arguments for the Filter
  * @param min The Minimum Energy of Helix
  * @param max The Maximum Energy of Helix
  * @param UserEnergyData Custom Energy Data
  */    
-    public void setArguments(double min, double max, double[][] UserEnergyData){
+    public void setArguments(double max, double min, double[][] UserEnergyData) {
         maxEnergy = max;
         minEnergy = min;
         
         EnergyData = UserEnergyData;
     }    
-    
-    
+
 }

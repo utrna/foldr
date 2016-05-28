@@ -2,6 +2,7 @@ package rheat.GUI;
 
 import rheat.base.*;
 import rheat.filter.*;
+import rheat.script.ScriptFilterInterpreter;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -24,8 +25,6 @@ public class RheatApp extends javax.swing.JFrame {
     private HelixImageGenerator helixImgGen;
     private JFileChooser fc = new JFileChooser();
     private BusyWaitDialog busyDialog;
-    private int undoMax = 20;
-    private int currentUndo = 0;
     private Image img;
 
     /**
@@ -41,33 +40,16 @@ public class RheatApp extends javax.swing.JFrame {
         busyDialog.setLocation(origin);
     }
 
-    private void addUndo(){
-        String undofile = appMain.getPrefUndoDir() + File.separator + "undo" + currentUndo;
-        try {
-            ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(undofile));
-            ois.writeObject(this.appMain.rnaData);
-        }
-        catch (java.io.IOException ex){
-            String s = "Cannot save undo information.  Please check undo directory is correct.";
-            // do not display a dialog here; if the write fails then the
-            // user sees a message EVERY time a filter action occurs!
-            //JOptionPane.showMessageDialog(this, s, "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println(s);
-        }
+    private void addHistoryCommand(String scriptCommandLines) {
+        @SuppressWarnings({"unchecked"}) DefaultListModel<String> dlm =
+                                         (DefaultListModel<String>)this.historyList.getModel();
+        dlm.addElement(scriptCommandLines);
+        this.appMain.addHistoryCommand(scriptCommandLines);
     }
-    
-    private void incrementUndo(){
-        currentUndo = (currentUndo + 1) % undoMax;
-    }
-    
-    private void addHistory(FilterInfo fi){
-        @SuppressWarnings({"unchecked"}) DefaultListModel<FilterInfo> dlm =
-                                         (DefaultListModel<FilterInfo>)this.historyList.getModel();
-        dlm.addElement(fi);
-    }
-    
-    private void clearHistory(){
-        this.historyList.setModel(new DefaultListModel<FilterInfo>());
+
+    public void clearHistory() {
+        this.historyList.setModel(new DefaultListModel<String>());
+        this.appMain.clearHistoryCommands();
     }
 
     private float getZoomAt(int index) {
@@ -124,9 +106,9 @@ public class RheatApp extends javax.swing.JFrame {
                 gpanel.setBackground(Color.white);
                 this.DisplayScrollPane.setViewportView(gpanel);
                 this.DisplayScrollPane.getViewport().setViewPosition(p);
-                if (appMain.rnaData.getHelices() != null){
-                    this.helixNumField.setText("" + appMain.rnaData.getHelices().getCount());
-                }
+                HelixStore helices = appMain.rnaData.getHelices();
+                int count = ((helices != null) ? helices.getCount() : 0);
+                this.helixNumField.setText("" + count);
             }
             catch (NumberFormatException ex){
                 
@@ -277,10 +259,9 @@ public class RheatApp extends javax.swing.JFrame {
         HistoryFrame = new javax.swing.JInternalFrame();
         jPanel4 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        historyList = new javax.swing.JList<FilterInfo>();
+        historyList = new javax.swing.JList<String>();
         jPanel5 = new javax.swing.JPanel();
         undoFilterBtn = new javax.swing.JButton();
-        infoFilterBtn = new javax.swing.JButton();
         InfoFrame = new javax.swing.JInternalFrame();
         jScrollPane1 = new javax.swing.JScrollPane();
         infoTextPane = new javax.swing.JTextPane();
@@ -328,7 +309,7 @@ public class RheatApp extends javax.swing.JFrame {
         DisplayFrame.setResizable(true);
         DisplayFrame.setTitle("Display Window");
         DisplayFrame.setMinimumSize(new java.awt.Dimension(100, 100));
-        DisplayFrame.setNormalBounds(new java.awt.Rectangle(230, 20, 400, 400));
+        DisplayFrame.setNormalBounds(new java.awt.Rectangle(270, 20, 400, 400));
         DisplayFrame.setVisible(true);
         DisplayScrollPane.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -338,13 +319,13 @@ public class RheatApp extends javax.swing.JFrame {
 
         DisplayFrame.getContentPane().add(DisplayScrollPane);
 
-        DisplayFrame.setBounds(230, 10, 410, 440);
+        DisplayFrame.setBounds(270, 10, 500, 500);
         desktopPane.add(DisplayFrame, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
         ControlFrame.getContentPane().setLayout(new java.awt.GridLayout(3, 0));
 
         ControlFrame.setIconifiable(true);
-        ControlFrame.setTitle("Control Window");
+        ControlFrame.setTitle("Controls");
         ControlFrame.setVisible(true);
         jPanel1.setLayout(new java.awt.GridLayout(5, 0));
 
@@ -422,7 +403,7 @@ public class RheatApp extends javax.swing.JFrame {
         jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jLabel1.setText("Current Helices");
-        jLabel1.setPreferredSize(new java.awt.Dimension(90, 16));
+        jLabel1.setPreferredSize(new java.awt.Dimension(120, 16));
         jPanel2.add(jLabel1);
 
         helixNumField.setColumns(7);
@@ -430,7 +411,7 @@ public class RheatApp extends javax.swing.JFrame {
         jPanel2.add(helixNumField);
 
         jLabel3.setText("Total Helices");
-        jLabel3.setPreferredSize(new java.awt.Dimension(90, 16));
+        jLabel3.setPreferredSize(new java.awt.Dimension(120, 16));
         jPanel2.add(jLabel3);
 
         helixTotalField.setColumns(7);
@@ -438,7 +419,7 @@ public class RheatApp extends javax.swing.JFrame {
         jPanel2.add(helixTotalField);
 
         jLabel2.setText("Actual Helices");
-        jLabel2.setPreferredSize(new java.awt.Dimension(90, 16));
+        jLabel2.setPreferredSize(new java.awt.Dimension(120, 16));
         jPanel2.add(jLabel2);
 
         helixActualField.setColumns(7);
@@ -447,53 +428,58 @@ public class RheatApp extends javax.swing.JFrame {
 
         ControlFrame.getContentPane().add(jPanel2);
 
-        ControlFrame.setBounds(10, 10, 210, 330);
+        ControlFrame.setBounds(10, 10, 250, 330);
         desktopPane.add(ControlFrame, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
-        HistoryFrame.getContentPane().setLayout(new java.awt.FlowLayout());
-
+        BorderLayout historyLayout = new java.awt.BorderLayout();
+        HistoryFrame.getContentPane().setLayout(historyLayout);
         HistoryFrame.setIconifiable(true);
+        HistoryFrame.setResizable(true);
         HistoryFrame.setTitle("Filter History");
         HistoryFrame.setVisible(true);
         jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        jScrollPane2.setPreferredSize(new java.awt.Dimension(180, 140));
+        jScrollPane2.setPreferredSize(new java.awt.Dimension(420, 100));
         jScrollPane2.setAutoscrolls(true);
-        historyList.setModel(new DefaultListModel<FilterInfo>());
+        historyList.setModel(new DefaultListModel<String>());
         historyList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         historyList.setPreferredSize(null);
         jScrollPane2.setViewportView(historyList);
 
-        jPanel4.add(jScrollPane2);
+        jPanel4.setLayout(new java.awt.BorderLayout());
+        jPanel4.add(jScrollPane2, BorderLayout.CENTER);
 
-        HistoryFrame.getContentPane().add(jPanel4);
+        HistoryFrame.getContentPane().add(jPanel4, BorderLayout.CENTER);
 
-        undoFilterBtn.setText("Undo");
+        undoFilterBtn.setText("Undo Last");
         undoFilterBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                undoFilterBtnActionPerformed(evt);
+                try {
+                    int index = appMain.getUndoIndex() - 1;
+                    appMain.revertToPreviousRNA(index);
+                    updateImage();
+                    DefaultListModel<String> dlm = new DefaultListModel<String>();
+                    for (int i = 0; i < index; i++) {
+                        dlm.addElement(historyList.getModel().getElementAt(i));
+                    }
+                    historyList.setModel(dlm);
+                    appMain.log(appMain.INFO, "Reverted to snapshot #" + index + ".");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    appMain.log(appMain.WARN, "Unable to undo (see trace above).");
+                }
             }
         });
 
         jPanel5.add(undoFilterBtn);
 
-        infoFilterBtn.setText("Info…");
-        infoFilterBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                infoFilterBtnActionPerformed(evt);
-            }
-        });
+        HistoryFrame.getContentPane().add(jPanel5, BorderLayout.SOUTH);
 
-        jPanel5.add(infoFilterBtn);
-
-        HistoryFrame.getContentPane().add(jPanel5);
-
-        HistoryFrame.setBounds(10, 350, 210, 240);
+        HistoryFrame.setBounds(270, 520, 500, 190);
         desktopPane.add(HistoryFrame, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
         InfoFrame.getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
         InfoFrame.setIconifiable(true);
-        InfoFrame.setResizable(true);
         InfoFrame.setTitle("Helix Info");
         InfoFrame.setVisible(true);
         infoTextPane.setEditable(false);
@@ -501,10 +487,11 @@ public class RheatApp extends javax.swing.JFrame {
 
         InfoFrame.getContentPane().add(jScrollPane1);
 
-        InfoFrame.setBounds(230, 460, 410, 130);
+        InfoFrame.setBounds(10, 350, 250, 360);
         desktopPane.add(InfoFrame, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
+        setExtendedState(MAXIMIZED_BOTH);
 
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
@@ -593,7 +580,7 @@ public class RheatApp extends javax.swing.JFrame {
         basepairFilterItem.setEnabled(false);
         basepairFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                basepairFilterItemActionPerformed(evt);
+                showBasePairFilterDialog();
             }
         });
 
@@ -601,11 +588,11 @@ public class RheatApp extends javax.swing.JFrame {
 
         helixFilterItem.setMnemonic('H');
         setKey(helixFilterItem, KeyEvent.VK_2);
-        helixFilterItem.setText("Helix Filter…");
+        helixFilterItem.setText("Helix Length Filter…");
         helixFilterItem.setEnabled(false);
         helixFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                helixFilterItemActionPerformed(evt);
+                showHelixLengthFilterDialog();
             }
         });
 
@@ -617,7 +604,7 @@ public class RheatApp extends javax.swing.JFrame {
         diagonalFilterItem.setEnabled(false);
         diagonalFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                diagonalFilterItemActionPerformed(evt);
+                showDiagonalFilterDialog();
             }
         });
 
@@ -629,7 +616,7 @@ public class RheatApp extends javax.swing.JFrame {
         aa_agFilterItem.setEnabled(false);
         aa_agFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                aa_agFilterItemActionPerformed(evt);
+                showAA_AGFilterDialog();
             }
         });
 
@@ -641,7 +628,7 @@ public class RheatApp extends javax.swing.JFrame {
         eLoopFilterItem.setEnabled(false);
         eLoopFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                eLoopFilterItemActionPerformed(evt);
+                showELoopFilterDialog();
             }
         });
 
@@ -653,7 +640,7 @@ public class RheatApp extends javax.swing.JFrame {
         energyFilterItem.setEnabled(false);
         energyFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                energyFilterItemActionPerformed(evt);
+                showEnergyFilterDialog();
             }
         });
 
@@ -665,7 +652,7 @@ public class RheatApp extends javax.swing.JFrame {
         complexFilterItem.setEnabled(false);
         complexFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                complexFilterItemActionPerformed(evt);
+                showComplexFilterDialog();
             }
         });
 
@@ -736,7 +723,7 @@ public class RheatApp extends javax.swing.JFrame {
         windowMenu.add(viewDisplayMenuItem);
 
         viewControlMenuItem.setMnemonic('C');
-        viewControlMenuItem.setText("Control Window");
+        viewControlMenuItem.setText("Controls");
         viewControlMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewControlMenuItemActionPerformed(evt);
@@ -746,7 +733,7 @@ public class RheatApp extends javax.swing.JFrame {
         windowMenu.add(viewControlMenuItem);
 
         viewHistoryMenuItem.setMnemonic('H');
-        viewHistoryMenuItem.setText("History Window");
+        viewHistoryMenuItem.setText("Filter History");
         viewHistoryMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewHistoryMenuItemActionPerformed(evt);
@@ -757,7 +744,7 @@ public class RheatApp extends javax.swing.JFrame {
 
         viewInfoMenuItem.setMnemonic('I');
         setKey(viewInfoMenuItem, KeyEvent.VK_I);
-        viewInfoMenuItem.setText("Info Window");
+        viewInfoMenuItem.setText("Helix Info");
         viewInfoMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewInfoMenuItemActionPerformed(evt);
@@ -797,67 +784,81 @@ public class RheatApp extends javax.swing.JFrame {
         pack();
     }//GEN-END:initComponents
 
-    private void complexFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_complexFilterItemActionPerformed
-        addUndo();
-        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.COMPLEX);
-        if (FilterController.success){
-            this.updateImage();
-            addHistory(new FilterInfo("Complex Distance Filter", FilterController.description));
-            this.incrementUndo();
+    /**
+     * Adds a filter to the history list and applies its effects to
+     * the currently-displayed RNA.
+     */
+    public void addFilter(Filter filter) {
+        try {
+            appMain.snapshotRNAData();
+            // to guarantee that the script command is correct, the filter is
+            // applied by executing the equivalent script command instead of
+            // by directly calling appMain.addFilter() and updateImage() (see
+            // "rheat/script/ScriptMain.java" implementations of each filter)
+            String equivalentScriptCommand = ScriptFilterInterpreter.getScriptCommandForFilter(filter);
+            appMain.evaluateScriptCode(equivalentScriptCommand);
+            appMain.incrementUndo(); // success; next snapshot should use a new number
+            // TODO: should the history-update portion be an option?
+            addHistoryCommand(equivalentScriptCommand);
+        } catch (Exception e) {
+            e.printStackTrace();
+            appMain.log(appMain.WARN, "Unable to produce script command for filter history (see trace above).");
         }
-    }//GEN-LAST:event_complexFilterItemActionPerformed
-    
-    private void energyFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_energyFilterItemActionPerformed
-        addUndo();
-        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.ENERGY);
-        if (FilterController.success){
-            this.updateImage();
-            addHistory(new FilterInfo("Energy Filter", FilterController.description));
-            this.incrementUndo();
+    }
+
+    private void showAA_AGFilterDialog() {
+        Filter newFilter = new AAandAGFilterDialog(this).run();
+        if (newFilter != null) {
+            addFilter(newFilter);
         }
-    }//GEN-LAST:event_energyFilterItemActionPerformed
-    
-    private void infoFilterBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_infoFilterBtnActionPerformed
-        int select = this.historyList.getSelectedIndex();
-        if (select != -1){
-            DefaultListModel<FilterInfo> dlm = (DefaultListModel<FilterInfo>)this.historyList.getModel();
-            FilterInfo info = dlm.get(select);
-            JOptionPane.showMessageDialog(this, info.getDescription(), info.toString() + " Information", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void showBasePairFilterDialog() {
+        Filter newFilter = new BasepairFilterDialog(this).run();
+        if (newFilter != null) {
+            addFilter(newFilter);
+            this.enableFilterMenuItems(true);
+            HelixStore helices = appMain.rnaData.getHelices();
+            int count = ((helices != null) ? helices.getCount() : 0);
+            this.helixTotalField.setText("" + count);
         }
-    }//GEN-LAST:event_infoFilterBtnActionPerformed
-    
-    private void eLoopFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eLoopFilterItemActionPerformed
-        addUndo();
-        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.ELOOP);
-        if (FilterController.success){
-            this.updateImage();
-            addHistory(new FilterInfo("E-Loop Filter", FilterController.description));
-            this.incrementUndo();
+    }
+
+    private void showComplexFilterDialog() {
+        Filter newFilter = new ComplexFilterDialog(this).run();
+        if (newFilter != null) {
+            addFilter(newFilter);
         }
-        
-    }//GEN-LAST:event_eLoopFilterItemActionPerformed
-    
-    private void aa_agFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aa_agFilterItemActionPerformed
-        addUndo();
-        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.AA_AG);
-        if (FilterController.success){
-            this.updateImage();
-            addHistory(new FilterInfo("AA/AG Filter", FilterController.description));
-            this.incrementUndo();
+    }
+
+    private void showDiagonalFilterDialog() {
+        Filter newFilter = new DiagonalFilterDialog(this).run();
+        if (newFilter != null) {
+            addFilter(newFilter);
         }
-        
-    }//GEN-LAST:event_aa_agFilterItemActionPerformed
-    
-    private void diagonalFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_diagonalFilterItemActionPerformed
-        addUndo();
-        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.DIAGONAL);
-        if (FilterController.success){
-            this.updateImage();
-            addHistory(new FilterInfo("Diagonal Filter", FilterController.description));
-            this.incrementUndo();
+    }
+
+    private void showELoopFilterDialog() {
+        Filter newFilter = new ELoopFilterDialog(this).run();
+        if (newFilter != null) {
+            addFilter(newFilter);
         }
-    }//GEN-LAST:event_diagonalFilterItemActionPerformed
-    
+    }
+
+    private void showEnergyFilterDialog() {
+        Filter newFilter = new EnergyFilterDialog(this).run();
+        if (newFilter != null) {
+            addFilter(newFilter);
+        }
+    }
+
+    private void showHelixLengthFilterDialog() {
+        Filter newFilter = new HelixFilterDialog(this).run();
+        if (newFilter != null) {
+            addFilter(newFilter);
+        }
+    }
+
     private void saveAsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsMenuItemActionPerformed
         File outputImage;
         fc = new JFileChooser(System.getProperty("user.dir"));
@@ -905,33 +906,6 @@ public class RheatApp extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_DisplayScrollPaneMouseClicked
     
-    private void undoFilterBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_undoFilterBtnActionPerformed
-        if (this.historyList.getSelectedIndex() >= 0){
-            int restore = this.historyList.getSelectedIndex();
-            String s = appMain.getPrefUndoDir() + File.separator + "undo" + restore;
-            try {
-                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(s));
-                RNA old = (RNA)ois.readObject();
-                DefaultListModel<FilterInfo> dlm = new DefaultListModel<FilterInfo>();
-                for (int i = 0; i < restore; i++){
-                    dlm.addElement(this.historyList.getModel().getElementAt(i));
-                }
-                this.historyList.setModel(dlm);
-                appMain.rnaData = old;
-                this.updateImage(); 
-                this.currentUndo = restore;
-            }
-            catch (java.io.IOException ex){
-                String msg = "Cannot restore undo information.  Please check undo directory is correct";
-                JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-            }
-            catch (ClassNotFoundException ex){
-                String msg = "Cannot save undo information.  File is corrupt";
-                JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }//GEN-LAST:event_undoFilterBtnActionPerformed
-    
     private void viewHistoryMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHistoryMenuItemActionPerformed
         bringToFront(this.HistoryFrame);
     }//GEN-LAST:event_viewHistoryMenuItemActionPerformed
@@ -941,37 +915,7 @@ public class RheatApp extends javax.swing.JFrame {
         contents.setLocation(0,0);
         contents.setVisible(true);
     }//GEN-LAST:event_contentMenuItemActionPerformed
-    
-    private void helixFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helixFilterItemActionPerformed
-        addUndo();
-        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.HELIX);
-        if (FilterController.success){
-            this.updateImage();
-            addHistory(new FilterInfo("Helix Filter", FilterController.description));
-            this.incrementUndo();
-        }
-        
-    }//GEN-LAST:event_helixFilterItemActionPerformed
 
-    /**
-     * The implementation of the base-pair filter action.
-     */
-    private void showBasePairFilterDialog() {
-        addUndo();
-        appMain.rnaData = FilterController.showFilterDialog(appMain.rnaData, this, FilterController.BASEPAIR);
-        if (FilterController.success){
-            this.updateImage();
-            this.enableFilterMenuItems(true);
-            addHistory(new FilterInfo("Basepair Filter", FilterController.description));
-            this.helixTotalField.setText("" + appMain.rnaData.getHelices().getCount());
-            this.incrementUndo();
-        }
-    }
-
-    private void basepairFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_basepairFilterItemActionPerformed
-        showBasePairFilterDialog();
-    }//GEN-LAST:event_basepairFilterItemActionPerformed
-    
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
         HelpAboutJFrame about = new HelpAboutJFrame();
         Point origin = getCenteredOrigin(about);
@@ -1016,7 +960,6 @@ public class RheatApp extends javax.swing.JFrame {
         this.helixNumField.setText("");
         this.helixTotalField.setText("");
         this.clearHistory();
-        this.currentUndo = 0;
         this.infoTextPane.setText("");
     }
     
@@ -1028,9 +971,9 @@ public class RheatApp extends javax.swing.JFrame {
      * Updates the display to reflect current RNA data.
      * Used after opening helix files.
      */
-    public void refreshForNewHelixFile() {
+    public void refreshForNewRNA() {
         this.helixActualField.setText("" + appMain.rnaData.getActual().getCount());
-        this.setTitle(this.getTitle() + ": " + appMain.rnaData.getUID());
+        this.setTitle("RNA HEAT: " + appMain.rnaData.getUID());
         helixImgGen = new HelixImageGenerator(appMain.rnaData.getLength());
         //this.helixGraphicsLabel = new HelixGraphicsLabel(appMain.rnaData.getLength());
         setControlLabels();
@@ -1048,8 +991,8 @@ public class RheatApp extends javax.swing.JFrame {
         if (returnVal == fc.APPROVE_OPTION){
             inputFile = fc.getSelectedFile();
             try {
-                // openHelixFile() will call refreshForNewHelixFile()
-                appMain.openHelixFile(inputFile.getAbsolutePath());
+                // openRNA() will call refreshForNewRNA()
+                appMain.openRNA(inputFile.getAbsolutePath());
                 // automatically request a base-pair filter, since
                 // otherwise the default display is not very useful
                 showBasePairFilterDialog();
@@ -1067,12 +1010,18 @@ public class RheatApp extends javax.swing.JFrame {
         fc.setAcceptAllFileFilterUsed(false);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("JavaScript Files", "js", "txt"));
         int returnVal = fc.showOpenDialog(this);
-        if (returnVal == fc.APPROVE_OPTION){
+        if (returnVal == fc.APPROVE_OPTION) {
             inputFile = fc.getSelectedFile();
             try {
                 appMain.runScript(inputFile.getAbsolutePath());
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "Error Running Script", JOptionPane.ERROR_MESSAGE);
+                JTextArea msg = new JTextArea(e.getMessage());
+                msg.setColumns(65);
+                msg.setRows(7);
+                msg.setLineWrap(true);
+                msg.setWrapStyleWord(true);
+                JScrollPane scrollPane = new JScrollPane(msg);
+                JOptionPane.showMessageDialog(this, scrollPane, "Error Running Script", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -1117,7 +1066,6 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenuItem viewHistoryMenuItem;
     private javax.swing.JTextField helixTotalField;
-    private javax.swing.JButton infoFilterBtn;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JScrollPane DisplayScrollPane;
     private javax.swing.JInternalFrame ControlFrame;
@@ -1166,6 +1114,6 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> zoomComboBox;
     private javax.swing.JButton zoomInButton;
     private javax.swing.JButton zoomOutButton;
-    private javax.swing.JList<FilterInfo> historyList;
+    private javax.swing.JList<String> historyList;
     // End of variables declaration//GEN-END:variables
 }

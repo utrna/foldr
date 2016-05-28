@@ -8,25 +8,33 @@ package rheat.GUI;
 
 import rheat.base.*;
 import rheat.filter.EnergyMaxMinFilter;
+import rheat.filter.Filter;
 import javax.swing.JOptionPane;
 
 /**
  *
  * @author  jyzhang
  */
-public class EnergyFilterDialog extends javax.swing.JDialog {
-    
-    private RNA _rna;
-    private int mode;
-    
+public class EnergyFilterDialog
+extends javax.swing.JDialog
+implements FilterDialog {
+
     /** Creates new form DiagonalFilterDialog */
-    public EnergyFilterDialog(RNA r, int m, java.awt.Frame parent) {
+    public EnergyFilterDialog(java.awt.Frame parent) {
         super(parent, true);
-        _rna = r;
-        mode = m;
         initComponents();
     }
-    
+
+    /**
+     * Implements FilterDialog interface.
+     */
+    public rheat.filter.Filter run() {
+        pack();
+        setLocationRelativeTo(getParent());
+        setVisible(true); // blocks until dialog is done
+        return filter;
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -110,7 +118,7 @@ public class EnergyFilterDialog extends javax.swing.JDialog {
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        EnergyMaxMinFilter filter = new EnergyMaxMinFilter();
+        EnergyMaxMinFilter newFilter = new EnergyMaxMinFilter();
         try {
             double min = Double.NEGATIVE_INFINITY; 
             double max = Double.POSITIVE_INFINITY;
@@ -126,19 +134,12 @@ public class EnergyFilterDialog extends javax.swing.JDialog {
                 throw new RuntimeException ("Minimum G value must be less than Maximum G value");
             }
             this.setVisible(false);
-            if (mode == FilterController.INTERACTIVE){
-                String d = "Minimum G Value: " + min + "\n";
-                d += "Maximum G Value: " + max + "\n";
-                filter.setArguments(min, max);
-                FilterController.rna = filter.apply(_rna);
-                FilterController.success = true;
-                FilterController.description = d;
-            }
-            else if (mode == FilterController.BATCH){
-                
-            }
-            System.out.println("Closing");
+            String d = "Minimum G Value: " + min + "\n";
+            d += "Maximum G Value: " + max + "\n";
+            newFilter.setArguments(max, min);
+            newFilter.setDescription(d);
             this.close();
+            this.filter = newFilter;
         }
         catch (NumberFormatException ex){
             JOptionPane.showMessageDialog(this, "Invalid Input: Bad number", "Error", JOptionPane.ERROR_MESSAGE);
@@ -149,7 +150,6 @@ public class EnergyFilterDialog extends javax.swing.JDialog {
     }
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        FilterController.success = false;
         close();
     }
     
@@ -159,7 +159,6 @@ public class EnergyFilterDialog extends javax.swing.JDialog {
     
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt) {
-        FilterController.success = false;
         close();
     }
     
@@ -167,7 +166,7 @@ public class EnergyFilterDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new EnergyFilterDialog(null, 0, new javax.swing.JFrame()).setVisible(true);
+        new EnergyFilterDialog(new javax.swing.JFrame()).setVisible(true);
     }
     
     
@@ -184,6 +183,7 @@ public class EnergyFilterDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField maxGField;
     // End of variables declaration
+    private Filter filter; // null unless dialog was accepted by user
     
 }
 
