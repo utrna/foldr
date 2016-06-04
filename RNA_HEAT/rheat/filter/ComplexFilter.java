@@ -236,11 +236,13 @@ extends rheat.filter.Filter {
     }
     
     
-    /** Sets Arguments for the Filter
-     * @param Complex distance
+    /**
+     * Sets Arguments for the Filter.
+     * @param cd complex distance
+     * @param sd simple distance
      */
-    public void setArguments(int complexdistance, int sd){
-        ComplexDistance = complexdistance;
+    public void setArguments(int cd, int sd) {
+        ComplexDistance = cd;
         SimpleDistance = sd;
     }
 }

@@ -54,7 +54,7 @@ public class RheatApp extends javax.swing.JFrame {
      * use a GUI log window.  (Use lower-level methods to force the
      * output to use the console.)
      * @param messageType use INFO, WARN or ERROR
-     * @param text strings to join to form the message
+     * @param parts strings to join to form the message
      */
     static public void log(int messageType, String[] parts) {
         AppMain.log(messageType, parts);

@@ -50,13 +50,14 @@ extends rheat.filter.Filter {
     }    
  
     
-/** Sets Arguments for the Filter
- * @param range The distance (range) between both positions that are 
- * Base Paired
- */
-
-    public void setArguments(int RangeMax, int RangeMin){
-        rangeMin = RangeMin;
-        rangeMax = RangeMax;
+    /**
+     * Sets arguments for the filter.
+     * @param rangeMax The maximum distance (range) between both
+     * positions that are Base Paired.
+     * @param rangeMin The minimum distance.
+     */
+    public void setArguments(int rangeMax, int rangeMin) {
+        this.rangeMax = rangeMax;
+        this.rangeMin = rangeMin;
     }
 }

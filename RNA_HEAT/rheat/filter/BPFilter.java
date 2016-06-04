@@ -19,8 +19,8 @@ import java.util.BitSet;
 public class BPFilter
 extends rheat.filter.Filter {
     
-    /** Creates a new instance of BPFilter given an RNA.
-     * @param inputRna The RNA to apply this Filter to.
+    /**
+     * Creates a new instance of BPFilter.
      */
     public BPFilter() {
         int[] defaultrule = {BasepairType.AU, BasepairType.CG, BasepairType.GU};

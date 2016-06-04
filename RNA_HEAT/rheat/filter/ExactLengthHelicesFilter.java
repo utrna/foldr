@@ -24,28 +24,31 @@ import java.util.ArrayList;
 
 public class ExactLengthHelicesFilter
 extends rheat.filter.Filter {
-    
-    private int Length;    
-    /** Creates a new instance of ExactLengthHelicesFilter */
+
+    private int length = 0;    
+
+    /**
+     * Creates a new instance of the filter.
+     */
     public ExactLengthHelicesFilter() {
     }
-    
- /** 
-  * @param rna The Input RNA
-  * @return Modified RNA after application of this filter.    
-  */  
+
+    /**
+     * @param rna the input RNA
+     * @return modified RNA after application of this filter
+     */  
     public RNA apply(RNA rna) {
         MaxMinFilter mmf = new MaxMinFilter();
-        mmf.setArguments(Length, Length);
+        mmf.setArguments(this.length, this.length);
         rna = mmf.apply(rna);              
         return rna;
-    } // apply
- 
-    
-/** Sets Arguments for the Filter
- * @param Length The Length of Helix
- */    
-    public void setArguments(int length){
-        Length = length;
+    }
+
+    /**
+     * Sets arguments for the filter.
+     * @param length the length of the helix
+     */
+    public void setArguments(int length) {
+        this.length = length;
     }
 }

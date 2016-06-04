@@ -63,7 +63,7 @@ public class HelixImageGenerator {
 
     /**
      * Current display-scale factor (both X and Y directions).
-     * @returns scale factor, such as 1.0 or 0.5 or 2.0
+     * @return scale factor, such as 1.0 or 0.5 or 2.0
      */
     public float getZoomLevel() {
         return zoom;

@@ -20,7 +20,7 @@ public class ScriptFilterInterpreter {
      * adding a new filter.  The choice of method and set of arguments
      * will be consistent with the given filter object.
      *
-     * @returns a JavaScript command string
+     * @return a JavaScript command string
      * @throws RuntimeException if the filter cannot be interpreted
      */
     static public String getScriptCommandForFilter(Filter filter) {

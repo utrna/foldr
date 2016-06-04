@@ -25,7 +25,7 @@ import java.util.Iterator;
 public class Reader {
     
     /** Constructor for a Reader.
-     * @param filename The name of the input file.
+     * @param absPath The name of the input file.
      */
     public Reader(String absPath) throws IOException {
         FileInputStream fis;

@@ -80,7 +80,7 @@ public class AppMain {
     /**
      * Logs message with implicit StringBuilder.
      * @param messageType use INFO, WARN or ERROR
-     * @param text strings to join to form the message
+     * @param parts strings to join to form the message
      */
     static public void log(int messageType, String[] parts) {
         StringBuilder sb = new StringBuilder();
