@@ -12,6 +12,7 @@ import java.awt.Image;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import javax.swing.ImageIcon;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImageFilter;
@@ -27,86 +28,137 @@ import javax.swing.JTextPane;
  * @author  jyzhang
  */
 public class HelixImageGenerator {
-    
+
     public static int VIEW_2D = 0;
     public static int VIEW_FLAT = 1;
-    
+
     private int length;
+    private int baseMaxX; // without zoom
+    private int baseMaxY; // without zoom
     private int maxX;
     private int maxY;
     private float zoom;
     private int imageType;
     private BufferedImage helix2D;
     private BufferedImage helixFlat;
-    private Point clicked;
+    private Point clicked; // coordinates are relative to data (zoom level 1)
     private JTextPane textArea;
-    
+
     /** Creates a new instance of HelixImageGenerator */
     public HelixImageGenerator(int l) {
         length = l;
-        maxX = 3 * l; maxY = 3 * l;
+        baseMaxX = 3 * l;
+        baseMaxY = 3 * l;
         imageType = this.VIEW_2D;
-        zoom = 1;
         clicked = null;
-        this.helix2D = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_RGB);
-        this.helixFlat = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_RGB);
+        setZoomLevel(1);
     }
-    
+
     /**
-     *
+     * Returns the width and height at current zoom level.
      */
-    public void setZoomLevel(float z){
-        zoom = z;
+    public Dimension getSize() {
+        return new Dimension(maxX, maxY);
     }
-    
-    public Image zoomImage(Image i){
-        BufferedImage img = (BufferedImage)i;
-        BufferedImage tmp = new BufferedImage((int)(maxX * zoom), (int)(maxY *zoom), BufferedImage.TYPE_INT_RGB);
+
+    /**
+     * Current display-scale factor (both X and Y directions).
+     * @returns scale factor, such as 1.0 or 0.5 or 2.0
+     */
+    public float getZoomLevel() {
+        return zoom;
+    }
+
+    /**
+     * Changes the horizontal and vertical scaling factors and updates
+     * internally-cached values to be consistent.
+     */
+    public void setZoomLevel(float z) {
+        zoom = z;
+        maxX = (int)((float)baseMaxX * zoom);
+        maxY = (int)((float)baseMaxY * zoom);
+    }
+
+    /**
+     * Returns a transformed version of the given image, based on the
+     * most recent value given to setZoomLevel().
+     *
+     * Directly implement paintComponent() in a JComponent instead.
+     */
+    @Deprecated
+    public BufferedImage zoomImage(BufferedImage img) {
+        if (zoom == 1.0) {
+            return img;
+        }
+        BufferedImage tmp = new BufferedImage((int)maxX, (int)maxY, BufferedImage.TYPE_INT_RGB);
         AffineTransformOp aop = new AffineTransformOp(AffineTransform.getScaleInstance(zoom, zoom), AffineTransformOp.TYPE_BILINEAR);
-        
         tmp = aop.createCompatibleDestImage(img, img.getColorModel());
         aop.filter(img, tmp);
         return tmp;
     }
-    
+
     /**
-     *
+     * Specifies how to render the RNA data.
+     * @param imgType set to VIEW_2D or VIEW_FLAT
      */
-    public boolean setImageType(int imgType){
-        if (imageType != imgType){
+    public boolean setImageType(int imgType) {
+        if (imageType != imgType) {
             imageType = imgType;
             return true;
         }
         return false;
     }
-    
+
     /**
-     *
+     * Returns the image for the current view.  If the image does not
+     * exist yet, it is created.  If the image size no longer matches
+     * the size appropriate for the zoom, a new image is created.
      */
-    public Image getImage(){
-        if (imageType == this.VIEW_2D){
+    public BufferedImage getImage() {
+        if (imageType == this.VIEW_2D) {
+            if ((this.helix2D == null) || (this.helix2D.getWidth() != maxX)) {
+                this.helix2D = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_RGB);
+            }
             return this.helix2D;
         }
-        else if (imageType == this.VIEW_FLAT){
+        if (imageType == this.VIEW_FLAT) {
+            if ((this.helixFlat == null) || (this.helixFlat.getWidth() != maxX)) {
+                this.helixFlat = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_RGB);
+            }
             return this.helixFlat;
         }
-        else {
-            return null;
+        return null;
+    }
+
+    /**
+     * Constructs a new Image object with a rendering of the given RNA
+     * data for the current view (2D or flat).
+     *
+     * Directly implement paintComponent() in a JComponent instead,
+     * and call paintRNA() on the graphics context of the component.
+     */
+    @Deprecated
+    public BufferedImage drawImage(RNA rna) {
+        BufferedImage result = getImage();
+        Graphics2D g = result.createGraphics();
+        g.scale(this.zoom, this.zoom); // this scales drawing but not image size (see getImage())
+        paintRNA(rna, g);
+        return result;
+    }
+
+    /**
+     * Directly renders the given RNA data in the specified graphics
+     * context, based on the current view (2D or flat).
+     */
+    public void paintRNA(RNA rna, Graphics2D g) {
+        if (this.imageType == this.VIEW_FLAT) {
+            paintFlatImage(rna, g);
+        } else {
+            paint2DImage(rna, g);
         }
     }
-    
-    public Image drawImage(RNA rna){
-        if (imageType == this.VIEW_2D){
-            return draw2DImage(rna);
-        }
-        else {
-            return drawFlatImage(rna);
-        }
-    }
-    
-    private Image draw2DImage(RNA rna){
-        //this.helix2D = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_RGB);
-        Graphics2D helixGraphics = this.helix2D.createGraphics();
+
+    private void paint2DImage(RNA rna, Graphics2D helixGraphics) {
         helixGraphics.setColor(Color.white);
         helixGraphics.fillRect(0, 0, maxX, maxY);
         helixGraphics.setColor(Color.black);
@@ -133,7 +185,8 @@ public class HelixImageGenerator {
         if (hstore != null){
             //helixGraphics.setColor(Color.red);
             Iterator itr = hstore.iterator();
-            while (itr.hasNext()){
+            boolean helixSelected = false;
+            while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
                 helixGraphics.setColor(Color.red);
                 /*
@@ -160,37 +213,31 @@ public class HelixImageGenerator {
                     (this.contains(x0, y0, x1, y1, clicked) ||
                      this.contains(x0, y0 - 1, x1, y1 - 1, clicked) ||
                      this.contains(x0, y0 + 1, x1, y1 + 1, clicked))) {
+                    helixSelected = true;
                     //System.out.println("Found Point... " + clicked);
                     helixGraphics.setColor(Color.blue);
                     helixGraphics.draw(line);
                     // draw "handles" (blobs on each end) so that the
                     // selection is more distinct
-                    helixGraphics.fillRect(x0 - 1, y0 - 1, 3, 3);
-                    helixGraphics.fillRect(x1 - 1, y1 - 1, 3, 3);
+                    helixGraphics.fillRect(x0 - 1, y0 - 1, 2, 2);
+                    helixGraphics.fillRect(x1 - 1, y1 - 1, 2, 2);
                     setInfoText(h, rna);
-                    clicked = null;
+                    //clicked = null;
                     helixGraphics.setColor(Color.red);
-                }
-                else {
+                } else {
                     helixGraphics.draw(line);
                 }
-                //helixGraphics.draw(line);
             }
-            if (clicked != null){
+            if ((!helixSelected) && (textArea != null)) {
                 textArea.setText("You did not select a helix.");
-                clicked = null;
             }
         }
         else {
             //System.out.println("No helices to draw");
         }
-        //doZoom(helix2D, this.VIEW_2D);
-        return helix2D;
     }
-    
-    private Image drawFlatImage(RNA rna){
-        //this.helixFlat = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_RGB);
-        Graphics2D helixGraphics = this.helixFlat.createGraphics();
+
+    private void paintFlatImage(RNA rna, Graphics2D helixGraphics) {
         helixGraphics.setColor(Color.white);
         helixGraphics.fillRect(0, 0, maxX, maxY);
         helixGraphics.setColor(Color.black);
@@ -221,10 +268,8 @@ public class HelixImageGenerator {
                 //helixGraphics.fillRect(x, y, wi, hi);
             }
         }
-        //doZoom(helixFlat, this.VIEW_FLAT);
-        return helixFlat;
     }
-    
+
     private Image toImage(BufferedImage bufImage){
         AffineTransformOp aop = new AffineTransformOp(new AffineTransform(), AffineTransformOp.TYPE_BILINEAR);
         BufferedImageFilter bif = new BufferedImageFilter(aop);
@@ -232,16 +277,27 @@ public class HelixImageGenerator {
         Image img = Toolkit.getDefaultToolkit().createImage(fsource);
         return img;
     }
-    
+
+    public int getUnzoomedX(double x) {
+        return (int)(x / zoom);
+    }
+
+    public int getUnzoomedY(double y) {
+        return (int)(y / zoom);
+    }
+
+    /**
+     * The given coordinates must be relative to the data
+     * (zoom level 1); see getUnzoomedX().
+     */
     public void clicked(double x, double y, JTextPane text){
-        int xpt = (int)(x / (zoom));
-        int ypt = (int)(y / (zoom));
+        int xpt = (int)x;
+        int ypt = (int)y;
         textArea = text;
         //System.out.println("Clicked near: " + xpt + "; " + ypt);
         clicked = new Point(xpt, ypt);
-        //return clicked;
     }
-    
+
     private boolean contains(int x0, int y0, int x1, int y1, Point pt){
         do{
             if (x0 == (int)pt.getX() && y0 == (int)pt.getY()){
@@ -252,7 +308,7 @@ public class HelixImageGenerator {
         }while (x0 != x1 && y0 != y1);
         return false;
     }
-    
+
     private void setInfoText(Helix h, RNA rna){
         HelixInfo info = new HelixInfo(h, rna);
         String s = "Helix Length: " + info.getLength() + "\nHelix Energy: " + info.getEnergy() +"\n";
@@ -262,7 +318,7 @@ public class HelixImageGenerator {
         s += "3' Start: " + (info.get3PrimeStart() + 1) + "\n3' End: " + (info.get3PrimeEnd() + 1);
         textArea.setText(s);
     }
-    
+
     /* OLD VERSION
     private void setInfoText(Helix h, RNA rna){
         int l = h.getLength();

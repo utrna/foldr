@@ -20,12 +20,20 @@ import javax.swing.*;
  */
 public class RheatApp extends javax.swing.JFrame {
 
+    /**
+     * For the log() method.
+     */
+    public static final int INFO = AppMain.INFO;
+    public static final int WARN = AppMain.WARN;
+    public static final int ERROR = AppMain.ERROR;
+
     // PRIVATE DATAMEMBERS RELEVANT TO RNAHEAT
     private AppMain appMain;
     private HelixImageGenerator helixImgGen;
     private JFileChooser fc = new JFileChooser();
     private BusyWaitDialog busyDialog;
-    private Image img;
+    private BufferedImage img = null;
+    private float zoomLevelAtLastUpdate = 1.0f;
 
     /**
      * Main window, using an AppMain object to manage
@@ -38,6 +46,30 @@ public class RheatApp extends javax.swing.JFrame {
         busyDialog = new BusyWaitDialog(this, false);
         Point origin = getCenteredOrigin(busyDialog);
         busyDialog.setLocation(origin);
+    }
+
+    /**
+     * Logs message with implicit StringBuilder.
+     * Currently an alias for AppMain.log() but this could evolve to
+     * use a GUI log window.  (Use lower-level methods to force the
+     * output to use the console.)
+     * @param messageType use INFO, WARN or ERROR
+     * @param text strings to join to form the message
+     */
+    static public void log(int messageType, String[] parts) {
+        AppMain.log(messageType, parts);
+    }
+
+    /**
+     * Logs simple messages.
+     * Currently an alias for AppMain.log() but this could evolve to
+     * use a GUI log window.  (Use lower-level methods to force the
+     * output to use the console.)
+     * @param messageType use INFO, WARN or ERROR
+     * @param text the content of the log message
+     */
+    static public void log(int messageType, String text) {
+        AppMain.log(messageType, text);
     }
 
     private void addHistoryCommand(String scriptCommandLines) {
@@ -92,29 +124,45 @@ public class RheatApp extends javax.swing.JFrame {
         }
     }
 
-    private void updateImage(){
-        if (appMain.rnaData != null /*&& this.helixImgGen != null*/){
+    private void updateImage() {
+        if ((appMain.rnaData != null) && (this.helixImgGen != null)) {
             busyDialog.setVisible(true);
             try {
                 System.gc();
-                helixImgGen.setZoomLevel(this.getZoomLevel());
                 img = helixImgGen.drawImage(appMain.rnaData);
-                Point p = this.DisplayScrollPane.getViewport().getViewPosition();
-                img = helixImgGen.zoomImage(img);
+                JViewport viewPort = this.DisplayScrollPane.getViewport();
+                Dimension oldVisibleSize = viewPort.getExtentSize();
+                double oldViewCenterX = (viewPort.getViewPosition().getX() + (oldVisibleSize.getWidth() / 2.0));
+                double oldViewCenterY = (viewPort.getViewPosition().getY() + (oldVisibleSize.getHeight() / 2.0));
+                Dimension oldMaxSize = viewPort.getView().getSize();
+                // update the display (TEMPORARY; this ought to be
+                // achieved by a custom component whose implementation
+                // of paintComponent() redraws as needed)
+                oldDisplayPane.setIcon(new ImageIcon(img));
+                oldDisplayPane.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                oldDisplayPane.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+                oldDisplayPane.setSize(helixImgGen.getSize());
+                oldDisplayPane.setBackground(Color.white);
+                Dimension newVisibleSize = viewPort.getExtentSize();
+                Dimension newMaxSize = viewPort.getView().getSize();
+                double viewScaleX = (newMaxSize.getWidth() / oldMaxSize.getWidth());
+                double viewScaleY = (newMaxSize.getHeight() / oldMaxSize.getHeight());
+                if ((viewScaleX != 1.0) || (viewScaleY != 1.0)) {
+                    // the previous scroll information referred to an image
+                    // of a different size; in order to keep focus on the
+                    // same area, the new scroll position must be scaled to
+                    // account for the change in size (it is kept centered)
+                    double newViewCenterX = (oldViewCenterX * viewScaleX);
+                    double newViewCenterY = (oldViewCenterY * viewScaleY);
+                    double newViewX = (newViewCenterX - (newVisibleSize.getWidth() / 2.0));
+                    double newViewY = (newViewCenterY - (newVisibleSize.getHeight() / 2.0));
+                    viewPort.setViewPosition(new Point((int)newViewX, (int)newViewY));
+                }
+            } catch (NumberFormatException ex) {
+                ex.printStackTrace();
+            } finally {
                 busyDialog.close();
-                JLabel gpanel = new JLabel(new ImageIcon(img));
-                gpanel.setBackground(Color.white);
-                this.DisplayScrollPane.setViewportView(gpanel);
-                this.DisplayScrollPane.getViewport().setViewPosition(p);
-                HelixStore helices = appMain.rnaData.getHelices();
-                int count = ((helices != null) ? helices.getCount() : 0);
-                this.helixNumField.setText("" + count);
-            }
-            catch (NumberFormatException ex){
-                
-            }
-            finally{
-                busyDialog.close();
+                this.zoomLevelAtLastUpdate = helixImgGen.getZoomLevel();
             }
         }
     }
@@ -235,7 +283,9 @@ public class RheatApp extends javax.swing.JFrame {
     private void initComponents() {//GEN-BEGIN:initComponents
         desktopPane = new javax.swing.JDesktopPane();
         DisplayFrame = new javax.swing.JInternalFrame();
+        oldDisplayPane = new javax.swing.JLabel();
         DisplayScrollPane = new javax.swing.JScrollPane();
+        DisplayScrollPane.setViewportView(oldDisplayPane);
         ControlFrame = new javax.swing.JInternalFrame();
         jPanel1 = new javax.swing.JPanel();
         uidLabel = new javax.swing.JLabel();
@@ -462,10 +512,10 @@ public class RheatApp extends javax.swing.JFrame {
                         dlm.addElement(historyList.getModel().getElementAt(i));
                     }
                     historyList.setModel(dlm);
-                    appMain.log(appMain.INFO, "Reverted to snapshot #" + index + ".");
+                    log(INFO, "Reverted to snapshot #" + index + ".");
                 } catch (Exception e) {
                     e.printStackTrace();
-                    appMain.log(appMain.WARN, "Unable to undo (see trace above).");
+                    log(WARN, "Unable to undo (see trace above).");
                 }
             }
         });
@@ -802,7 +852,7 @@ public class RheatApp extends javax.swing.JFrame {
             addHistoryCommand(equivalentScriptCommand);
         } catch (Exception e) {
             e.printStackTrace();
-            appMain.log(appMain.WARN, "Unable to produce script command for filter history (see trace above).");
+            log(WARN, "Unable to produce script command for filter history (see trace above).");
         }
     }
 
@@ -869,10 +919,10 @@ public class RheatApp extends javax.swing.JFrame {
             outputImage = fc.getSelectedFile();
             try {
                 if (fc.getFileFilter().getDescription().equals("PNG Files")){
-                    javax.imageio.ImageIO.write((java.awt.image.RenderedImage)img, "png", outputImage);
+                    javax.imageio.ImageIO.write(img, "png", outputImage);
                 }
                 else{
-                    javax.imageio.ImageIO.write((java.awt.image.RenderedImage)img, "jpeg", outputImage);
+                    javax.imageio.ImageIO.write(img, "jpeg", outputImage);
                 }
             }
             catch (java.io.IOException ex){
@@ -898,9 +948,10 @@ public class RheatApp extends javax.swing.JFrame {
         double x = p.getX() + rect.getX();
         double y = p.getY() + rect.getY();
         String s = "x: " + x + "; y: " + y + "\n";
+        x = helixImgGen.getUnzoomedX(x);
+        y = helixImgGen.getUnzoomedY(y);
         this.infoTextPane.setText(s);
-        //helixClicked(x, y);
-        if (this.helixImgGen != null){
+        if (this.helixImgGen != null) {
             helixImgGen.clicked(x, y, this.infoTextPane);
             this.updateImage();
         }
@@ -925,6 +976,7 @@ public class RheatApp extends javax.swing.JFrame {
     
     private void zoomComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_zoomComboBoxItemStateChanged
         if (helixImgGen != null){
+            helixImgGen.setZoomLevel(this.getZoomLevel());
             this.updateImage();
         }
     }//GEN-LAST:event_zoomComboBoxItemStateChanged
@@ -979,6 +1031,9 @@ public class RheatApp extends javax.swing.JFrame {
         setControlLabels();
         basepairFilterItem.setEnabled(true);
         this.updateImage();
+        HelixStore helices = appMain.rnaData.getHelices();
+        int count = ((helices != null) ? helices.getCount() : 0);
+        this.helixNumField.setText("" + count);
     }
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
@@ -1116,4 +1171,5 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JButton zoomOutButton;
     private javax.swing.JList<String> historyList;
     // End of variables declaration//GEN-END:variables
+    private javax.swing.JLabel oldDisplayPane; // TEMPORARY (want to replace with custom-painted view)
 }
