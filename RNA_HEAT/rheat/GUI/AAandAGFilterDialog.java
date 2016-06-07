@@ -15,22 +15,17 @@ import rheat.filter.Filter;
  * @author  jyzhang
  */
 public class AAandAGFilterDialog
-extends javax.swing.JDialog
-implements FilterDialog {
+extends FilterDialog {
 
-    /** Creates new form AAandAGFilterDialog */
-    public AAandAGFilterDialog(java.awt.Frame parent) {
-        super(parent, true);
+    public AAandAGFilterDialog() {
+        super("AA and AG Filter");
         initComponents();
     }
 
     /**
      * Implements FilterDialog interface.
      */
-    public rheat.filter.Filter run() {
-        pack();
-        setLocationRelativeTo(getParent());
-        setVisible(true); // blocks until dialog is done
+    public rheat.filter.Filter getNewFilter() {
         return filter;
     }
 
@@ -42,19 +37,8 @@ implements FilterDialog {
     private void initComponents() {//GEN-BEGIN:initComponents
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
 
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
-
-        setTitle("AA and AG Filter");
-        setResizable(false);
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                closeDialog(evt);
-            }
-        });
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -62,62 +46,18 @@ implements FilterDialog {
         jPanel1.add(jLabel1);
 
         getContentPane().add(jPanel1);
-
-        jButton1.setText("Accept");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jPanel2.add(jButton1);
-
-        jButton2.setText("Cancel");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
-        jPanel2.add(jButton2);
-
-        getContentPane().add(jPanel2);
-
-        pack();
     }//GEN-END:initComponents
-    
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        this.filter = new AAandAGHelicesFilter();
-        this.setVisible(false);
-        this.close();
-    }//GEN-LAST:event_jButton1ActionPerformed
-    
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        close();
-    }//GEN-LAST:event_jButton2ActionPerformed
-    
-    private void close(){
-        dispose();
-    }
-    
-    /** Closes the dialog */
-    private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
-        close();
-    }//GEN-LAST:event_closeDialog
-    
+
     /**
-     * @param args the command line arguments
+     * Implementation of interface method; commits changes (as the
+     * user has accepted the dialog).
      */
-    public static void main(String args[]) {
-        new AAandAGFilterDialog(new javax.swing.JFrame()).setVisible(true);
+    void actionPanelAccepted() {
+        this.filter = new AAandAGHelicesFilter();
     }
-    
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
     private Filter filter; // null unless dialog was accepted by user

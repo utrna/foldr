@@ -16,22 +16,17 @@ import javax.swing.JOptionPane;
  * @author  jyzhang
  */
 public class DiagonalFilterDialog
-extends javax.swing.JDialog
-implements FilterDialog {
+extends FilterDialog {
 
-    /** Creates new form DiagonalFilterDialog */
-    public DiagonalFilterDialog(java.awt.Frame parent) {
-        super(parent, true);
+    public DiagonalFilterDialog() {
+        super("Diagonal Filter");
         initComponents();
     }
 
     /**
      * Implements FilterDialog interface.
      */
-    public rheat.filter.Filter run() {
-        pack();
-        setLocationRelativeTo(getParent());
-        setVisible(true); // blocks until dialog is done
+    public rheat.filter.Filter getNewFilter() {
         return filter;
     }
 
@@ -49,19 +44,8 @@ implements FilterDialog {
         jPanel3 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         maxDistanceField = new javax.swing.JTextField();
-        jPanel4 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
 
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
-
-        setTitle("Diagonal Filter");
-        setResizable(false);
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                closeDialog(evt);
-            }
-        });
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -93,31 +77,13 @@ implements FilterDialog {
         jPanel3.add(maxDistanceField);
 
         getContentPane().add(jPanel3);
-
-        jButton1.setText("Accept");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jPanel4.add(jButton1);
-
-        jButton2.setText("Cancel");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
-        jPanel4.add(jButton2);
-
-        getContentPane().add(jPanel4);
-
-        pack();
     }//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    /**
+     * Implementation of interface method; commits changes (as the
+     * user has accepted the dialog).
+     */
+    void actionPanelAccepted() {
         BasePairRangeHelicesFilter newFilter = new BasePairRangeHelicesFilter();
         try {
             int min = 1; 
@@ -138,7 +104,6 @@ implements FilterDialog {
             d += "Maximum distance from diagonal: " + max + "\n";
             newFilter.setArguments(max, min);
             newFilter.setDescription(d);
-            this.close();
             this.filter = newFilter;
         }
         catch (NumberFormatException ex){
@@ -149,36 +114,12 @@ implements FilterDialog {
         }
     }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        close();
-    }
-
-    private void close() {
-        dispose();
-    }
-
-    /** Closes the dialog */
-    private void closeDialog(java.awt.event.WindowEvent evt) {
-        close();
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        new DiagonalFilterDialog(new javax.swing.JFrame()).setVisible(true);
-    }
-
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton2;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JTextField minDistanceField;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTextField maxDistanceField;

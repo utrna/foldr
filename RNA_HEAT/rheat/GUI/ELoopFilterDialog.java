@@ -15,22 +15,17 @@ import rheat.filter.Filter;
  * @author  jyzhang
  */
 public class ELoopFilterDialog
-extends javax.swing.JDialog
-implements FilterDialog {
+extends FilterDialog {
 
-    /** Creates new form ELoopFilterDialog */
-    public ELoopFilterDialog(java.awt.Frame parent) {
-        super(parent, true);
+    public ELoopFilterDialog() {
+        super("E-Loop Filter");
         initComponents();
     }
 
     /**
      * Implements FilterDialog interface.
      */
-    public rheat.filter.Filter run() {
-        pack();
-        setLocationRelativeTo(getParent());
-        setVisible(true); // blocks until dialog is done
+    public rheat.filter.Filter getNewFilter() {
         return filter;
     }
 
@@ -48,69 +43,21 @@ implements FilterDialog {
 
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
-        setTitle("E-Loop Filter");
-        setResizable(false);
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                closeDialog(evt);
-            }
-        });
-
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jLabel1.setText("E-Loop Filter");
         jPanel1.add(jLabel1);
 
         getContentPane().add(jPanel1);
-
-        jButton1.setText("Accept");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jPanel2.add(jButton1);
-
-        jButton2.setText("Cancel");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
-        jPanel2.add(jButton2);
-
-        getContentPane().add(jPanel2);
-
-        pack();
-    }
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        ELoopHelicesFilter newFilter = new ELoopHelicesFilter();
-        this.setVisible(false);
-        this.close();
-        this.filter = newFilter;
-    }
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        close();
-    }
-
-    private void close(){
-        dispose();
-    }
-
-    /** Closes the dialog */
-    private void closeDialog(java.awt.event.WindowEvent evt) {
-        close();
     }
 
     /**
-     * @param args the command line arguments
+     * Implementation of interface method; commits changes (as the
+     * user has accepted the dialog).
      */
-    public static void main(String args[]) {
-        new ELoopFilterDialog(new javax.swing.JFrame()).setVisible(true);
+    void actionPanelAccepted() {
+        ELoopHelicesFilter newFilter = new ELoopHelicesFilter();
+        this.filter = newFilter;
     }
 
     // Variables declaration - do not modify

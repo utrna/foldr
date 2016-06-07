@@ -16,22 +16,17 @@ import rheat.filter.Filter;
  * @author  jyzhang
  */
 public class BasepairFilterDialog
-extends javax.swing.JDialog
-implements FilterDialog {
+extends FilterDialog {
 
-    /** Creates new form BasicFilterDialog */
-    public BasepairFilterDialog(java.awt.Frame parent) {
-        super(parent, true);
+    public BasepairFilterDialog() {
+        super("Basepair Filter");
         initComponents();
     }
 
     /**
      * Implements FilterDialog interface.
      */
-    public rheat.filter.Filter run() {
-        pack();
-        setLocationRelativeTo(getParent());
-        setVisible(true); // blocks until dialog is done
+    public rheat.filter.Filter getNewFilter() {
         return filter;
     }
 
@@ -55,21 +50,8 @@ implements FilterDialog {
         cuCheckBox = new javax.swing.JCheckBox();
         ggCheckBox = new javax.swing.JCheckBox();
         uuCheckBox = new javax.swing.JCheckBox();
-        jPanel3 = new javax.swing.JPanel();
-        acceptBtn = new javax.swing.JButton();
-        cancelBtn = new javax.swing.JButton();
 
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Basepair Filter");
-        setModal(true);
-        setResizable(false);
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                closeDialog(evt);
-            }
-        });
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -114,34 +96,15 @@ implements FilterDialog {
         jPanel4.add(uuCheckBox);
 
         getContentPane().add(jPanel4);
-
-        acceptBtn.setText("Accept");
-        acceptBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                acceptBtnActionPerformed(evt);
-            }
-        });
-
-        jPanel3.add(acceptBtn);
-
-        cancelBtn.setText("Cancel");
-        cancelBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelBtnActionPerformed(evt);
-            }
-        });
-
-        jPanel3.add(cancelBtn);
-
-        getContentPane().add(jPanel3);
-
-        pack();
     }//GEN-END:initComponents
 
-    private void acceptBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_acceptBtnActionPerformed
+    /**
+     * Implementation of interface method; commits changes (as the
+     * user has accepted the dialog).
+     */
+    void actionPanelAccepted() {
         BPFilter newFilter = new BPFilter();
         String d = "Basepairs selected: \n";
-        this.setVisible(false);
         int[] filterOptions = new int[10];
         // get the selected basepair types.
         if (this.ccCheckBox.isSelected()){
@@ -186,39 +149,16 @@ implements FilterDialog {
         }
         newFilter.setArguments(filterOptions);
         newFilter.setDescription(d);
-        this.close();
+        // set return value for getNewFilter()
         this.filter = newFilter;
-    }//GEN-LAST:event_acceptBtnActionPerformed
+    }
 
-    private void cancelBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelBtnActionPerformed
-        close();
-    }//GEN-LAST:event_cancelBtnActionPerformed
-    
-    public void close(){
-        dispose();
-    }
-    
-    /** Closes the dialog */
-    private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
-        close();
-    }//GEN-LAST:event_closeDialog
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        new BasepairFilterDialog(new javax.swing.JFrame()).setVisible(true);
-    }
-    
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox auCheckBox;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JButton acceptBtn;
     private javax.swing.JCheckBox ccCheckBox;
     private javax.swing.JCheckBox ggCheckBox;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JCheckBox agCheckBox;
     private javax.swing.JCheckBox uuCheckBox;
     private javax.swing.JPanel jPanel2;
@@ -228,7 +168,6 @@ implements FilterDialog {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JCheckBox cgCheckBox;
     private javax.swing.JCheckBox guCheckBox;
-    private javax.swing.JButton cancelBtn;
     // End of variables declaration//GEN-END:variables
     private Filter filter; // null unless dialog was accepted by user
 

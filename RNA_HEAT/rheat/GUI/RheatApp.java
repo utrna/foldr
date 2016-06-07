@@ -20,6 +20,64 @@ import javax.swing.*;
  */
 public class RheatApp extends javax.swing.JFrame {
 
+    static public abstract class RheatActionPanel extends javax.swing.JComponent {
+
+        private String title = null;
+        private String okTitle = "OK";
+        private String cancelTitle = "Cancel";
+
+        RheatActionPanel(String title) {
+            this.title = title;
+        }
+
+        /**
+         * For convenience, to allow code to look more like how it would
+         * appear when creating components inside a window.
+         * @return This object.
+         */
+        protected Container getContentPane() { return this; }
+
+        protected String getOKTitle() { return okTitle; }
+
+        protected String getCancelTitle() { return cancelTitle; }
+
+        /**
+         * Primitive runner; blocks until user selects a button.
+         * Calls actionPanelAccepted() only if appropriate.  The
+         * dialog is then closed regardless.
+         */
+        public void run(RheatApp parent) {
+            parent.addWindowListener(new java.awt.event.WindowAdapter() {
+                public void windowClosing(java.awt.event.WindowEvent evt) {
+                    // no action (cannot "accept" this way)
+                }
+            });
+            int result = JOptionPane.showOptionDialog(parent, this, title,
+                                                      JOptionPane.OK_CANCEL_OPTION,
+                                                      JOptionPane.PLAIN_MESSAGE, null/* icon */,
+                                                      new Object[] {
+                                                          getOKTitle(),
+                                                          getCancelTitle()
+                                                      },
+                                                      getOKTitle());
+            // NOTE: can return JOptionPane.CLOSE_OPTION (-1) or
+            // OK_OPTION or CANCEL_OPTION
+            if (result == JOptionPane.OK_OPTION) {
+                actionPanelAccepted();
+            }
+        }
+
+        /**
+         * Called in response to an OK button action, before the
+         * dialog is destroyed (allowing various components to
+         * be queried, etc.).  Regardless of which button is
+         * chosen, the dialog is closed automatically after a
+         * run-method finishes and returns a value so this call
+         * should NOT try to change the window state.
+         */
+        abstract void actionPanelAccepted();
+    };
+
     /**
      * For the log() method.
      */
@@ -122,6 +180,21 @@ public class RheatApp extends javax.swing.JFrame {
                 break;
             }
         }
+    }
+
+    /**
+     * Returns a fixed-width font, if one is available.
+     * @param fallback a font to return if the monospaced lookup fails
+     * @param size the desired point size of the font (like "12")
+     * @return a fixed-width font of the given size, or the "fallback"
+     */
+    static private Font getMonospacedFont(Font fallback, int size) {
+        Font result = fallback;
+        Font fixedWidthFont = new Font("Courier", Font.PLAIN, size);
+        if (fixedWidthFont != null) {
+            result = fixedWidthFont;
+        }
+        return result;
     }
 
     private void updateImage() {
@@ -493,6 +566,7 @@ public class RheatApp extends javax.swing.JFrame {
         historyList.setModel(new DefaultListModel<String>());
         historyList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         historyList.setPreferredSize(null);
+        historyList.setFont(getMonospacedFont(historyList.getFont(), 12)); // monospaced font so pairs are easier to see
         jScrollPane2.setViewportView(historyList);
 
         jPanel4.setLayout(new java.awt.BorderLayout());
@@ -533,6 +607,7 @@ public class RheatApp extends javax.swing.JFrame {
         InfoFrame.setTitle("Helix Info");
         InfoFrame.setVisible(true);
         infoTextPane.setEditable(false);
+        infoTextPane.setFont(getMonospacedFont(infoTextPane.getFont(), 12)); // monospaced font so pairs are easier to see
         jScrollPane1.setViewportView(infoTextPane);
 
         InfoFrame.getContentPane().add(jScrollPane1);
@@ -857,14 +932,18 @@ public class RheatApp extends javax.swing.JFrame {
     }
 
     private void showAA_AGFilterDialog() {
-        Filter newFilter = new AAandAGFilterDialog(this).run();
+        FilterDialog fd = new AAandAGFilterDialog();
+        fd.run(this);
+        Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addFilter(newFilter);
         }
     }
 
     private void showBasePairFilterDialog() {
-        Filter newFilter = new BasepairFilterDialog(this).run();
+        FilterDialog fd = new BasepairFilterDialog();
+        fd.run(this);
+        Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addFilter(newFilter);
             this.enableFilterMenuItems(true);
@@ -875,38 +954,52 @@ public class RheatApp extends javax.swing.JFrame {
     }
 
     private void showComplexFilterDialog() {
-        Filter newFilter = new ComplexFilterDialog(this).run();
+        FilterDialog fd = new ComplexFilterDialog();
+        fd.run(this);
+        Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addFilter(newFilter);
         }
     }
 
     private void showDiagonalFilterDialog() {
-        Filter newFilter = new DiagonalFilterDialog(this).run();
+        FilterDialog fd = new DiagonalFilterDialog();
+        fd.run(this);
+        Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addFilter(newFilter);
         }
     }
 
     private void showELoopFilterDialog() {
-        Filter newFilter = new ELoopFilterDialog(this).run();
+        FilterDialog fd = new ELoopFilterDialog();
+        fd.run(this);
+        Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addFilter(newFilter);
         }
     }
 
     private void showEnergyFilterDialog() {
-        Filter newFilter = new EnergyFilterDialog(this).run();
+        FilterDialog fd = new EnergyFilterDialog();
+        fd.run(this);
+        Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addFilter(newFilter);
         }
     }
 
     private void showHelixLengthFilterDialog() {
-        Filter newFilter = new HelixFilterDialog(this).run();
+        FilterDialog fd = new HelixFilterDialog();
+        fd.run(this);
+        Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addFilter(newFilter);
         }
+    }
+
+    private void preferencesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        new PreferenceDialog(appMain).run(this);
     }
 
     private void saveAsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsMenuItemActionPerformed
@@ -930,13 +1023,6 @@ public class RheatApp extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_saveAsMenuItemActionPerformed
-    
-    private void preferencesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_preferencesMenuItemActionPerformed
-        javax.swing.JDialog d = new PreferenceDialog(this, true, appMain);
-        java.awt.Point origin = getCenteredOrigin(d);
-        d.setLocation(origin);
-        d.setVisible(true);
-    }//GEN-LAST:event_preferencesMenuItemActionPerformed
     
     private void viewInfoMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewInfoMenuItemActionPerformed
         this.bringToFront(this.InfoFrame);
