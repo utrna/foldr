@@ -49,6 +49,16 @@ public class HelixImageGenerator {
         length = l;
         baseMaxX = 3 * l;
         baseMaxY = 3 * l;
+        // as long as image is used, nonzero width/height needed
+        // (will be overwritten if any file is opened)
+        if (baseMaxX <= 0) {
+            baseMaxX = 1;
+            maxX = 1;
+        }
+        if (baseMaxY <= 0) {
+            baseMaxY = 1;
+            maxY = 1;
+        }
         imageType = this.VIEW_2D;
         clicked = null;
         setZoomLevel(1);
@@ -163,6 +173,10 @@ public class HelixImageGenerator {
         helixGraphics.fillRect(0, 0, maxX, maxY);
         helixGraphics.setColor(Color.black);
         helixGraphics.drawLine(0, 0, maxY, maxY);
+        if (rna == null) {
+            // nothing else to do
+            return;
+        }
         HelixStore actual = rna.getActual();
         // draw the actual helices on top.
         if (actual != null){
@@ -242,6 +256,10 @@ public class HelixImageGenerator {
         helixGraphics.fillRect(0, 0, maxX, maxY);
         helixGraphics.setColor(Color.black);
         helixGraphics.drawLine(0, maxY/2, maxX, maxY/2);
+        if (rna == null) {
+            // nothing else to do
+            return;
+        }
         HelixStore hstore = rna.getHelices();
         helixGraphics.setColor(Color.red);
         if (hstore != null){

@@ -198,7 +198,7 @@ public class RheatApp extends javax.swing.JFrame {
     }
 
     private void updateImage() {
-        if ((appMain.rnaData != null) && (this.helixImgGen != null)) {
+        if (this.helixImgGen != null) {
             busyDialog.setVisible(true);
             try {
                 System.gc();
@@ -1082,27 +1082,20 @@ public class RheatApp extends javax.swing.JFrame {
             this.updateImage();
         }
     }
-    
+
     /**
      * Private method to do clean up when closing the current session.
      */
-    private void close(){
-        setTitle("RNA HEAT");
+    private void closeRNA() {
         appMain.cleanUp();
-        System.gc();
-        this.DisplayScrollPane.getViewport().setView(null);
+        refreshForNewRNA();
         this.enableFilterMenuItems(false);
-        basepairFilterItem.setEnabled(false);
-        setControlLabels();
-        this.helixActualField.setText("");
-        this.helixNumField.setText("");
-        this.helixTotalField.setText("");
+        this.basepairFilterItem.setEnabled(false);
         this.clearHistory();
-        this.infoTextPane.setText("");
     }
-    
+
     private void closeMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeMenuItemActionPerformed
-        close();
+        closeRNA();
     }//GEN-LAST:event_closeMenuItemActionPerformed
 
     /**
@@ -1110,16 +1103,28 @@ public class RheatApp extends javax.swing.JFrame {
      * Used after opening helix files.
      */
     public void refreshForNewRNA() {
-        this.helixActualField.setText("" + appMain.rnaData.getActual().getCount());
-        this.setTitle("RNA HEAT: " + appMain.rnaData.getUID());
-        helixImgGen = new HelixImageGenerator(appMain.rnaData.getLength());
-        //this.helixGraphicsLabel = new HelixGraphicsLabel(appMain.rnaData.getLength());
+        RNA rna = appMain.rnaData;
+        if (rna != null) {
+            this.helixActualField.setText("" + rna.getActual().getCount());
+            this.setTitle("RNA HEAT: " + rna.getUID());
+            this.helixImgGen = new HelixImageGenerator(rna.getLength());
+            //this.helixGraphicsLabel = new HelixGraphicsLabel(rna.getLength());
+            HelixStore helices = rna.getHelices();
+            int count = ((helices != null) ? helices.getCount() : 0);
+            this.helixNumField.setText("" + count);
+            this.helixTotalField.setText("");
+        } else {
+            this.helixActualField.setText("");
+            this.setTitle("RNA HEAT");
+            this.helixImgGen = new HelixImageGenerator(0);
+            //this.helixGraphicsLabel = new HelixGraphicsLabel(0);
+            this.helixNumField.setText("");
+            this.helixTotalField.setText("");
+        }
+        this.infoTextPane.setText("");
         setControlLabels();
         basepairFilterItem.setEnabled(true);
-        this.updateImage();
-        HelixStore helices = appMain.rnaData.getHelices();
-        int count = ((helices != null) ? helices.getCount() : 0);
-        this.helixNumField.setText("" + count);
+        this.updateImage(); // erases to blank if "appMain.rnaData" is null
     }
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
@@ -1181,7 +1186,7 @@ public class RheatApp extends javax.swing.JFrame {
 
     /** Exit the Application */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
-        close();
+        closeRNA();
         System.exit(0);
     }//GEN-LAST:event_exitForm
 

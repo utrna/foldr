@@ -9,12 +9,6 @@ Issues
 
 The following things were tried and there were problems:
 
-- Menus:
-
-  * Seems to have trouble opening multiple files in a session
-    (e.g. sometimes a file will not load unless rheat.jar is
-    quit and rerun).
-
 - Filters:
 
   * Some actions can cause long pauses without any hints.
@@ -22,8 +16,6 @@ The following things were tried and there were problems:
   * "Energy Filter": Improve error for min-not-less-than-max.
 
   * "Complex Distance Filter": Out-of-bounds exception when used.
-
-  * Undoing a filter in the list will remove all those below.
 
 - "Control Window":
 
@@ -59,6 +51,14 @@ The following items are now FIXED (moved from list above):
 
   * Selecting any filter may display an error about Undo files,
     EVERY time a filter is selected.  (Remove this.)
+
+  * Seems to have trouble opening multiple files in a session
+    (e.g. sometimes a file will not load unless rheat.jar is
+    quit and rerun).
+
+- Filters:
+
+  * Undoing a filter in the list will remove all those below.
 
 - "Display Window":
 
