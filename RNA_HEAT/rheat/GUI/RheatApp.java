@@ -54,7 +54,8 @@ public class RheatApp extends javax.swing.JFrame {
             });
             int result = JOptionPane.showOptionDialog(parent, this, title,
                                                       JOptionPane.OK_CANCEL_OPTION,
-                                                      JOptionPane.PLAIN_MESSAGE, null/* icon */,
+                                                      JOptionPane.PLAIN_MESSAGE,
+                                                      null/* icon */,
                                                       new Object[] {
                                                           getOKTitle(),
                                                           getCancelTitle()
@@ -91,7 +92,7 @@ public class RheatApp extends javax.swing.JFrame {
     private JFileChooser fc = new JFileChooser();
     private BusyWaitDialog busyDialog;
     private BufferedImage img = null;
-    private float zoomLevelAtLastUpdate = 1.0f;
+    private Rectangle tmpRect = new Rectangle(); // reused as needed to repaint
 
     /**
      * Main window, using an AppMain object to manage
@@ -198,24 +199,30 @@ public class RheatApp extends javax.swing.JFrame {
     }
 
     private void updateImage() {
+        displayPane.setRNA(appMain.rnaData);
+        displayPane.setHelixImageGenerator(this.helixImgGen);
         if (this.helixImgGen != null) {
             busyDialog.setVisible(true);
             try {
                 System.gc();
-                img = helixImgGen.drawImage(appMain.rnaData);
+                //img = helixImgGen.drawImage(appMain.rnaData);
+                displayPane.repaint(displayPane.getBounds(this.tmpRect));
                 JViewport viewPort = this.DisplayScrollPane.getViewport();
                 Dimension oldVisibleSize = viewPort.getExtentSize();
                 double oldViewCenterX = (viewPort.getViewPosition().getX() + (oldVisibleSize.getWidth() / 2.0));
                 double oldViewCenterY = (viewPort.getViewPosition().getY() + (oldVisibleSize.getHeight() / 2.0));
                 Dimension oldMaxSize = viewPort.getView().getSize();
-                // update the display (TEMPORARY; this ought to be
-                // achieved by a custom component whose implementation
-                // of paintComponent() redraws as needed)
-                oldDisplayPane.setIcon(new ImageIcon(img));
-                oldDisplayPane.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-                oldDisplayPane.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
-                oldDisplayPane.setSize(helixImgGen.getSize());
-                oldDisplayPane.setBackground(Color.white);
+                // update the display
+                // disabled old method: constructing a new image was extremely
+                // costly (e.g. zooming a giant RNA could run out of memory)
+                // so the new method is to use a custom component
+                //oldDisplayPane.setIcon(new ImageIcon(img));
+                //oldDisplayPane.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                //oldDisplayPane.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+                //oldDisplayPane.setSize(helixImgGen.getSize());
+                //oldDisplayPane.setBackground(Color.white);
+                displayPane.setSize(helixImgGen.getSize());
+                displayPane.setBackground(Color.white);
                 Dimension newVisibleSize = viewPort.getExtentSize();
                 Dimension newMaxSize = viewPort.getView().getSize();
                 double viewScaleX = (newMaxSize.getWidth() / oldMaxSize.getWidth());
@@ -235,7 +242,6 @@ public class RheatApp extends javax.swing.JFrame {
                 ex.printStackTrace();
             } finally {
                 busyDialog.close();
-                this.zoomLevelAtLastUpdate = helixImgGen.getZoomLevel();
             }
         }
     }
@@ -356,9 +362,11 @@ public class RheatApp extends javax.swing.JFrame {
     private void initComponents() {//GEN-BEGIN:initComponents
         desktopPane = new javax.swing.JDesktopPane();
         DisplayFrame = new javax.swing.JInternalFrame();
-        oldDisplayPane = new javax.swing.JLabel();
         DisplayScrollPane = new javax.swing.JScrollPane();
-        DisplayScrollPane.setViewportView(oldDisplayPane);
+        displayPane = new RNADisplay();
+        DisplayScrollPane.setViewportView(displayPane);
+        //oldDisplayPane = new javax.swing.JLabel();
+        //DisplayScrollPane.setViewportView(oldDisplayPane);
         ControlFrame = new javax.swing.JInternalFrame();
         jPanel1 = new javax.swing.JPanel();
         uidLabel = new javax.swing.JLabel();
@@ -436,7 +444,7 @@ public class RheatApp extends javax.swing.JFrame {
         DisplayFrame.setVisible(true);
         DisplayScrollPane.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                DisplayScrollPaneMouseClicked(evt);
+                displayScrollPaneMouseClicked(evt);
             }
         });
 
@@ -1011,6 +1019,7 @@ public class RheatApp extends javax.swing.JFrame {
         if (fc.showSaveDialog(this) == fc.APPROVE_OPTION){
             outputImage = fc.getSelectedFile();
             try {
+                BufferedImage img = helixImgGen.drawImage(appMain.rnaData);
                 if (fc.getFileFilter().getDescription().equals("PNG Files")){
                     javax.imageio.ImageIO.write(img, "png", outputImage);
                 }
@@ -1023,12 +1032,17 @@ public class RheatApp extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_saveAsMenuItemActionPerformed
-    
+
     private void viewInfoMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewInfoMenuItemActionPerformed
         this.bringToFront(this.InfoFrame);
     }//GEN-LAST:event_viewInfoMenuItemActionPerformed
-    
-    private void DisplayScrollPaneMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_DisplayScrollPaneMouseClicked
+
+    /**
+     * Responds to a mouse click by updating the display (to
+     * select a helix for example).  Information about the
+     * selected helix will also be updated accordingly.
+     */
+    private void displayScrollPaneMouseClicked(java.awt.event.MouseEvent evt) {
         java.awt.Point p = evt.getPoint();
         java.awt.Rectangle rect = this.DisplayScrollPane.getViewport().getViewRect();
         double x = p.getX() + rect.getX();
@@ -1040,13 +1054,18 @@ public class RheatApp extends javax.swing.JFrame {
         if (this.helixImgGen != null) {
             helixImgGen.clicked(x, y, this.infoTextPane);
             this.updateImage();
+            // for an unknown reason, normal updates do not seem to
+            // take place in the case of a click; perhaps it is due
+            // to interference from processing events but in any
+            // case, an explicit repaint will work
+            displayPane.repaint();
         }
-    }//GEN-LAST:event_DisplayScrollPaneMouseClicked
-    
+    }
+
     private void viewHistoryMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHistoryMenuItemActionPerformed
         bringToFront(this.HistoryFrame);
     }//GEN-LAST:event_viewHistoryMenuItemActionPerformed
-    
+
     private void contentMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contentMenuItemActionPerformed
         HelpContentJFrame contents = new HelpContentJFrame();
         contents.setLocation(0,0);
@@ -1262,5 +1281,7 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JButton zoomOutButton;
     private javax.swing.JList<String> historyList;
     // End of variables declaration//GEN-END:variables
-    private javax.swing.JLabel oldDisplayPane; // TEMPORARY (want to replace with custom-painted view)
+    private RNADisplay displayPane;
+    //private javax.swing.JLabel oldDisplayPane; // obsolete (replaced with custom-painted view)
+
 }

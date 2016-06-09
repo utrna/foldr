@@ -16,6 +16,7 @@ import java.awt.Dimension;
 import javax.swing.ImageIcon;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImageFilter;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.FilteredImageSource;
 import java.awt.geom.AffineTransform;
@@ -23,6 +24,7 @@ import java.util.Iterator;
 import java.awt.Point;
 import java.awt.geom.Line2D;
 import javax.swing.JTextPane;
+
 /**
  *
  * @author  jyzhang
@@ -144,23 +146,31 @@ public class HelixImageGenerator {
      * Constructs a new Image object with a rendering of the given RNA
      * data for the current view (2D or flat).
      *
-     * Directly implement paintComponent() in a JComponent instead,
-     * and call paintRNA() on the graphics context of the component.
+     * IMPORTANT: Image generation should be reserved for special
+     * cases (like saving a file in an image format).  To render the
+     * RNA data “live” for the user, you should use a JComponent and
+     * implement paintComponent() to call paintRNA() on the graphics
+     * context of the component.  See the RNADisplay class for more.
      */
-    @Deprecated
     public BufferedImage drawImage(RNA rna) {
         BufferedImage result = getImage();
         Graphics2D g = result.createGraphics();
-        g.scale(this.zoom, this.zoom); // this scales drawing but not image size (see getImage())
-        paintRNA(rna, g);
+        paintRNA(rna, g, new Dimension(maxX, maxY));
         return result;
     }
 
     /**
      * Directly renders the given RNA data in the specified graphics
      * context, based on the current view (2D or flat).
+     * @param rna the data to display
+     * @param g the context in which to draw
+     * @param targetSize the size of the container in which the image will be centered
      */
-    public void paintRNA(RNA rna, Graphics2D g) {
+    public void paintRNA(RNA rna, Graphics2D g, Dimension targetSize) {
+        double xOffset = (targetSize.getWidth() - maxX) / 2.0;
+        double yOffset = (targetSize.getHeight() - maxY) / 2.0;
+        g.scale(this.zoom, this.zoom); // this scales drawing but not image size (see getImage())
+        g.translate(xOffset, yOffset);
         if (this.imageType == this.VIEW_FLAT) {
             paintFlatImage(rna, g);
         } else {
@@ -169,6 +179,8 @@ public class HelixImageGenerator {
     }
 
     private void paint2DImage(RNA rna, Graphics2D helixGraphics) {
+        //helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        //helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         helixGraphics.setColor(Color.white);
         helixGraphics.fillRect(0, 0, maxX, maxY);
         helixGraphics.setColor(Color.black);
@@ -252,6 +264,8 @@ public class HelixImageGenerator {
     }
 
     private void paintFlatImage(RNA rna, Graphics2D helixGraphics) {
+        //helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        //helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         helixGraphics.setColor(Color.white);
         helixGraphics.fillRect(0, 0, maxX, maxY);
         helixGraphics.setColor(Color.black);

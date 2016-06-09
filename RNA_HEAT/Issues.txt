@@ -19,11 +19,6 @@ The following things were tried and there were problems:
 
 - "Control Window":
 
-  * Zoom level 100 runs out of memory.
-
-  * Zoom levels as low as 5 or 10 can also run out of memory if
-    the file that was loaded is quite large (e.g. 2000 helices).
-
   * Occasionally the "Current Helices", "Total Helices" and
     "Actual Helices" fields appear to be enabled for typing but
     I think they are meant to always be disabled/view-only.
@@ -78,6 +73,11 @@ The following items are now FIXED (moved from list above):
 
   * Seems like zoom 10 is useful but zoom 100 is too much; may
     want to add a zoom level 15 or 20, say.
+
+  * Zoom level 100 runs out of memory.
+
+  * Zoom levels as low as 5 or 10 can also run out of memory if
+    the file that was loaded is quite large (e.g. 2000 helices).
 
 - "Filter History":
 
