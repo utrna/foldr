@@ -266,9 +266,11 @@ public class RheatApp extends javax.swing.JFrame {
      * Most useful for JInternalFrames that has been closed, but
      * may be reopened using a call to this method.
      */
-    private void reuseComponent(javax.swing.JComponent f){
+    private void addOrReuseComponent(Component f) {
         f.setVisible(true);
-        desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        if (f.getParent() == null) {
+            desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        }
         repaint();
     }
     
@@ -279,7 +281,7 @@ public class RheatApp extends javax.swing.JFrame {
      * and select it.
      *
      */
-    private void bringToFront(javax.swing.JInternalFrame f){
+    private void bringToFront(javax.swing.JInternalFrame f) {
         try {
             if (f.isIcon()){ // if control window is minimized,
                 f.setIcon(false); // unminimize it.
@@ -361,6 +363,7 @@ public class RheatApp extends javax.swing.JFrame {
      */
     private void initComponents() {//GEN-BEGIN:initComponents
         desktopPane = new javax.swing.JDesktopPane();
+        helpFrame = new HelpContentJFrame();
         DisplayFrame = new javax.swing.JInternalFrame();
         DisplayScrollPane = new javax.swing.JScrollPane();
         displayPane = new RNADisplay();
@@ -400,7 +403,10 @@ public class RheatApp extends javax.swing.JFrame {
         fileMenu = new javax.swing.JMenu();
         openMenuItem = new javax.swing.JMenuItem();
         runMenuItem = new javax.swing.JMenuItem();
-        closeMenuItem = new javax.swing.JMenuItem();
+        closeRNAMenuItem = new javax.swing.JMenuItem();
+        closeWindowMenuItem = new javax.swing.JMenuItem();
+        minimizeWindowMenuItem = new javax.swing.JMenuItem();
+        zoomWindowMenuItem = new javax.swing.JMenuItem();
         saveAsMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
@@ -451,7 +457,7 @@ public class RheatApp extends javax.swing.JFrame {
         DisplayFrame.getContentPane().add(DisplayScrollPane);
 
         DisplayFrame.setBounds(270, 10, 500, 500);
-        desktopPane.add(DisplayFrame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        addOrReuseComponent(DisplayFrame);
 
         ControlFrame.getContentPane().setLayout(new java.awt.GridLayout(3, 0));
 
@@ -560,7 +566,7 @@ public class RheatApp extends javax.swing.JFrame {
         ControlFrame.getContentPane().add(jPanel2);
 
         ControlFrame.setBounds(10, 10, 250, 330);
-        desktopPane.add(ControlFrame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        addOrReuseComponent(ControlFrame);
 
         BorderLayout historyLayout = new java.awt.BorderLayout();
         HistoryFrame.getContentPane().setLayout(historyLayout);
@@ -607,7 +613,7 @@ public class RheatApp extends javax.swing.JFrame {
         HistoryFrame.getContentPane().add(jPanel5, BorderLayout.SOUTH);
 
         HistoryFrame.setBounds(270, 520, 500, 190);
-        desktopPane.add(HistoryFrame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        addOrReuseComponent(HistoryFrame);
 
         InfoFrame.getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
@@ -621,7 +627,7 @@ public class RheatApp extends javax.swing.JFrame {
         InfoFrame.getContentPane().add(jScrollPane1);
 
         InfoFrame.setBounds(10, 350, 250, 360);
-        desktopPane.add(InfoFrame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        addOrReuseComponent(InfoFrame);
 
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
         setExtendedState(MAXIMIZED_BOTH);
@@ -631,7 +637,8 @@ public class RheatApp extends javax.swing.JFrame {
 
         openMenuItem.setMnemonic('o');
         setKey(openMenuItem, KeyEvent.VK_O);
-        openMenuItem.setText("Open Helices File…");
+        openMenuItem.setText("Open RNA File…");
+        openMenuItem.setToolTipText("Replaces any current display with the contents of a different RNA data source (such as a '.bpseq' file).");
         openMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 openMenuItemActionPerformed(evt);
@@ -643,6 +650,7 @@ public class RheatApp extends javax.swing.JFrame {
         runMenuItem.setMnemonic('r');
         setKey(runMenuItem, KeyEvent.VK_R);
         runMenuItem.setText("Run Script…");
+        runMenuItem.setToolTipText("Runs commands from a JavaScript ('.js') file, such as a series of filters.");
         runMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 runMenuItemActionPerformed(evt);
@@ -652,20 +660,34 @@ public class RheatApp extends javax.swing.JFrame {
         fileMenu.add(runMenuItem);
         fileMenu.addSeparator();
 
-        closeMenuItem.setMnemonic('C');
-        setKey(closeMenuItem, KeyEvent.VK_W);
-        closeMenuItem.setText("Close");
-        closeMenuItem.addActionListener(new java.awt.event.ActionListener() {
+        //closeWindowMenuItem.setMnemonic('C');
+        setKey(closeWindowMenuItem, KeyEvent.VK_W);
+        closeWindowMenuItem.setText("Close Window");
+        closeWindowMenuItem.setToolTipText("Hides the frontmost window that has a close box.");
+        closeWindowMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                closeMenuItemActionPerformed(evt);
+                closeWindowMenuItemActionPerformed(evt);
             }
         });
 
-        fileMenu.add(closeMenuItem);
+        fileMenu.add(closeWindowMenuItem);
+
+        closeRNAMenuItem.setMnemonic('C');
+        //setKey(closeRNAMenuItem, KeyEvent.VK_W);
+        closeRNAMenuItem.setText("Close RNA");
+        closeRNAMenuItem.setToolTipText("Clears the display and all other windows.");
+        closeRNAMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeRNA();
+            }
+        });
+
+        fileMenu.add(closeRNAMenuItem);
 
         saveAsMenuItem.setMnemonic('A');
         setKey(saveAsMenuItem, KeyEvent.VK_S);
         saveAsMenuItem.setText("Save As…");
+        saveAsMenuItem.setToolTipText("Exports a picture of the current display as an image file (such as '.png').");
         saveAsMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveAsMenuItemActionPerformed(evt);
@@ -678,6 +700,7 @@ public class RheatApp extends javax.swing.JFrame {
         exitMenuItem.setMnemonic('x');
         setKey(exitMenuItem, KeyEvent.VK_Q);
         exitMenuItem.setText((appMain.isMac()) ? "Quit" : "Exit");
+        exitMenuItem.setToolTipText("Ends the program.");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 exitMenuItemActionPerformed(evt);
@@ -694,6 +717,7 @@ public class RheatApp extends javax.swing.JFrame {
         //preferencesMenuItem.setMnemonic('p');
         setKey(preferencesMenuItem, KeyEvent.VK_SEMICOLON);
         preferencesMenuItem.setText("Preferences…");
+        preferencesMenuItem.setToolTipText("Allows customization of behavior, such as the directory to start from when opening files.");
         preferencesMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 preferencesMenuItemActionPerformed(evt);
@@ -710,6 +734,7 @@ public class RheatApp extends javax.swing.JFrame {
         basepairFilterItem.setMnemonic('B');
         setKey(basepairFilterItem, KeyEvent.VK_1);
         basepairFilterItem.setText("Basepair Filter…");
+        basepairFilterItem.setToolTipText("Excludes helices that do not match selected base-pair values, such as 'C-G'.");
         basepairFilterItem.setEnabled(false);
         basepairFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -722,6 +747,7 @@ public class RheatApp extends javax.swing.JFrame {
         helixFilterItem.setMnemonic('H');
         setKey(helixFilterItem, KeyEvent.VK_2);
         helixFilterItem.setText("Helix Length Filter…");
+        helixFilterItem.setToolTipText("Excludes helices with a span more or less than the specified range.");
         helixFilterItem.setEnabled(false);
         helixFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -734,6 +760,7 @@ public class RheatApp extends javax.swing.JFrame {
         diagonalFilterItem.setMnemonic('D');
         setKey(diagonalFilterItem, KeyEvent.VK_3);
         diagonalFilterItem.setText("Diagonal Filter…");
+        diagonalFilterItem.setToolTipText("Excludes helices whose distance from the diagonal line (2D view) is outside the given range.");
         diagonalFilterItem.setEnabled(false);
         diagonalFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -746,6 +773,7 @@ public class RheatApp extends javax.swing.JFrame {
         aa_agFilterItem.setMnemonic('A');
         setKey(aa_agFilterItem, KeyEvent.VK_4);
         aa_agFilterItem.setText("AA / AG Ends Filter…");
+        aa_agFilterItem.setToolTipText("Excludes helices that do not have AA or AG 'just past' their ends.");
         aa_agFilterItem.setEnabled(false);
         aa_agFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -758,6 +786,7 @@ public class RheatApp extends javax.swing.JFrame {
         eLoopFilterItem.setMnemonic('E');
         setKey(eLoopFilterItem, KeyEvent.VK_5);
         eLoopFilterItem.setText("E-Loop Filter…");
+        eLoopFilterItem.setToolTipText("Excludes helices unless they have AAG at 3' start, AUG at 5' start, GAA at 3' end, and AUG at 5' end.");
         eLoopFilterItem.setEnabled(false);
         eLoopFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -770,6 +799,7 @@ public class RheatApp extends javax.swing.JFrame {
         energyFilterItem.setMnemonic('g');
         setKey(energyFilterItem, KeyEvent.VK_6);
         energyFilterItem.setText("Energy Filter…");
+        energyFilterItem.setToolTipText("Excludes helices that have an energy value outside the given range.");
         energyFilterItem.setEnabled(false);
         energyFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -780,8 +810,9 @@ public class RheatApp extends javax.swing.JFrame {
         filterMenu.add(energyFilterItem);
 
         complexFilterItem.setMnemonic('C');
-        setKey(complexFilterItem, KeyEvent.VK_6);
+        setKey(complexFilterItem, KeyEvent.VK_7);
         complexFilterItem.setText("Complex Distance Filter…");
+        complexFilterItem.setToolTipText("Excludes helices with simple or complex distances that are greater than the specified maximums.");
         complexFilterItem.setEnabled(false);
         complexFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -799,6 +830,7 @@ public class RheatApp extends javax.swing.JFrame {
         viewType2DMenuItem.setMnemonic('2');
         viewType2DMenuItem.setState(true); // initially...
         viewType2DMenuItem.setText("2D");
+        viewType2DMenuItem.setToolTipText("Changes to a two-axis display mode, with a diagonal line.");
         viewType2DMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 setViewType2D();
@@ -809,6 +841,7 @@ public class RheatApp extends javax.swing.JFrame {
 
         viewTypeFlatMenuItem.setMnemonic('F');
         viewTypeFlatMenuItem.setText("Flat");
+        viewTypeFlatMenuItem.setToolTipText("Changes to a single-axis display mode.");
         viewTypeFlatMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 setViewTypeFlat();
@@ -821,6 +854,7 @@ public class RheatApp extends javax.swing.JFrame {
         zoomOutMenuItem.setMnemonic('O');
         setKey(zoomOutMenuItem, KeyEvent.VK_COMMA);
         zoomOutMenuItem.setText("Zoom Out");
+        zoomOutMenuItem.setToolTipText("Shows more of the display, at a reduced size.");
         zoomOutMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 zoomOut();
@@ -832,6 +866,7 @@ public class RheatApp extends javax.swing.JFrame {
         zoomInMenuItem.setMnemonic('I');
         setKey(zoomInMenuItem, KeyEvent.VK_PERIOD);
         zoomInMenuItem.setText("Zoom In");
+        zoomInMenuItem.setToolTipText("Shows less of the display, at an increased size.");
         zoomInMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 zoomIn();
@@ -845,8 +880,34 @@ public class RheatApp extends javax.swing.JFrame {
         windowMenu.setMnemonic('W');
         windowMenu.setText("Window");
 
+        minimizeWindowMenuItem.setMnemonic('M');
+        setKey(minimizeWindowMenuItem, KeyEvent.VK_M);
+        minimizeWindowMenuItem.setText("Minimize Window");
+        minimizeWindowMenuItem.setToolTipText("Reduces the frontmost window to a miniature form.");
+        minimizeWindowMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                minimizeWindowMenuItemActionPerformed(evt);
+            }
+        });
+
+        windowMenu.add(minimizeWindowMenuItem);
+
+        zoomWindowMenuItem.setMnemonic((appMain.isMac()) ? 'Z' : 'x');
+        setKey(zoomWindowMenuItem, KeyEvent.VK_QUOTE);
+        zoomWindowMenuItem.setText((appMain.isMac()) ? "Zoom Window" : "Maximize/Restore Window");
+        zoomWindowMenuItem.setToolTipText("Toggles the frontmost window between its two main sizes.");
+        zoomWindowMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomWindowMenuItemActionPerformed(evt);
+            }
+        });
+
+        windowMenu.add(zoomWindowMenuItem);
+        windowMenu.addSeparator();
+
         viewDisplayMenuItem.setMnemonic('D');
         viewDisplayMenuItem.setText("Display Window");
+        viewDisplayMenuItem.setToolTipText("Brings the Display Window to the front.");
         viewDisplayMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewDisplayMenuItemActionPerformed(evt);
@@ -857,6 +918,7 @@ public class RheatApp extends javax.swing.JFrame {
 
         viewControlMenuItem.setMnemonic('C');
         viewControlMenuItem.setText("Controls");
+        viewControlMenuItem.setToolTipText("Brings the Controls to the front.");
         viewControlMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewControlMenuItemActionPerformed(evt);
@@ -867,6 +929,7 @@ public class RheatApp extends javax.swing.JFrame {
 
         viewHistoryMenuItem.setMnemonic('H');
         viewHistoryMenuItem.setText("Filter History");
+        viewHistoryMenuItem.setToolTipText("Brings the Filter History to the front.");
         viewHistoryMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewHistoryMenuItemActionPerformed(evt);
@@ -878,6 +941,7 @@ public class RheatApp extends javax.swing.JFrame {
         viewInfoMenuItem.setMnemonic('I');
         setKey(viewInfoMenuItem, KeyEvent.VK_I);
         viewInfoMenuItem.setText("Helix Info");
+        viewInfoMenuItem.setToolTipText("Brings the Helix Info to the front.");
         viewInfoMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewInfoMenuItemActionPerformed(evt);
@@ -891,17 +955,19 @@ public class RheatApp extends javax.swing.JFrame {
         helpMenu.setMnemonic('H');
         helpMenu.setText("Help");
 
-        contentMenuItem.setText("Contents");
         setKey(contentMenuItem, KeyEvent.VK_SLASH);
+        contentMenuItem.setText("Contents");
+        contentMenuItem.setToolTipText("Shows a window with user documentation on RNA HEAT.");
         contentMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                contentMenuItemActionPerformed(evt);
+                displayHelp();
             }
         });
 
         helpMenu.add(contentMenuItem);
 
         aboutMenuItem.setText("About");
+        aboutMenuItem.setToolTipText("Shows a window with information on the authors of RNA HEAT.");
         aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 aboutMenuItemActionPerformed(evt);
@@ -1010,6 +1076,40 @@ public class RheatApp extends javax.swing.JFrame {
         new PreferenceDialog(appMain).run(this);
     }
 
+    private void closeWindowMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        JInternalFrame activeWindow = this.desktopPane.getSelectedFrame();
+        if ((activeWindow != null) && activeWindow.isClosable()) {
+            try {
+                activeWindow.setClosed(true);
+                activeWindow.setVisible(false); // seems necessary too, in some cases...
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void minimizeWindowMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        JInternalFrame activeWindow = this.desktopPane.getSelectedFrame();
+        if ((activeWindow != null) && activeWindow.isIconifiable()) {
+            try {
+                activeWindow.setIcon(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void zoomWindowMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        JInternalFrame activeWindow = this.desktopPane.getSelectedFrame();
+        if ((activeWindow != null) && activeWindow.isMaximizable()) {
+            try {
+                activeWindow.setMaximum(!activeWindow.isMaximum());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void saveAsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsMenuItemActionPerformed
         File outputImage;
         fc = new JFileChooser(System.getProperty("user.dir"));
@@ -1066,11 +1166,10 @@ public class RheatApp extends javax.swing.JFrame {
         bringToFront(this.HistoryFrame);
     }//GEN-LAST:event_viewHistoryMenuItemActionPerformed
 
-    private void contentMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contentMenuItemActionPerformed
-        HelpContentJFrame contents = new HelpContentJFrame();
-        contents.setLocation(0,0);
-        contents.setVisible(true);
-    }//GEN-LAST:event_contentMenuItemActionPerformed
+    private void displayHelp() {
+        addOrReuseComponent(helpFrame);
+        //bringToFront(helpFrame);
+    }
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
         HelpAboutJFrame about = new HelpAboutJFrame();
@@ -1112,10 +1211,6 @@ public class RheatApp extends javax.swing.JFrame {
         this.basepairFilterItem.setEnabled(false);
         this.clearHistory();
     }
-
-    private void closeMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeMenuItemActionPerformed
-        closeRNA();
-    }//GEN-LAST:event_closeMenuItemActionPerformed
 
     /**
      * Updates the display to reflect current RNA data.
@@ -1251,6 +1346,7 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JMenuItem basepairFilterItem;
     private javax.swing.JDesktopPane desktopPane;
+    private HelpContentJFrame helpFrame;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenuItem eLoopFilterItem;
@@ -1266,7 +1362,10 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JMenuItem runMenuItem;
     private javax.swing.JLabel lengthLabel;
     private javax.swing.JMenuItem aboutMenuItem;
-    private javax.swing.JMenuItem closeMenuItem;
+    private javax.swing.JMenuItem closeRNAMenuItem;
+    private javax.swing.JMenuItem closeWindowMenuItem;
+    private javax.swing.JMenuItem minimizeWindowMenuItem;
+    private javax.swing.JMenuItem zoomWindowMenuItem;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JLabel orgLabel;
     private javax.swing.JMenu filterMenu;
