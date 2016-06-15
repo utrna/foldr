@@ -260,20 +260,32 @@ public class RheatApp extends javax.swing.JFrame {
             this.lengthLabel.setText("");
         }
     }
-    
+
     /**
-     * A private method useful for resuing a closed JComponent.
-     * Most useful for JInternalFrames that has been closed, but
-     * may be reopened using a call to this method.
+     * Convenience method that assumes DEFAULT_LAYER (appropriate
+     * for normal windows).
      */
     private void addOrReuseComponent(Component f) {
+        this.addOrReuseComponent(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
+    }
+
+    /**
+     * A private method useful for reusing a closed JComponent.
+     * Most useful for JInternalFrames that has been closed, but
+     * may be reopened using a call to this method.
+     * @param f the frame to reuse
+     * @param layer typically javax.swing.JLayeredPane.DEFAULT_LAYER or
+     * javax.swing.JLayeredPane.PALETTE_LAYER
+     */
+    private void addOrReuseComponent(Component f, int layer) {
         f.setVisible(true);
         if (f.getParent() == null) {
-            desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
+            desktopPane.setLayer(f, layer);
+            desktopPane.add(f);
         }
         repaint();
     }
-    
+
     /**
      * A private method for bringing a JInternalFrame to the front
      * of the JDesktopPane.  A call to this method will unminimize
@@ -291,7 +303,7 @@ public class RheatApp extends javax.swing.JFrame {
         catch (Exception e){
             e.printStackTrace();
         }
-        f.toFront();
+        desktopPane.moveToFront(f);
     }
     
     private void enableFilterMenuItems(boolean b){
@@ -607,6 +619,7 @@ public class RheatApp extends javax.swing.JFrame {
         InfoFrame.getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
         InfoFrame.setIconifiable(true);
+        InfoFrame.setResizable(true);
         InfoFrame.setTitle("Helix Info");
         InfoFrame.setVisible(true);
         infoTextPane.setEditable(false);
@@ -616,7 +629,7 @@ public class RheatApp extends javax.swing.JFrame {
         InfoFrame.getContentPane().add(jScrollPane1);
 
         InfoFrame.setBounds(10, 350, 250, 360);
-        addOrReuseComponent(InfoFrame);
+        addOrReuseComponent(InfoFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
 
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
         setExtendedState(MAXIMIZED_BOTH);
@@ -1113,6 +1126,7 @@ public class RheatApp extends javax.swing.JFrame {
             try {
                 activeWindow.setClosed(true);
                 activeWindow.setVisible(false); // seems necessary too, in some cases...
+                desktopPane.selectFrame(true/* forward */); // arbitrary; keep something focused
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1174,15 +1188,15 @@ public class RheatApp extends javax.swing.JFrame {
      * selected helix will also be updated accordingly.
      */
     private void displayScrollPaneMouseClicked(java.awt.event.MouseEvent evt) {
-        java.awt.Point p = evt.getPoint();
-        java.awt.Rectangle rect = this.DisplayScrollPane.getViewport().getViewRect();
-        double x = p.getX() + rect.getX();
-        double y = p.getY() + rect.getY();
-        String s = "x: " + x + "; y: " + y + "\n";
-        x = helixImgGen.getUnzoomedX(x);
-        y = helixImgGen.getUnzoomedY(y);
-        this.infoTextPane.setText(s);
         if (this.helixImgGen != null) {
+            java.awt.Point p = evt.getPoint();
+            java.awt.Rectangle rect = this.DisplayScrollPane.getViewport().getViewRect();
+            double x = p.getX() + rect.getX();
+            double y = p.getY() + rect.getY();
+            String s = "x: " + x + "; y: " + y + "\n";
+            x = helixImgGen.getUnzoomedX(x);
+            y = helixImgGen.getUnzoomedY(y);
+            this.infoTextPane.setText(s);
             helixImgGen.clicked(x, y, this.infoTextPane);
             this.updateImage();
             // for an unknown reason, normal updates do not seem to
@@ -1198,7 +1212,7 @@ public class RheatApp extends javax.swing.JFrame {
     }//GEN-LAST:event_viewHistoryMenuItemActionPerformed
 
     private void displayHelp() {
-        addOrReuseComponent(helpFrame);
+        addOrReuseComponent(helpFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
         bringToFront(helpFrame);
     }
 
