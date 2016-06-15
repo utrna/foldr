@@ -1168,7 +1168,7 @@ public class RheatApp extends javax.swing.JFrame {
 
     private void displayHelp() {
         addOrReuseComponent(helpFrame);
-        //bringToFront(helpFrame);
+        bringToFront(helpFrame);
     }
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed

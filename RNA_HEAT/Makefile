@@ -57,6 +57,8 @@ rheat.jar: $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)
 	jar cmvf META-INF/MANIFEST.MF $@ \
 		rheat/GUI/AboutIcon.gif \
 		rheat/GUI/Clock.gif \
+		$(foreach X,$(shell find help -name '*.html'),'$(X)') \
+		$(foreach X,$(shell find help -name '*.css'),'$(X)') \
 		$(foreach X,$(shell find rheat -name '*.class'),'$(X)')
 
 # build source code
