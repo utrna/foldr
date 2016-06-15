@@ -1,0 +1,75 @@
+<html>
+<head>
+<title>RNA HEAT: Scripting</title>
+<link rel="stylesheet" type="text/css" href="default.css" />
+</head>
+<body>
+  <h1>RNA HEAT: Scripting</h1>
+
+  <br /><br />
+  <h2>General</h2>
+  <p>Script files in RNA HEAT use the JavaScript language.  They
+  all implicitly have access to a variable named "<tt>rheat</tt>",
+  and all calls to the scripting interface must use this variable
+  (as shown in the examples that follow).
+
+  <br /><br />
+  <h2>Examples</h3>
+
+  <br /><br />
+  <h3>Opening Files</h3>
+  <p>The current target file can be set using openRNA(); and, any
+  number of additional scripts can be invoked using runScript().
+  The search path is temporarily changed to the same location as
+  the script so you only need to specify file names (or relative
+  paths) if the target input file is near the script itself.
+  <pre>
+  rheat.openRNA('test.bpseq')
+  rheat.runScript('script.js')
+  </pre>
+
+  <br /><br />
+  <h3>Logging</h3>
+  <p>Although it is technically possible to have JavaScript import
+  various Java libraries for printing, RNA HEAT has a few simple
+  methods available for basic logging of text, as shown below.
+  <pre>
+  rheat.log(rheat.INFO, 'This is information.')
+  rheat.log(rheat.WARN, 'This is a warning.')
+  rheat.log(rheat.ERROR, 'This is an error.')
+  </pre>
+
+  <br /><br />
+  <h3>Filters</h3>
+  <p>The recommended way to write filter scripts is to start from
+  the GUI: load a file, apply the desired filters and then inspect
+  the Filter History window to see the scripting commands to use. 
+  Once you have the commands, you can combine them with others to
+  perform full automation (for instance, using "rheat.openRNA()"
+  to open a particular file, and then run the filter commands).
+
+  <br /><br />
+  <h2>Linux/Mac and Unix-like Systems</h2>
+  <p>Special scripts are available in the source tree to simplify
+  script invocation on non-Windows platforms: simply make your
+  script file “executable” (e.g. using "chmod +x filename.js"), and
+  put a header at the top of the file that looks like this:
+  <pre>
+  #!/usr/bin/env rna_heat
+  // now write your script:
+  rheat.openRNA('test.bpseq')
+  ...
+  </pre>
+  <p>The special "rna_heat" script must be in the search path (the
+  Unix "PATH" environment variable); it is currently in the top of
+  the source tree ("RNA_HEAT" relative to the "git" top-level).
+  Also, an alternate script named "rna_heat_no_gui" can be used as
+  a short-cut to suppress the graphical interface from a script. 
+  See the test cases located in the source tree for more examples.
+
+  <br /><br />
+  <h2>Notes for Maintainers</h2>
+  <p>All scripting interfaces supported by the "rheat" variable are
+  defined in the source tree under "rheat/script/ScriptMain.java".
+</body>
+</html>

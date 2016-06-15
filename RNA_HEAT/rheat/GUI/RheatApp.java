@@ -410,6 +410,7 @@ public class RheatApp extends javax.swing.JFrame {
         saveAsMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
+        undoMenuItem = new javax.swing.JMenuItem();
         preferencesMenuItem = new javax.swing.JMenuItem();
         filterMenu = new javax.swing.JMenu();
         basepairFilterItem = new javax.swing.JMenuItem();
@@ -431,6 +432,7 @@ public class RheatApp extends javax.swing.JFrame {
         viewInfoMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentMenuItem = new javax.swing.JMenuItem();
+        goBackMenuItem = new javax.swing.JMenuItem();
         aboutMenuItem = new javax.swing.JMenuItem();
 
         setTitle("RNA HEAT");
@@ -591,20 +593,7 @@ public class RheatApp extends javax.swing.JFrame {
         undoFilterBtn.setText("Undo Last");
         undoFilterBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                try {
-                    int index = appMain.getUndoIndex() - 1;
-                    appMain.revertToPreviousRNA(index);
-                    updateImage();
-                    DefaultListModel<String> dlm = new DefaultListModel<String>();
-                    for (int i = 0; i < index; i++) {
-                        dlm.addElement(historyList.getModel().getElementAt(i));
-                    }
-                    historyList.setModel(dlm);
-                    log(INFO, "Reverted to snapshot #" + index + ".");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    log(WARN, "Unable to undo (see trace above).");
-                }
+                performUndo();
             }
         });
 
@@ -713,6 +702,19 @@ public class RheatApp extends javax.swing.JFrame {
 
         editMenu.setMnemonic('E');
         editMenu.setText("Edit");
+
+        undoMenuItem.setMnemonic('U');
+        setKey(undoMenuItem, KeyEvent.VK_Z);
+        undoMenuItem.setText("Undo");
+        undoMenuItem.setToolTipText("Reverses the effects of the most recent action, if possible.");
+        undoMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                performUndo();
+            }
+        });
+
+        editMenu.add(undoMenuItem);
+        editMenu.addSeparator();
 
         //preferencesMenuItem.setMnemonic('p');
         setKey(preferencesMenuItem, KeyEvent.VK_SEMICOLON);
@@ -966,6 +968,18 @@ public class RheatApp extends javax.swing.JFrame {
 
         helpMenu.add(contentMenuItem);
 
+        setKey(goBackMenuItem, KeyEvent.VK_LEFT);
+        goBackMenuItem.setText("Go Back");
+        goBackMenuItem.setToolTipText("Displays the previously-visited help page, if a link was followed.");
+        goBackMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                helpFrame.performGoBack();
+            }
+        });
+
+        helpMenu.add(goBackMenuItem);
+        helpMenu.addSeparator();
+
         aboutMenuItem.setText("About");
         aboutMenuItem.setToolTipText("Shows a window with information on the authors of RNA HEAT.");
         aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -1069,6 +1083,23 @@ public class RheatApp extends javax.swing.JFrame {
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addFilter(newFilter);
+        }
+    }
+
+    private void performUndo() {
+        try {
+            int index = appMain.getUndoIndex() - 1;
+            appMain.revertToPreviousRNA(index);
+            updateImage();
+            DefaultListModel<String> dlm = new DefaultListModel<String>();
+            for (int i = 0; i < index; i++) {
+                dlm.addElement(historyList.getModel().getElementAt(i));
+            }
+            historyList.setModel(dlm);
+            log(INFO, "Reverted to snapshot #" + index + ".");
+        } catch (Exception e) {
+            e.printStackTrace();
+            log(WARN, "Unable to undo (see trace above).");
         }
     }
 
@@ -1337,6 +1368,7 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JMenuItem aa_agFilterItem;
     private javax.swing.JMenuItem energyFilterItem;
     private javax.swing.JButton viewFlatBtn;
+    private javax.swing.JMenuItem undoMenuItem;
     private javax.swing.JMenuItem preferencesMenuItem;
     private javax.swing.JLabel zoomLevelLabel;
     private javax.swing.JTextField helixActualField;
@@ -1346,7 +1378,7 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JMenuItem basepairFilterItem;
     private javax.swing.JDesktopPane desktopPane;
-    private HelpContentJFrame helpFrame;
+    public HelpContentJFrame helpFrame;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenuItem eLoopFilterItem;
@@ -1361,6 +1393,7 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem runMenuItem;
     private javax.swing.JLabel lengthLabel;
+    private javax.swing.JMenuItem goBackMenuItem;
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JMenuItem closeRNAMenuItem;
     private javax.swing.JMenuItem closeWindowMenuItem;

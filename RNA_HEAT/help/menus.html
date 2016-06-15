@@ -5,17 +5,115 @@
 </head>
 <body>
   <h1>RNA HEAT: Menus</h1>
+
+  <br /><br />
   <h2 id="File">File</h2>
-  <p>
+  <p><b>Open RNA File</b>:
+  Replaces any current display with the contents of a different RNA
+  data source (such as a '.bpseq' file).  Any previously-opened
+  file is closed.
+  <p><b>Run Script</b>:
+  Runs commands from a JavaScript ('.js') file, such as a series of
+  filters.  Currently, such scripts must make use of a variable
+  named "rheat".  See <a href="scripting.html">scripting</a> for
+  more information.
+  <p><b>Close Window</b>:
+  Hides the frontmost window that has a close box.  Note that most
+  RNA HEAT windows will always be visible but this can be used to
+  discard other windows (such as this help page).
+  <p><b>Close RNA</b>:
+  Clears the display and all other windows.  Note that if you open
+  a new file, any previously-displayed file is closed implicitly.
+  <p><b>Save As</b>:
+  Exports a picture of the current display as an image file (such
+  as '.png').  The image file will reflect what is displayed,
+  including any filters or selections.  Note that if the display
+  has been zoomed, the image file will be much larger.
+  <p><b>Exit</b> (or <b>Quit</b>): Ends the program.
+
+  <br /><br />
   <h2 id="Edit">Edit</h2>
-  <p>
+  <p><b>Undo</b>:
+  Reverses the effects of the most recent action, if possible.  A
+  series of Undo commands is possible, as each previous state is
+  saved as a separate file (see Preferences).
+  <p><b>Preferences</b>:
+  Allows customization of behavior, such as the directory to start
+  from when opening files.  These settings are saved as scripting
+  commands in your home folder, under ".rheat/prefs.js".
+
+  <br /><br />
   <h2 id="Filters">Filters</h2>
-  <p>
+  <p><b>Basepair Filter</b>:
+  Excludes helices that do not match selected base-pair values,
+  such as 'C-G'.
+  <p><b>Helix Length Filter</b>:
+  Excludes helices with a span more or less than the specified
+  range.  One of the values may be omitted to include everything in
+  that direction (for instance, omitting the upper value will show
+  helices greater than or equal to the minimum length).
+  <p><b>Diagonal Filter</b>:
+  Excludes helices whose distance from the diagonal line (2D view)
+  is outside the given range.  One of the values may be omitted to
+  include everything in that direction (for instance, omitting the
+  upper value will show helices that are at least as far from the
+  diagonal as the minimum distance).
+  <p><b>AA / AG Ends Filter</b>:
+  Excludes helices that do not have AA or AG “just past” their
+  ends.
+  <p><b>E-Loop Filter</b>:
+  Excludes helices unless they have AAG at 3' start, AUG at 5'
+  start, GAA at 3' end, and AUG at 5' end.
+  <p><b>Energy Filter</b>:
+  Excludes helices that have an energy value outside the given
+  range.  One of the values may be omitted to include everything in
+  that direction (for instance, omitting the upper value will show
+  helices with energy values greater than or equal to the minimum
+  value).
+  <p><b>Complex Distance Filter</b>:
+  Excludes helices with simple or complex distances that are
+  greater than the specified maximums.
+
+  <br /><br />
   <h2 id="View">View</h2>
-  <p>
+  <p><b>2D</b>:
+  Changes to a two-axis display mode, with a diagonal line.
+  <p><b>Flat</b>:
+  Changes to a single-axis display mode.
+  <p><b>Zoom Out</b>:
+  Shows more of the display, at a reduced size.
+  <p><b>Zoom In</b>:
+  Shows less of the display, at an increased size.
+
+  <br /><br />
   <h2 id="Window">Window</h2>
+  <p><b>Minimize Window</b>:
+  Reduces the frontmost window to a miniature form.  Equivalent to
+  clicking the minimization button on the window frame.
+  <p><b>Zoom Window</b> (or <b>Maximize/Restore Window</b>):
+  Toggles the frontmost window between its two main sizes.
+  Equivalent to clicking the maximizing button on the window frame.
+  <p><b>Display Window</b>:
+  Brings the Display Window to the front.  For more information,
+  see <a href="windows.html">the windows page</a>.
+  <p><b>Controls</b>:
+  Brings the Controls to the front.  For more information, see <a
+  href="windows.html">the windows page</a>.
+  <p><b>Filter History</b>:
+  Brings the Filter History to the front.  For more information,
+  see <a href="windows.html">the windows page</a>.
+  <p><b>Helix Info</b>:
+  Brings the Helix Info to the front.  For more information, see
+  <a href="windows.html">the windows page</a>.
   <p>
+
+  <br /><br />
   <h2 id="Help">Help</h2>
-  <p>
+  <p><b>Contents</b>:
+  Displays this help window.
+  <p><b>Go Back</b>:
+  Displays the previously-visited help page, if a link was followed.
+  <p><b>About</b>:
+  Shows a window with information on the authors of RNA HEAT.
 </body>
 </html>

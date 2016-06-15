@@ -46,19 +46,22 @@ CLASS_PREFIXES += rheat/script/ScriptFilterInterpreter
 CLASS_PREFIXES += rheat/script/ScriptMain
 CLASS_PREFIXES += rheat/test/Tester
 
+HELP_FILES := 
+HELP_FILES += $(foreach X,$(shell find help -name '*.html'),$(X))
+HELP_FILES += $(foreach X,$(shell find help -name '*.css'),$(X))
+
 # first rule is built by default when "make" runs
 all: rheat.jar
 
 # build an archive to make the program easy to move as a unit
-rheat.jar: $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)
+rheat.jar: $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)  $(HELP_FILES)
 	@# since additional class files may be generated for
 	@# inner classes and they have dollar signs, a search
 	@# is performed and the results are quoted
 	jar cmvf META-INF/MANIFEST.MF $@ \
 		rheat/GUI/AboutIcon.gif \
 		rheat/GUI/Clock.gif \
-		$(foreach X,$(shell find help -name '*.html'),'$(X)') \
-		$(foreach X,$(shell find help -name '*.css'),'$(X)') \
+		$(HELP_FILES) \
 		$(foreach X,$(shell find rheat -name '*.class'),'$(X)')
 
 # build source code
