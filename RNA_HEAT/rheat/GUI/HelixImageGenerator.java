@@ -44,6 +44,7 @@ public class HelixImageGenerator {
     private BufferedImage helix2D;
     private BufferedImage helixFlat;
     private Point clicked; // coordinates are relative to data (zoom level 1)
+    private Helix selectedHelix = null;
     private JTextPane textArea;
 
     /** Creates a new instance of HelixImageGenerator */
@@ -143,6 +144,14 @@ public class HelixImageGenerator {
     }
 
     /**
+     * Returns the selected helix, or null.
+     * @return a Helix object
+     */
+    public Helix getSelectedHelix() {
+        return this.selectedHelix;
+    }
+
+    /**
      * Constructs a new Image object with a rendering of the given RNA
      * data for the current view (2D or flat).
      *
@@ -208,7 +217,8 @@ public class HelixImageGenerator {
         }
         HelixStore hstore = rna.getHelices();
         //System.out.println("redrawing 2D image.");
-        if (hstore != null){
+        this.selectedHelix = null; // initially...
+        if (hstore != null) {
             //helixGraphics.setColor(Color.red);
             Iterator itr = hstore.iterator();
             boolean helixSelected = false;
@@ -247,6 +257,7 @@ public class HelixImageGenerator {
                     // selection is more distinct
                     helixGraphics.fillRect(x0 - 1, y0 - 1, 2, 2);
                     helixGraphics.fillRect(x1 - 1, y1 - 1, 2, 2);
+                    this.selectedHelix = h;
                     setInfoText(h, rna);
                     //clicked = null;
                     helixGraphics.setColor(Color.red);
@@ -257,8 +268,7 @@ public class HelixImageGenerator {
             if ((!helixSelected) && (textArea != null)) {
                 textArea.setText("You did not select a helix.");
             }
-        }
-        else {
+        } else {
             //System.out.println("No helices to draw");
         }
     }

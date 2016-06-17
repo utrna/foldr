@@ -55,7 +55,7 @@ public class HelixArray implements HelixStore {
         return false;
     }
     
-    public Iterator iterator() {
+    public Iterator<Helix> iterator() {
         return null;
     }    
     

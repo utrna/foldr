@@ -35,9 +35,9 @@ public class ScriptMain {
     /**
      * Throws the specified exception as a ScriptException,
      * enveloping all of its stack-trace and message details.
-     * @throw ScriptException with specified exception’s details
+     * @throws ScriptException with specified exception’s details
      */
-    static private void rethrowAsScriptException(Exception e) throws ScriptException {
+    static public void rethrowAsScriptException(Exception e) throws ScriptException {
         StringBuilder sb = new StringBuilder();
         sb.append(e.getMessage());
         sb.append("\n");
@@ -177,7 +177,7 @@ public class ScriptMain {
      *
      * NOTE: Should be consistent with ScriptFilterInterpreter.
      */
-    public void addEnergyFilter(float minEnergy, float maxEnergy) throws ScriptException {
+    public void addEnergyFilter(float maxEnergy, float minEnergy) throws ScriptException {
         try {
             EnergyMaxMinFilter newFilter = new EnergyMaxMinFilter();
             newFilter.setArguments(maxEnergy, minEnergy);
@@ -214,6 +214,56 @@ public class ScriptMain {
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
+    }
+
+    /**
+     * Script interface for AppMain.eachActualHelix().
+     *
+     * Returns an object describing the helix range, which can be
+     * used to find the count and to iterate.
+     */
+    public ScriptIteration<ScriptHelix> eachActualHelix() throws ScriptException {
+        ScriptIteration<ScriptHelix> result = null;
+        try {
+            final HelixStore actualHelices = appMain.rnaData.getActual();
+            result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(actualHelices));
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+        return result;
+    }
+
+    /**
+     * Script interface for AppMain.eachPredictedHelix().
+     *
+     * Returns an object describing the helix range, which can be
+     * used to find the count and to iterate.
+     */
+    public ScriptIteration<ScriptHelix> eachPredictedHelix() throws ScriptException {
+        ScriptIteration<ScriptHelix> result = null;
+        try {
+            HelixStore predictedHelices = appMain.rnaData.getHelices(); // FIXME: bad name
+            result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(predictedHelices));
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+        return result;
+    }
+
+    /**
+     * Script interface for AppMain.getSelectedHelix().
+     *
+     * Returns an object representing the selected helix.
+     */
+    public ScriptHelix getSelectedHelix() throws ScriptException {
+        ScriptHelix result = null;
+        try {
+            Helix rawHelix = appMain.getSelectedHelix();
+            result = new ScriptHelix(rawHelix);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+        return result;
     }
 
     /**

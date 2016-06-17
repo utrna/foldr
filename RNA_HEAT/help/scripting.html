@@ -47,6 +47,33 @@
   Once you have the commands, you can combine them with others to
   perform full automation (for instance, using "rheat.openRNA()"
   to open a particular file, and then run the filter commands).
+  <pre>
+  </pre>
+
+  <br /><br />
+  <h3>Helices</h3>
+  <p>The call "rheat.eachActualHelix()" returns an iterator over
+  all helices that would be rendered in the top-right part of the
+  diagonal line in the display.  The helices in the lower-left
+  corner can be found with "rheat.eachPredictedHelix()", and this
+  list will change depending on any applied filters.
+  <p>The iteration object supports three methods: length(), left()
+  and next().  Each helix also has methods to request properties,
+  such as length().  If an energy filter has been applied, you can
+  invoke energy() on a helix to find the value.
+  <pre>
+  actual_helices = rheat.eachActualHelix()
+  for (i = 0; i &lt; actual_helices.length(); ++i) {                                                                                        
+    helix = actual_helices.next() 
+    rheat.log(rheat.INFO, "actual helix #" + i + ": len=" + helix.length())
+  }
+
+  filtered_helices = rheat.eachPredictedHelix()
+  for (i = 0; i &lt; filtered_helices.length(); ++i) {                                                                                        
+    helix = filtered_helices.next() 
+    rheat.log(rheat.INFO, "predicted helix #" + i + ": len=" + helix.length())
+  }
+  </pre>
 
   <br /><br />
   <h2>Linux/Mac and Unix-like Systems</h2>

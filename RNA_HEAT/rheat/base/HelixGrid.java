@@ -125,7 +125,7 @@ public class HelixGrid implements HelixStore {
     /**
      *
      */
-    public Iterator iterator() {
+    public Iterator<Helix> iterator() {
         return java.util.Collections.unmodifiableCollection(helices).iterator();
     }
     

@@ -240,6 +240,18 @@ public class AppMain {
     }
 
     /**
+     * Returns the selected helix, or null.
+     * @return a Helix object
+     */
+    public Helix getSelectedHelix() {
+        Helix result = null;
+        if (this.gui != null) {
+            result = this.gui.getSelectedHelix();
+        }
+        return result;
+    }
+
+    /**
      * Adds another string to the list of lines to be
      * written to "~/.rheat/history.js" implicitly.
      * The GUI may also display this command list.

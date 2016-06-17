@@ -131,6 +131,18 @@ public class RheatApp extends javax.swing.JFrame {
         AppMain.log(messageType, text);
     }
 
+    /**
+     * Returns the selected helix, or null.
+     * @return a Helix object
+     */
+    public Helix getSelectedHelix() {
+        Helix result = null;
+        if (helixImgGen != null) {
+            result = helixImgGen.getSelectedHelix();
+        }
+        return result;
+    }
+
     private void addHistoryCommand(String scriptCommandLines) {
         @SuppressWarnings({"unchecked"}) DefaultListModel<String> dlm =
                                          (DefaultListModel<String>)this.historyList.getModel();
