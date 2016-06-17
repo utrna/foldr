@@ -267,14 +267,27 @@ public class ScriptMain {
     }
 
     /**
-     * Script interface for AppMain.log().
+     * Script interface for AppMain.log().  See discussion for the
+     * non-static version of this method below.
      */
-    static public void log(int messageType, String text) throws ScriptException {
+    static public void _log(int messageType, String text) throws ScriptException {
         try {
             AppMain.log(messageType, text);
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
+    }
+
+    /**
+     * Although log() could be a static method, this non-static
+     * version is defined so that "rheat.log()" syntax works.  In
+     * the older Rhino JavaScript engine, rheat.log() would find the
+     * static method.  In the newer Nashorn engine (Java 1.8+), it
+     * does NOT find the static method so a special non-static
+     * version is needed.
+     */
+    public void log(int messageType, String text) throws ScriptException {
+        _log(messageType, text);
     }
 
     /**

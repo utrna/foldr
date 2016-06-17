@@ -1028,7 +1028,12 @@ public class RheatApp extends javax.swing.JFrame {
      */
     public void addFilter(Filter filter) {
         try {
-            appMain.snapshotRNAData();
+            try {
+                appMain.snapshotRNAData();
+            } catch (IOException e) {
+                e.printStackTrace();
+                log(WARN, "Unable to take a snapshot of previous state (see trace above); Undo will not work.");
+            }
             // to guarantee that the script command is correct, the filter is
             // applied by executing the equivalent script command instead of
             // by directly calling appMain.addFilter() and updateImage() (see

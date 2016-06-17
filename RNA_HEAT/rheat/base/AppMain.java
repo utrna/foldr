@@ -440,7 +440,11 @@ public class AppMain {
         for (Map.Entry<String, String> entry : this.preferencesMap.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            pw.println("rheat.setPreference(\"" + key + "\", \"" + value + "\")");
+            // IMPORTANT: if the value contains backslashes (e.g. Windows paths),
+            // it will not be read back correctly by JavaScript later; translate
+            // any backslashes into double-backslash to escape them
+            value = value.replace("\\", "\\\\");
+            pw.println("rheat.setPreference(\'" + key + "\', \'" + value + "\')");
         }
         pw.close();
     }
