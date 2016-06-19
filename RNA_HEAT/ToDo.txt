@@ -1,0 +1,57 @@
+Feature that are yet to be implemented.
+ 
+Written by Kevin Grant (kmgrant@utexas.edu).
+ 
+ 
+To Do
+~~~~~
+
+- Allow the contents of multiple RNA files to be superimposed.
+  (When running a separate program, it is necessary to display
+  results on top of the original RNA.)  Each should be viewable
+  in a different color.
+
+- Filters should have the option of superimposing results in a
+  different color instead of hiding the other helices.  This is
+  particularly desirable for visualizing helix energies.
+
+- Highlight (optionally) predicted helices that match actual
+  helices displayed in the top-right section.
+
+- Provide a way to organize experiments (e.g. categorized
+  directory structure, use date, etc.) so that external programs
+  run in a particular place.  Probably, when another program is
+  invoked, a new directory should be created and made current so
+  that the external program has a designated place to put its
+  files.  A naming convention for results files should be agreed
+  upon so that the graphical display can update automatically.
+
+- Separate concept of “filter” from “algorithm”, perhaps using
+  different top-level menus for running each.
+
+- Add a simultaneous zoomed-out view window when the display is
+  zoomed-in.  Use a rectangle to represent the portion that is
+  enlarged, and allow the rectangle to be moved with the mouse.
+
+- Investigate a 45-degree-rotated version of the 2D display.
+
+- Investigate ways to make large visuals more practical to
+  navigate (split views?).
+
+- Would like to be able to include the extra information from the
+  ".alps" file in the display (not just the information that is
+  in common with ".bpseq").
+
+- There should be a separate window for statistics, aside from
+  the current “Helix Info”.
+
+- Enable selection of multiple helices in certain situations
+  (such as, those nearby).
+
+- Enable animation.  Bare minimum would be something like a delay
+  mechanism in scripts so that a series of effects could be
+  applied at a slow rate.  Another option is the ability to
+  export images via scripts and animate the images later.
+
+- Provide a way to display arbitary image and text files so that
+  a single interface can show results from other programs.

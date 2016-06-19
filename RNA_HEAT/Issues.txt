@@ -25,10 +25,16 @@ The following things were tried and there were problems:
 
 - "Filter History":
 
-  * Buttons like "Info..." do nothing unless a filter exists
-    (should probably conditionally disable them).
+  * The Undo feature fails on Windows (file issue?).
+
+- Help:
+
+  * Display of HTML does not work on Windows (file issue?).
 
 - General:
+
+  * There are display glitches in Flat View, and when zooming
+    the 2D view to certain levels.
 
   * UI could be tweaked to leave more space for things and have
     more ways to resize, etc.
