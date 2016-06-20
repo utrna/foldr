@@ -175,29 +175,54 @@ public class HelixImageGenerator {
      * @param g the context in which to draw
      * @param targetSize the size of the container in which the image will be centered
      */
+    public void paintBackground(Graphics2D g, Dimension targetSize) {
+        AffineTransform oldTransform = g.getTransform();
+        transformGraphics(g, targetSize);
+        int zoomedMaxX = (int)(maxX / zoom);
+        int zoomedMaxY = (int)(maxY / zoom);
+        g.setColor(Color.white);
+        g.fillRect(0, 0, zoomedMaxX, zoomedMaxY);
+        if (this.imageType == this.VIEW_FLAT) {
+            g.setColor(Color.black);
+            g.drawLine(0, zoomedMaxY / 2, zoomedMaxX, zoomedMaxY / 2);
+        } else {
+            g.setColor(Color.black);
+            g.drawLine(0, 0, zoomedMaxX, zoomedMaxY);
+        }
+        g.setTransform(oldTransform);
+    }
+
+    /**
+     * Directly renders the given RNA data in the specified graphics
+     * context, based on the current view (2D or flat), without any
+     * background.
+     *
+     * To erase the background first and draw axes, call the method
+     * paintBackground().  This separation allows multiple RNAs to be
+     * superimposed on the same initial background.
+     *
+     * @param rna the data to display
+     * @param g the context in which to draw
+     * @param targetSize the size of the container in which the image will be centered
+     */
     public void paintRNA(RNA rna, Graphics2D g, Dimension targetSize) {
-        double xOffset = (targetSize.getWidth() - maxX) / 2.0;
-        double yOffset = (targetSize.getHeight() - maxY) / 2.0;
-        g.scale(this.zoom, this.zoom); // this scales drawing but not image size (see getImage())
-        g.translate(xOffset, yOffset);
+        AffineTransform oldTransform = g.getTransform();
+        transformGraphics(g, targetSize);
         if (this.imageType == this.VIEW_FLAT) {
             paintFlatImage(rna, g);
         } else {
             paint2DImage(rna, g);
         }
+        g.setTransform(oldTransform);
     }
 
     private void paint2DImage(RNA rna, Graphics2D helixGraphics) {
-        //helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        //helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        helixGraphics.setColor(Color.white);
-        helixGraphics.fillRect(0, 0, maxX, maxY);
-        helixGraphics.setColor(Color.black);
-        helixGraphics.drawLine(0, 0, maxY, maxY);
         if (rna == null) {
-            // nothing else to do
+            // nothing to do
             return;
         }
+        //helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        //helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         HelixStore actual = rna.getActual();
         // draw the actual helices on top.
         if (actual != null){
@@ -274,16 +299,12 @@ public class HelixImageGenerator {
     }
 
     private void paintFlatImage(RNA rna, Graphics2D helixGraphics) {
-        //helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        //helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        helixGraphics.setColor(Color.white);
-        helixGraphics.fillRect(0, 0, maxX, maxY);
-        helixGraphics.setColor(Color.black);
-        helixGraphics.drawLine(0, maxY/2, maxX, maxY/2);
         if (rna == null) {
-            // nothing else to do
+            // nothing to do
             return;
         }
+        //helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        //helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         HelixStore hstore = rna.getHelices();
         helixGraphics.setColor(Color.red);
         if (hstore != null){
@@ -318,6 +339,18 @@ public class HelixImageGenerator {
         FilteredImageSource fsource = new FilteredImageSource(bufImage.getSource(), bif);
         Image img = Toolkit.getDefaultToolkit().createImage(fsource);
         return img;
+    }
+
+    /**
+     * Applies necessary transformations to a context prior to drawing.
+     * @param g the context to modify
+     * @param targetSize the size of the container in which the image will be centered
+     */
+    private void transformGraphics(Graphics2D g, Dimension targetSize) {
+        double xOffset = (targetSize.getWidth() - maxX) / 2.0;
+        double yOffset = (targetSize.getHeight() - maxY) / 2.0;
+        g.translate(xOffset, yOffset);
+        g.scale(this.zoom, this.zoom); // this scales drawing but not image size (see getImage())
     }
 
     public int getUnzoomedX(double x) {

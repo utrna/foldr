@@ -56,6 +56,7 @@ public class RNADisplay extends javax.swing.JComponent {
         Graphics2D g2D = (Graphics2D)g;
         if (helixImageGenerator != null) {
             // draw the RNA view
+            helixImageGenerator.paintBackground(g2D, getSize());
             helixImageGenerator.paintRNA(rnaData, g2D, getSize());
         }
     }
