@@ -64,7 +64,6 @@ rheat.jar: $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)  $(HELP_FILES)
 	@# is performed and the results are quoted
 	jar cmvf META-INF/MANIFEST.MF $@ \
 		rheat/GUI/AboutIcon.gif \
-		rheat/GUI/Clock.gif \
 		$(HELP_FILES) \
 		$(foreach X,$(shell find rheat -name '*.class'),'$(X)')
 

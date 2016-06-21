@@ -90,7 +90,6 @@ public class RheatApp extends javax.swing.JFrame {
     private AppMain appMain;
     private HelixImageGenerator helixImgGen;
     private JFileChooser fc = new JFileChooser();
-    private BusyWaitDialog busyDialog;
     private BufferedImage img = null;
     private Rectangle tmpRect = new Rectangle(); // reused as needed to repaint
 
@@ -102,9 +101,6 @@ public class RheatApp extends javax.swing.JFrame {
         this.appMain = appMain;
         initComponents();
         this.setBounds(0, 0 , 700, 700);
-        busyDialog = new BusyWaitDialog(this, false);
-        Point origin = getCenteredOrigin(busyDialog);
-        busyDialog.setLocation(origin);
     }
 
     /**
@@ -155,44 +151,38 @@ public class RheatApp extends javax.swing.JFrame {
         this.appMain.clearHistoryCommands();
     }
 
-    private float getZoomAt(int index) {
-        float result = 1.0f;
-        if (index >= 0) {
-            String itemText = (String)this.zoomComboBox.getItemAt(index);
-            result = Float.parseFloat(itemText);
-        }
-        return result;
-    }
-
     private float getZoomLevel() {
-        float result = 1.0f;
-        int selectedIndex = this.zoomComboBox.getSelectedIndex();
-        if (selectedIndex >= 0) {
-            result = this.getZoomAt(selectedIndex);
-        }
-        return result;
+        return (zoomSlider.getValue() / 1000f);
     }
 
     private void zoomIn() {
         float currentZoom = getZoomLevel();
-        int numLevels = this.zoomComboBox.getItemCount();
-        for (int i = 0; i < numLevels; ++i) {
-            if (getZoomAt(i) > currentZoom) {
-                this.zoomComboBox.setSelectedIndex(i);
-                break;
-            }
-        }
+        setZoomLevel(getZoomLevel() + 0.25f); // should match zoom-out amount below
     }
 
     private void zoomOut() {
         float currentZoom = getZoomLevel();
-        int numLevels = this.zoomComboBox.getItemCount();
-        for (int i = numLevels - 1; i >= 0; --i) {
-            if (getZoomAt(i) < currentZoom) {
-                this.zoomComboBox.setSelectedIndex(i);
-                break;
-            }
+        setZoomLevel(getZoomLevel() - 0.25f); // should match zoom-in amount above
+    }
+
+    private void zoomFit() {
+        if (helixImgGen == null) {
+            return;
         }
+        Dimension availableSize = DisplayScrollPane.getViewport().getSize();
+        Dimension imageSize = helixImgGen.getSize();
+        if (imageSize.getWidth() <= 0.001) {
+            // special case: if image is zoomed way out, its width
+            // will be tiny and the fit size will blow up; force
+            // a reset to a baseline zoom before adjusting further
+            setZoomLevel(1); // baseline
+            imageSize = helixImgGen.getSize();
+        }
+        double availableRange = ((availableSize.getWidth() < availableSize.getHeight())
+                                 ? availableSize.getWidth()
+                                 : availableSize.getHeight());
+        double imageRange = imageSize.getWidth(); // image is square
+        setZoomLevel(getZoomLevel() * (float)(availableRange / imageRange));
     }
 
     /**
@@ -210,11 +200,34 @@ public class RheatApp extends javax.swing.JFrame {
         return result;
     }
 
+    /**
+     * Turns wait-state on or off; used for long-running operations
+     * so that the user knows something is happening.
+     *
+     * NOTE: Operations that update the GUI over time should probably
+     * use SwingWorker so that responsiveness is preserved.
+     *
+     * @param statusMsg status information for the user, or null to end waiting
+     * @param statusPercent if nonzero, specifies new percent completion
+     */
+    public void setStatus(String statusMsg, int statusPercent) {
+        // TODO: maybe this should be a stack, to support multiple operations
+        int newCursorType = ((statusMsg != null)
+                             ? Cursor.WAIT_CURSOR
+                             : Cursor.DEFAULT_CURSOR);
+        setCursor(Cursor.getPredefinedCursor(newCursorType));
+        if (statusMsg != null) {
+            // TODO: add a GUI panel for status
+            //log(INFO, statusMsg);
+        }
+        // TODO: statusPercent is not displayed
+    }
+
     private void updateImage() {
         displayPane.setRNA(appMain.rnaData);
         displayPane.setHelixImageGenerator(this.helixImgGen);
         if (this.helixImgGen != null) {
-            busyDialog.setVisible(true);
+            setStatus("Updating image…", 0);
             try {
                 System.gc();
                 //img = helixImgGen.drawImage(appMain.rnaData);
@@ -253,7 +266,7 @@ public class RheatApp extends javax.swing.JFrame {
             } catch (NumberFormatException ex) {
                 ex.printStackTrace();
             } finally {
-                busyDialog.close();
+                setStatus(null, 0);
             }
         }
     }
@@ -379,7 +392,7 @@ public class RheatApp extends javax.swing.JFrame {
         }
         return new Point(frontX, frontY);
     }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -389,6 +402,48 @@ public class RheatApp extends javax.swing.JFrame {
         desktopPane = new javax.swing.JDesktopPane();
         helpFrame = new HelpContentJFrame();
         DisplayFrame = new javax.swing.JInternalFrame();
+        displayControlPanel = new javax.swing.JPanel();
+        zoomOutButton = new javax.swing.JButton();
+        zoomOutButton.setText("-");
+        zoomOutButton.setMnemonic(KeyEvent.VK_MINUS);
+        zoomOutButton.setDisplayedMnemonicIndex(-1);
+        zoomOutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomOut();
+            }
+        });
+        zoomInButton = new javax.swing.JButton();
+        zoomInButton.setText("+");
+        zoomInButton.setMnemonic(KeyEvent.VK_EQUALS);
+        zoomInButton.setDisplayedMnemonicIndex(-1);
+        zoomInButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomIn();
+            }
+        });
+        zoomFitButton = new javax.swing.JButton();
+        zoomFitButton.setText("Fit");
+        zoomFitButton.setMnemonic(KeyEvent.VK_F);
+        zoomFitButton.setDisplayedMnemonicIndex(-1);
+        zoomFitButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomFit();
+            }
+        });
+        zoomSlider = new JSlider(1, 20000);
+        zoomSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                zoomLevelChanged();
+            }
+        });
+        zoomLabel = new JLabel();
+        displayControlPanel.setLayout(new FlowLayout(java.awt.FlowLayout.LEFT));
+        displayControlPanel.add(zoomOutButton);
+        displayControlPanel.add(zoomInButton);
+        displayControlPanel.add(zoomFitButton);
+        displayControlPanel.add(zoomSlider);
+        displayControlPanel.add(zoomLabel);
+        DisplayFrame.getContentPane().add(displayControlPanel);
         DisplayScrollPane = new javax.swing.JScrollPane();
         displayPane = new RNADisplay();
         DisplayScrollPane.setViewportView(displayPane);
@@ -401,10 +456,6 @@ public class RheatApp extends javax.swing.JFrame {
         accNumLabel = new javax.swing.JLabel();
         lengthLabel = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        zoomLevelLabel = new javax.swing.JLabel();
-        zoomComboBox = new javax.swing.JComboBox<String>();
-        zoomInButton = new javax.swing.JButton();
-        zoomOutButton = new javax.swing.JButton();
         view2DBtn = new javax.swing.JButton();
         viewFlatBtn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
@@ -449,6 +500,7 @@ public class RheatApp extends javax.swing.JFrame {
         viewTypeFlatMenuItem = new javax.swing.JCheckBoxMenuItem();
         zoomOutMenuItem = new javax.swing.JMenuItem();
         zoomInMenuItem = new javax.swing.JMenuItem();
+        zoomFitMenuItem = new javax.swing.JMenuItem();
         windowMenu = new javax.swing.JMenu();
         viewDisplayMenuItem = new javax.swing.JMenuItem();
         viewControlMenuItem = new javax.swing.JMenuItem();
@@ -466,7 +518,7 @@ public class RheatApp extends javax.swing.JFrame {
             }
         });
 
-        DisplayFrame.getContentPane().setLayout(new java.awt.GridLayout(1, 0));
+        DisplayFrame.getContentPane().setLayout(new java.awt.BorderLayout());
 
         DisplayFrame.setMaximizable(true);
         DisplayFrame.setResizable(true);
@@ -480,7 +532,8 @@ public class RheatApp extends javax.swing.JFrame {
             }
         });
 
-        DisplayFrame.getContentPane().add(DisplayScrollPane);
+        DisplayFrame.getContentPane().add(displayControlPanel, java.awt.BorderLayout.NORTH);
+        DisplayFrame.getContentPane().add(DisplayScrollPane, java.awt.BorderLayout.CENTER);
 
         DisplayFrame.setBounds(270, 10, 500, 500);
         addOrReuseComponent(DisplayFrame);
@@ -505,43 +558,6 @@ public class RheatApp extends javax.swing.JFrame {
         ControlFrame.getContentPane().add(jPanel1);
 
         jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-
-        zoomLevelLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        zoomLevelLabel.setText("Zoom:");
-        jPanel3.add(zoomLevelLabel);
-
-        zoomComboBox.setEditable(true);
-        zoomComboBox.setModel(new javax.swing.DefaultComboBoxModel<String>(new String[] { "0.01", "0.1", "0.5", "1", "1.5", "2", "5", "10", "15", "20" }));
-        zoomComboBox.setSelectedIndex(3);
-        zoomComboBox.setPreferredSize(new java.awt.Dimension(50, 26));
-        zoomComboBox.setAutoscrolls(true);
-        zoomComboBox.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                zoomComboBoxItemStateChanged(evt);
-            }
-        });
-
-        jPanel3.add(zoomComboBox);
-
-        zoomOutButton.setText("-");
-        zoomOutButton.setMnemonic(KeyEvent.VK_MINUS);
-        zoomOutButton.setDisplayedMnemonicIndex(-1);
-        zoomOutButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                zoomOut();
-            }
-        });
-        jPanel3.add(zoomOutButton);
-
-        zoomInButton.setText("+");
-        zoomInButton.setMnemonic(KeyEvent.VK_EQUALS);
-        zoomInButton.setDisplayedMnemonicIndex(-1);
-        zoomInButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                zoomIn();
-            }
-        });
-        jPanel3.add(zoomInButton);
 
         view2DBtn.setText("2D View");
         view2DBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -902,6 +918,18 @@ public class RheatApp extends javax.swing.JFrame {
 
         viewMenu.add(zoomInMenuItem);
 
+        zoomFitMenuItem.setMnemonic('F');
+        setKey(zoomFitMenuItem, KeyEvent.VK_EQUALS);
+        zoomFitMenuItem.setText("Zoom to Fit");
+        zoomFitMenuItem.setToolTipText("Shows the entire display, at a size that fills the window.");
+        zoomFitMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomFit();
+            }
+        });
+
+        viewMenu.add(zoomFitMenuItem);
+
         menuBar.add(viewMenu);
 
         windowMenu.setMnemonic('W');
@@ -1239,14 +1267,20 @@ public class RheatApp extends javax.swing.JFrame {
         about.setLocation(origin);
         about.setVisible(true);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
-    
-    private void zoomComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_zoomComboBoxItemStateChanged
-        if (helixImgGen != null){
+
+    private void setZoomLevel(float newLevel) {
+        zoomSlider.setValue((int)(1000 * newLevel));
+        //zoomLevelChanged(); // implicit, from events in slider
+    }
+
+    private void zoomLevelChanged() {
+        zoomLabel.setText("" + this.getZoomLevel() + "x");
+        if (helixImgGen != null) {
             helixImgGen.setZoomLevel(this.getZoomLevel());
             this.updateImage();
         }
-    }//GEN-LAST:event_zoomComboBoxItemStateChanged
-    
+    }
+
     private void setViewTypeFlat() {
         viewType2DMenuItem.setState(false);
         viewTypeFlatMenuItem.setState(true);
@@ -1297,6 +1331,7 @@ public class RheatApp extends javax.swing.JFrame {
             this.helixNumField.setText("");
             this.helixTotalField.setText("");
         }
+        this.zoomSlider.setValue(1000); // set to 1x
         this.infoTextPane.setText("");
         setControlLabels();
         basepairFilterItem.setEnabled(true);
@@ -1401,7 +1436,6 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JButton viewFlatBtn;
     private javax.swing.JMenuItem undoMenuItem;
     private javax.swing.JMenuItem preferencesMenuItem;
-    private javax.swing.JLabel zoomLevelLabel;
     private javax.swing.JTextField helixActualField;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPanel jPanel4;
@@ -1439,11 +1473,15 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JCheckBoxMenuItem viewTypeFlatMenuItem;
     private javax.swing.JMenuItem zoomOutMenuItem;
     private javax.swing.JMenuItem zoomInMenuItem;
-    private javax.swing.JComboBox<String> zoomComboBox;
+    private javax.swing.JMenuItem zoomFitMenuItem;
     private javax.swing.JButton zoomInButton;
     private javax.swing.JButton zoomOutButton;
+    private javax.swing.JButton zoomFitButton;
     private javax.swing.JList<String> historyList;
     // End of variables declaration//GEN-END:variables
+    private javax.swing.JPanel displayControlPanel;
+    private javax.swing.JLabel zoomLabel;
+    private JSlider zoomSlider;
     private RNADisplay displayPane;
     //private javax.swing.JLabel oldDisplayPane; // obsolete (replaced with custom-painted view)
 
