@@ -17,6 +17,10 @@ The following things were tried and there were problems:
 
   * "Complex Distance Filter": Out-of-bounds exception when used.
 
+- "Display Window":
+
+  * Helices are sometimes hard to select, even when zoomed.
+
 - "Control Window":
 
   * Occasionally the "Current Helices", "Total Helices" and
@@ -62,8 +66,6 @@ The following items are now FIXED (moved from list above):
   * Undoing a filter in the list will remove all those below.
 
 - "Display Window":
-
-  * Helices are sometimes hard to select, even when zoomed.
 
   * Dr. Gutell sees no helices when using Windows.
     UPDATE: Seems that after applying a Base Filter, and using
