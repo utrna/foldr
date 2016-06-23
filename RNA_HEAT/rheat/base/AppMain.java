@@ -27,6 +27,7 @@ public class AppMain {
 
     private String fileSep = System.getProperty("file.separator");
     private HashMap<String, String> preferencesMap = new HashMap<String, String>();
+    private HashSet<String> validPrefKeys = new HashSet<String>();
     private String preferencesDir = System.getProperty("user.home") + fileSep + ".rheat";
     private String preferencesScript = preferencesDir + fileSep + "prefs.js";
     private String historyScript = preferencesDir + fileSep + "history.js";
@@ -45,6 +46,8 @@ public class AppMain {
      * the main() command line.
      */
     public AppMain(String[] args) throws IOException, ScriptException {
+        validPrefKeys.add("BPSEQ");
+        validPrefKeys.add("RunRootDir");
         try {
             initScriptingEngine();
         } catch (ScriptException e) {
@@ -121,19 +124,19 @@ public class AppMain {
     /**
      * Sets a particular preference key and value.  Currently the
      * recognized keys are: "BPSEQ" to set the location for the
-     * helix data and scripts, and "Undo" to set the location for
-     * undo-files.
+     * helix data and scripts, and "RunRootDir" to set the
+     * location for experiments (running external programs).
      */
     public void setPreference(String key, String value) {
+        if (key.equals("Undo")) {
+            // legacy files might contain this
+            log(WARN, "Preference key 'Undo' is no longer used; ignoring.");
+            return;
+        }
+        if (!validPrefKeys.contains(key)) {
+            throw new RuntimeException("invalid preference key: '" + key + "'");
+        }
         preferencesMap.put(key, value);
-    }
-
-    /**
-     * Returns all user preferences as a map.  Avoid doing this
-     * except for file I/O; prefer more specific methods below.
-     */
-    public Map<String, String> getPreferencesMap() {
-        return preferencesMap;
     }
 
     /**
@@ -144,6 +147,15 @@ public class AppMain {
     }
 
     /**
+     * Returns user-specified directory for the root of experiments.
+     * When other programs are launched, a directory tree is created
+     * to organize results; this is the top of that tree.
+     */
+    public String getPrefRunRootDir() {
+        return preferencesMap.get("RunRootDir");
+    }
+
+    /**
      * Returns user-specified directory for scripts.
      */
     public String getPrefScriptDir() {
@@ -151,10 +163,12 @@ public class AppMain {
     }
 
     /**
-     * Returns user-specified directory for undo-files.
+     * Returns the directory for storing undo-files.
      */
-    public String getPrefUndoDir() {
-        return preferencesMap.get("Undo");
+    public String getUndoDir() {
+        String currentDir = System.getProperty("user.dir");
+        String result = System.getProperty("java.io.tmpdir", currentDir);
+        return result;
     }
 
     /**
@@ -277,7 +291,7 @@ public class AppMain {
      * Creates another snapshot of "rnaData".
      */
     public void snapshotRNAData() throws IOException {
-        String undoFile = getPrefUndoDir() + fileSep + "undo" + currentUndo;
+        String undoFile = getUndoDir() + fileSep + "undo" + currentUndo;
         ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(undoFile));
         ois.writeObject(this.rnaData);
     }
@@ -301,7 +315,7 @@ public class AppMain {
      * captured by a call to snapshotRNAData().
      */
     public void revertToPreviousRNA(int undoIndex) throws ClassNotFoundException, IOException {
-        String s = getPrefUndoDir() + File.separator + "undo" + undoIndex;
+        String s = getUndoDir() + File.separator + "undo" + undoIndex;
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(s));
         RNA old = (RNA)ois.readObject();
         this.rnaData = old;
@@ -410,8 +424,9 @@ public class AppMain {
             // initialize new preferences file (the keys used below
             // should be consistent with other uses of the keys)
             log(INFO, "Creating a new preferences file.");
-            preferencesMap.put("BPSEQ", System.getProperties().getProperty("user.dir"));
-            preferencesMap.put("Undo", System.getProperties().getProperty("user.dir"));
+            String currentDir = System.getProperty("user.dir");
+            setPreference("BPSEQ", currentDir);
+            setPreference("RunRootDir", currentDir);
             savePreferences();
         }
         for (String scriptPath : startupScripts) {
