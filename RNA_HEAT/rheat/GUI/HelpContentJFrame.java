@@ -37,17 +37,10 @@ public class HelpContentJFrame extends javax.swing.JInternalFrame {
     private class BookInfo {
         public String bookName;
         public URL bookURL;
-        public String prefix = "file://" + System.getProperty("user.dir") + "/help/";
 
-        public BookInfo(String book, String filename) {
+        public BookInfo(String book, String fileName) {
             bookName = book;
-            try {
-                 bookURL = new URL(prefix + filename);
-            } catch (java.net.MalformedURLException exc) {
-                System.err.println("Attempted to create a BookInfo "
-                                   + "with a bad URL: " + bookURL);
-                bookURL = null;
-            }
+            bookURL = getClass().getResource("/help/" + fileName);
         }
 
         public String toString() {
@@ -74,16 +67,8 @@ public class HelpContentJFrame extends javax.swing.JInternalFrame {
           // specify title, and name of target HTML file (note that
           // the BookInfo class prefixes "help/" automatically)
           new BookInfo("Getting Started", "intro.html"),
-          new BookInfo("Window: “Controls”", "windows.html#Controls"),
-          new BookInfo("Window: “Display Window”", "windows.html#Display"),
-          new BookInfo("Window: “Filter History”", "windows.html#FilterHistory"),
-          new BookInfo("Window: “Helix Info”", "windows.html#HelixInfo"),
-          new BookInfo("Menu: “File”", "menus.html#File"),
-          new BookInfo("Menu: “Edit”", "menus.html#Edit"),
-          new BookInfo("Menu: “Filters”", "menus.html#Filters"),
-          new BookInfo("Menu: “View”", "menus.html#View"),
-          new BookInfo("Menu: “Window”", "menus.html#Window"),
-          new BookInfo("Menu: “Help”", "menus.html#Help"),
+          new BookInfo("Windows", "windows.html"),
+          new BookInfo("Menus", "menus.html"),
           new BookInfo("Scripting", "scripting.html")
         });
         jTree1 = new javax.swing.JTree(root);
