@@ -32,7 +32,10 @@
   <h3>Experiments</h3>
   <p>Preferences can be used to set the location of the experiment
   tree and the first search location for programs.  Programs run in
-  the current experiment, via runProgram().  All output from the
+  the current experiment, via runProgram().  If a file has been
+  loaded into the display view, it is copied into the experiment
+  area as "input" with the same extension (e.g. "input.bpseq"),
+  allowing programs to easily find input data.  All output from the
   program is captured in a "log.txt" file.  The current experiment
   subdirectory is automatically chosen by date and time for the
   first experiment of a session; if you want to put results in a

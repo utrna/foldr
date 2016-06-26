@@ -7,6 +7,9 @@ import rheat.script.ScriptMain;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import static java.nio.file.StandardCopyOption.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -39,6 +42,7 @@ public class AppMain {
     private ArrayList<String> startupScripts = new ArrayList<String>();
     private Stack<String> previousDirs = new Stack<String>(); // see changeDirectory()
     private String currentExperimentDir = null; // see newExperiment()
+    private String currentRNAFilePath = null;
     private ScriptEngine scriptEngine; // used to execute external scripts
     private rheat.GUI.RheatApp gui = null; // may be null
     private int undoMax = 20;
@@ -355,6 +359,7 @@ public class AppMain {
         try {
             rheat.base.Reader reader = new rheat.base.Reader(realPath);
             this.rnaData = reader.readBPSEQ();
+            this.currentRNAFilePath = realPath;
             removeFilters(); // initialize data and update display
             //if (this.gui != null) {
             //    this.gui.refreshForNewRNA();
@@ -543,6 +548,22 @@ public class AppMain {
      * @throws IOException for file-related errors
      */
     public int runProgram(String... arguments) throws IOException {
+        String runDir = getCurrentExperimentDir();
+        // assume that the program being launched will need access to the
+        // current RNA data; for simplicity, copy the original file into
+        // the experiment directory so that the program can assume the
+        // name and location instead of requiring a parameter
+        if (currentRNAFilePath != null) {
+            String extension = "";
+            int i = currentRNAFilePath.lastIndexOf('.');
+            if (i > 0) {
+                extension = currentRNAFilePath.substring(i);
+            }
+            String copiedLocation = makePath(runDir, "input" + extension);
+            log(INFO, "Copying '" + currentRNAFilePath + "' to '" + copiedLocation + "'.");
+            Files.copy(Paths.get(currentRNAFilePath), Paths.get(copiedLocation),
+                       REPLACE_EXISTING, COPY_ATTRIBUTES);
+        }
         // by default, search the preferred program space; if the program
         // is found then run it from that location (otherwise, the system
         // may use its own default search path)
@@ -575,7 +596,7 @@ public class AppMain {
         }
         ProcessBuilder pb = new ProcessBuilder(modifiedArgs);
         //Map<String, String> env = pb.environment(); // not used for now
-        pb.directory(new File(getCurrentExperimentDir()));
+        pb.directory(new File(runDir));
         File logFile = new File(pb.directory(), "log.txt");
         log(INFO, "Running: " + modifiedArgs);
         pb.redirectErrorStream(true);
@@ -716,6 +737,7 @@ public class AppMain {
      */
     public void cleanUp(){
         rnaData = null;
+        currentRNAFilePath = null;
         System.gc();
     }
 
