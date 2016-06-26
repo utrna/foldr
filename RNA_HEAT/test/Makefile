@@ -44,7 +44,8 @@ check:
 # remove temporary test results
 clean:
 	@# remove temporary files based on name
-	find no_gui_cases -name 'tmp*' -exec rm -f {} +
+	find no_gui_cases -name 'tmp*' -type f -exec rm -f {} +
+	find no_gui_cases -name 'tmp' -type d -exec rm -Rf {} +
 
 # tell "make" not to treat these as file names:
 .PHONY: all check clean

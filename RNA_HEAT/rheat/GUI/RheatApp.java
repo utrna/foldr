@@ -477,7 +477,8 @@ public class RheatApp extends javax.swing.JFrame {
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openMenuItem = new javax.swing.JMenuItem();
-        runMenuItem = new javax.swing.JMenuItem();
+        runScriptMenuItem = new javax.swing.JMenuItem();
+        runProgramMenuItem = new javax.swing.JMenuItem();
         closeRNAMenuItem = new javax.swing.JMenuItem();
         closeWindowMenuItem = new javax.swing.JMenuItem();
         minimizeWindowMenuItem = new javax.swing.JMenuItem();
@@ -677,17 +678,29 @@ public class RheatApp extends javax.swing.JFrame {
 
         fileMenu.add(openMenuItem);
 
-        runMenuItem.setMnemonic('r');
-        setKey(runMenuItem, KeyEvent.VK_R);
-        runMenuItem.setText("Run Script…");
-        runMenuItem.setToolTipText("Runs commands from a JavaScript ('.js') file, such as a series of filters.");
-        runMenuItem.addActionListener(new java.awt.event.ActionListener() {
+        runScriptMenuItem.setMnemonic('r');
+        setKey(runScriptMenuItem, KeyEvent.VK_R);
+        runScriptMenuItem.setText("Run Script…");
+        runScriptMenuItem.setToolTipText("Runs commands from a JavaScript ('.js') file, such as a series of filters.");
+        runScriptMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                runMenuItemActionPerformed(evt);
+                runScriptMenuItemActionPerformed(evt);
             }
         });
 
-        fileMenu.add(runMenuItem);
+        fileMenu.add(runScriptMenuItem);
+
+        runProgramMenuItem.setMnemonic('p');
+        //setKey(runProgramMenuItem, KeyEvent.VK_...);
+        runProgramMenuItem.setText("Run Program…");
+        runProgramMenuItem.setToolTipText("Runs external programs, sending output to the current experiment tree.");
+        runProgramMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                runProgramMenuItemActionPerformed(evt);
+            }
+        });
+
+        fileMenu.add(runProgramMenuItem);
         fileMenu.addSeparator();
 
         //closeWindowMenuItem.setMnemonic('C');
@@ -1360,7 +1373,7 @@ public class RheatApp extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_openMenuItemActionPerformed
 
-    private void runMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+    private void runScriptMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         File inputFile;
         fc = new JFileChooser(appMain.getPrefScriptDir());
         fc.setMultiSelectionEnabled(false);
@@ -1379,6 +1392,33 @@ public class RheatApp extends javax.swing.JFrame {
                 msg.setWrapStyleWord(true);
                 JScrollPane scrollPane = new JScrollPane(msg);
                 JOptionPane.showMessageDialog(this, scrollPane, "Error Running Script", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void runProgramMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        File inputFile;
+        fc = new JFileChooser(appMain.getPrefProgramsDir());
+        fc.setMultiSelectionEnabled(false);
+        fc.setAcceptAllFileFilterUsed(true);
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Python or JAR Files", "jar", "py"));
+        int returnVal = fc.showOpenDialog(this);
+        if (returnVal == fc.APPROVE_OPTION) {
+            inputFile = fc.getSelectedFile();
+            int exitStatus = -1;
+            try {
+                exitStatus = appMain.runProgram(inputFile.getAbsolutePath());
+                if (exitStatus != 0) {
+                    throw new RuntimeException("Exit status " + exitStatus + ".");
+                }
+            } catch (Exception e) {
+                JTextArea msg = new JTextArea(e.getMessage());
+                msg.setColumns(65);
+                msg.setRows(7);
+                msg.setLineWrap(true);
+                msg.setWrapStyleWord(true);
+                JScrollPane scrollPane = new JScrollPane(msg);
+                JOptionPane.showMessageDialog(this, scrollPane, "Error Running Program", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -1456,7 +1496,8 @@ public class RheatApp extends javax.swing.JFrame {
     private javax.swing.JLabel accNumLabel;
     private javax.swing.JButton view2DBtn;
     private javax.swing.JMenuItem openMenuItem;
-    private javax.swing.JMenuItem runMenuItem;
+    private javax.swing.JMenuItem runScriptMenuItem;
+    private javax.swing.JMenuItem runProgramMenuItem;
     private javax.swing.JLabel lengthLabel;
     private javax.swing.JMenuItem goBackMenuItem;
     private javax.swing.JMenuItem aboutMenuItem;

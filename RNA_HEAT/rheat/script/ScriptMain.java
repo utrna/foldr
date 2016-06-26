@@ -291,6 +291,32 @@ public class ScriptMain {
     }
 
     /**
+     * Script interface for AppMain.getWorkingDir().
+     */
+    public String getWorkingDir() throws ScriptException {
+        String result = null;
+        try {
+            result = appMain.getWorkingDir();
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+        return result;
+    }
+
+    /**
+     * Script interface for AppMain.makePath().
+     */
+    public String makePath(String... elements) throws ScriptException {
+        String result = null;
+        try {
+            result = appMain.makePath(elements);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+        return result;
+    }
+
+    /**
      * Script interface for AppMain.openRNA().
      */
     public void openRNA(String filePath) throws ScriptException {
@@ -299,6 +325,30 @@ public class ScriptMain {
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
+    }
+
+    /**
+     * Script interface for AppMain.newExperiment().
+     */
+    public void newExperiment() throws ScriptException {
+        try {
+            appMain.newExperiment();
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.runProgram().
+     */
+    public int runProgram(String... arguments) throws ScriptException {
+        int result = -1;
+        try {
+            result = appMain.runProgram(arguments);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+        return result;
     }
 
     /**
@@ -318,6 +368,23 @@ public class ScriptMain {
     public void setPreference(String key, String value) throws ScriptException {
         try {
             appMain.setPreference(key, value);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.setTemporaryPreference().
+     *
+     * Allows temporary overrides to preferences (that will not be
+     * saved), which can be useful in scripts.  The keys should match
+     * any that would appear in "~/.rheat/prefs.js".  See also the
+     * method getWorkingDir(), which can be useful when overriding
+     * values.
+     */
+    public void setTemporaryPreference(String key, String value) throws ScriptException {
+        try {
+            appMain.setTemporaryPreference(key, value);
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }

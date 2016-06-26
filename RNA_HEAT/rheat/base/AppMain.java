@@ -6,7 +6,10 @@ import rheat.GUI.RheatApp;
 import rheat.script.ScriptMain;
 
 import java.io.*;
+import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.script.*;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -26,14 +29,16 @@ public class AppMain {
     public static final int ERROR = 2;
 
     private String fileSep = System.getProperty("file.separator");
-    private HashMap<String, String> preferencesMap = new HashMap<String, String>();
+    private HashMap<String, String> preferencesMap = new HashMap<String, String>(); // use setPreference() and getPreference()
+    private HashMap<String, String> tmpPrefsMap = new HashMap<String, String>(); // use setTemporaryPreference() and getPreference()
     private HashSet<String> validPrefKeys = new HashSet<String>();
     private String preferencesDir = System.getProperty("user.home") + fileSep + ".rheat";
     private String preferencesScript = preferencesDir + fileSep + "prefs.js";
     private String historyScript = preferencesDir + fileSep + "history.js";
     private ArrayList<String> historyCommands = new ArrayList<String>();
     private ArrayList<String> startupScripts = new ArrayList<String>();
-    private String previousDir = null; // see beginOpenFile()
+    private Stack<String> previousDirs = new Stack<String>(); // see changeDirectory()
+    private String currentExperimentDir = null; // see newExperiment()
     private ScriptEngine scriptEngine; // used to execute external scripts
     private rheat.GUI.RheatApp gui = null; // may be null
     private int undoMax = 20;
@@ -47,6 +52,7 @@ public class AppMain {
      */
     public AppMain(String[] args) throws IOException, ScriptException {
         validPrefKeys.add("BPSEQ");
+        validPrefKeys.add("ProgramsDir");
         validPrefKeys.add("RunRootDir");
         try {
             initScriptingEngine();
@@ -122,6 +128,15 @@ public class AppMain {
     }
 
     /**
+     * Sets a value only if it has no value for the key.
+     */
+    public void setDefaultPreference(String key, String defaultValue) {
+        if (!preferencesMap.containsKey(key)) {
+            setPreference(key, defaultValue);
+        }
+    }
+
+    /**
      * Sets a particular preference key and value.  Currently the
      * recognized keys are: "BPSEQ" to set the location for the
      * helix data and scripts, and "RunRootDir" to set the
@@ -140,10 +155,56 @@ public class AppMain {
     }
 
     /**
+     * Overrides a preference key for the duration of the session,
+     * preventing query methods from returning the real values (the
+     * temporary values are not saved however).
+     * @param key a key, as if using setPreference()
+     * @param value a value, as if using setPreference(); or null to clear
+     */
+    public void setTemporaryPreference(String key, String value) {
+        if (!validPrefKeys.contains(key)) {
+            throw new RuntimeException("invalid preference key: '" + key + "'");
+        }
+        if (value == null) {
+            tmpPrefsMap.remove(key);
+        } else {
+            tmpPrefsMap.put(key, value);
+        }
+    }
+
+    /**
+     * Helper for preference query methods.
+     */
+    private String getPreference(String key) {
+        return getPreference(key, true/* allow temporary overrides */);
+    }
+
+    /**
+     * Helper for preference query methods.
+     */
+    private String getPreference(String key, boolean allowTmp) {
+        String result = preferencesMap.get(key);
+        if ((allowTmp) && (tmpPrefsMap.containsKey(key))) {
+            //log(INFO, "Return temporary override: '" + key + "' = '" + result + "'");
+            result = tmpPrefsMap.get(key);
+        }
+        return result;
+    }
+
+    /**
      * Returns user-specified directory for helix data.
      */
     public String getPrefHelixDataDir() {
-        return preferencesMap.get("BPSEQ");
+        return getPreference("BPSEQ");
+    }
+
+    /**
+     * Returns user-specified directory for external programs.  This
+     * is implicitly the first place searched for programs (the
+     * system may also consult its search path).
+     */
+    public String getPrefProgramsDir() {
+        return getPreference("ProgramsDir");
     }
 
     /**
@@ -152,23 +213,51 @@ public class AppMain {
      * to organize results; this is the top of that tree.
      */
     public String getPrefRunRootDir() {
-        return preferencesMap.get("RunRootDir");
+        return getPreference("RunRootDir");
     }
 
     /**
      * Returns user-specified directory for scripts.
      */
     public String getPrefScriptDir() {
-        return preferencesMap.get("BPSEQ"); // for now, assume same location for scripts/inputs
+        return getPreference("BPSEQ"); // for now, assume same location for scripts/inputs
     }
 
     /**
      * Returns the directory for storing undo-files.
      */
     public String getUndoDir() {
-        String currentDir = System.getProperty("user.dir");
-        String result = System.getProperty("java.io.tmpdir", currentDir);
-        return result;
+        // return temporary directory, or current directory if none
+        return System.getProperty("java.io.tmpdir", getWorkingDir());
+    }
+
+    /**
+     * Returns the current directory, which is set automatically as
+     * scripts run.  (Look for "user.dir" in the code.)  This
+     * determines the meaning of relative path names when looking for
+     * files.
+     * @return the current directory’s path name
+     */
+    public String getWorkingDir() {
+        return System.getProperty("user.dir");
+    }
+
+    /**
+     * Returns the given strings joined by the directory separator.
+     * This is primarily meant for scripts, to aid portability.
+     * @return a string joined by the path separator
+     */
+    public String makePath(String... elements) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (String e : elements) {
+            sb.append(e);
+            ++i;
+            if (i != elements.length) {
+                sb.append(fileSep);
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -179,59 +268,81 @@ public class AppMain {
     }
 
     /**
+     * Changes the current directory and tracks the previous one.  In
+     * most cases, this should only be called in a try...finally pair
+     * where restoreDirectory() is called to restore at the end.
+     * @throws IOException if the directory cannot be found, for instance
+     */
+    private void changeDirectory(String newDir) throws IOException {
+        if (!new File(newDir).exists()) {
+            throw new IOException("Proposed working directory does not exist: '" + newDir + "'.");
+        }
+        String oldDir = System.getProperty("user.dir");
+        if (System.setProperty("user.dir", newDir) == null) {
+            throw new IOException("Unable to set working directory to '" + newDir + "'.");
+        }
+        previousDirs.push(oldDir);
+        String actualNewDir = System.getProperty("user.dir");
+        if ((actualNewDir != null) &&
+            ((oldDir == null) ||
+             (!actualNewDir.equals(oldDir)))) {
+            log(INFO, new String[]{"Changed to dir.: '", actualNewDir, "'."});
+        }
+    }
+
+    /**
+     * Balances a call to changeDirectory() by setting the "user.dir"
+     * (current directory) to the top entry on the stack and removing
+     * it from the stack.  Has no effect if there is nothing on the
+     * directory stack.
+     */
+    private void restoreDirectory() {
+        if (!previousDirs.empty()) {
+            String oldDir = System.getProperty("user.dir");
+            String stackTop = previousDirs.pop();
+            if (System.setProperty("user.dir", stackTop) == null) {
+                log(WARN, "Unable to restore previous working directory.");
+            }
+            if ((oldDir != null) &&
+                ((stackTop == null) ||
+                 (!oldDir.equals(stackTop)))) {
+                log(INFO, new String[]{"Changed back to dir.: '", System.getProperty("user.dir"), "'."});
+            }
+        }
+    }
+
+    /**
      * Useful for scripts; keeps track of current directory so
      * that files can be opened only by name if desired (such as
      * in scripts).  Must be balanced by call to endOpenFile().
-     * Must be balanced by call to endOpenFile().
      * @throws IOException if the file cannot be found, for instance
-     * @returns the absolute path to the specified file
+     * @return the absolute path to the specified file
      */
     private String beginOpenFile(String filePath) throws IOException {
-        log(INFO, new String[]{"Opening: '", filePath, "'."});
+        log(INFO, new String[]{"Request to open: '", filePath, "'."});
         // since scripts might contain references to files with relative
         // locations (e.g. file name only), a logical starting point has
         // to be set; choose the location of the script itself
         String result = filePath;
         File fileObj = new File(filePath);
-        if (!fileObj.isAbsolute()) {
-            try {
-                File canonFileObj = fileObj.getCanonicalFile(); // may throw...
-                String parentDir = canonFileObj.getParent(); // may throw...
-                result = canonFileObj.getAbsolutePath();
-                //log(INFO, new String[]{"Actual: '", result, "'."});
-                this.previousDir = System.getProperty("user.dir");
-                if (System.setProperty("user.dir", parentDir) == null) {
-                    throw new IOException("Unable to set working directory to script location '" + parentDir + "'.");
-                }
-            } catch (IOException e) {
-                // ignore
-                log(WARN, e.getMessage());
-            }
-        }
-        String newDir = System.getProperty("user.dir");
-        if ((newDir != null) && (this.previousDir != null) &&
-            (!newDir.equals(this.previousDir))) {
-            log(INFO, new String[]{"Changed to dir.: '", System.getProperty("user.dir"), "'."});
+        try {
+            File canonFileObj = fileObj.getCanonicalFile(); // may throw...
+            String parentDir = canonFileObj.getParent(); // may throw...
+            changeDirectory(parentDir);
+            result = canonFileObj.getPath();
+        } catch (IOException e) {
+            // ignore
+            log(WARN, e.getMessage());
         }
         return result;
     }
 
     /**
-     * Balances a call to beginOpenFile() by restoring any
-     * previous change to the "user.dir" property, as needed.
+     * Cleans up a call to beginOpenFile() (use in "finally").
      */
-    private void endOpenFile() {
-        if (this.previousDir != null) {
-            String tmpDir = System.getProperty("user.dir");
-            if (System.setProperty("user.dir", this.previousDir) == null) {
-                log(WARN, "Unable to restore previous working directory.");
-            }
-            if ((tmpDir != null) && (this.previousDir != null) &&
-                (!tmpDir.equals(this.previousDir))) {
-                log(INFO, new String[]{"Changed to dir.: '", System.getProperty("user.dir"), "'."});
-            }
-            this.previousDir = null;
-        }
+    private void endOpenFile(String filePath) {
+        // undo any temporary steps taken in beginOpenFile()
+        restoreDirectory();
     }
 
     /**
@@ -240,7 +351,7 @@ public class AppMain {
      * will be refreshed automatically.
      */
     public void openRNA(String filePath) throws IOException {
-        String realPath = this.beginOpenFile(filePath);
+        String realPath = beginOpenFile(filePath);
         try {
             rheat.base.Reader reader = new rheat.base.Reader(realPath);
             this.rnaData = reader.readBPSEQ();
@@ -249,8 +360,55 @@ public class AppMain {
             //    this.gui.refreshForNewRNA();
             //}
         } finally {
-            this.endOpenFile();
+            endOpenFile(filePath);
         }
+    }
+
+    /**
+     * Provides the location for output in the current experiment.
+     * This will be the result of getPrefRunRootDir() combined with
+     * at least one subdirectory.  The first time this is requested,
+     * the appropriate subdirectory will be created automatically.
+     * See also newExperiment().
+     * @return a directory path, or null if directory cannot be created
+     */
+    public String getCurrentExperimentDir() {
+        if (this.currentExperimentDir == null) {
+            // set path if this has not been set yet
+            newExperiment();
+        }
+        String result = this.currentExperimentDir;
+        File dirObj = new File(result);
+        if (!dirObj.exists()) {
+            if (!dirObj.mkdirs()) {
+                result = null;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Specifies that output should go into a new subdirectory of the
+     * user-designated output directory, based on the date and time.
+     * The directory is only created by getCurrentExperimentDir().
+     * Note that this will be called automatically the first time it
+     * is needed; you only need to call newExperiment() again if you
+     * want to separate results during the same session.
+     */
+    public void newExperiment() {
+        String newDir = makePath(getPrefRunRootDir(), getDateTimeString());
+        this.currentExperimentDir = newDir;
+    }
+
+    /**
+     * Returns the current date and time as a formatted string,
+     * suitable for use in the generation of files or directories.
+     * @return a date string that should be unique and sort well
+     */
+    public String getDateTimeString() {
+        SimpleDateFormat formatter = new SimpleDateFormat();
+        formatter.applyPattern("yyyy-MM-dd-HHmmss"); // may throw IllegalArgumentException
+        return formatter.format(new Date(System.currentTimeMillis()));
     }
 
     /**
@@ -291,7 +449,7 @@ public class AppMain {
      * Creates another snapshot of "rnaData".
      */
     public void snapshotRNAData() throws IOException {
-        String undoFile = getUndoDir() + fileSep + "undo" + currentUndo;
+        String undoFile = makePath(getUndoDir(), "undo" + currentUndo);
         ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(undoFile));
         ois.writeObject(this.rnaData);
     }
@@ -376,6 +534,67 @@ public class AppMain {
     }
 
     /**
+     * Runs the specified program, in the current experiment space.
+     * Waits for termination and returns exit status (0 = success).
+     * Output from the program is automatically logged; if more than
+     * one program has run in the same experiment area, the logs will
+     * be appended together.  See also runScript().
+     * @return process exit status (0 = success) or -1 for interruptions
+     * @throws IOException for file-related errors
+     */
+    public int runProgram(String... arguments) throws IOException {
+        // by default, search the preferred program space; if the program
+        // is found then run it from that location (otherwise, the system
+        // may use its own default search path)
+        String program = arguments[0];
+        List<String> modifiedArgs = new CopyOnWriteArrayList<String>(arguments);
+        if (!new File(program).isAbsolute()) {
+            String foundProgram = null;
+            for (String searchDir : new String[]{getPrefProgramsDir(), System.getProperty("user.dir")}) {
+                log(INFO, "Search in '" + searchDir + "'...");
+                String candidate = makePath(searchDir, program);
+                if (new File(candidate).exists()) {
+                    log(INFO, "Using '" + candidate + "'.");
+                    foundProgram = candidate;
+                    modifiedArgs.set(0, candidate);
+                    break;
+                }
+            }
+            if (foundProgram == null) {
+                log(INFO, "Program '" + program + "' not found in preferred programs directory; will defer to system search path.");
+            }
+        }
+        // automatically add interpreters to the command line so that
+        // it will “just work” if the program file is given first
+        if (program.endsWith(".py")) {
+            modifiedArgs.add(0, "python");
+        } else if (program.endsWith(".jar")) {
+            // run with "java -jar ..." (insertion order matters)
+            modifiedArgs.add(0, "-jar");
+            modifiedArgs.add(0, "java");
+        }
+        ProcessBuilder pb = new ProcessBuilder(modifiedArgs);
+        //Map<String, String> env = pb.environment(); // not used for now
+        pb.directory(new File(getCurrentExperimentDir()));
+        File logFile = new File(pb.directory(), "log.txt");
+        log(INFO, "Running: " + modifiedArgs);
+        pb.redirectErrorStream(true);
+        pb.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+        // TODO: this should probably be backgrounded with SwingWorker
+        // or an equivalent method; for now, execute synchronously
+        Process process = pb.start();
+        int exitStatus = -1;
+        try {
+            exitStatus = process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            exitStatus = -1;
+        }
+        log(INFO, "Exited (status " + exitStatus + "); output is in '" + logFile.getPath() + "'.");
+        return exitStatus;
+    }
+
+    /**
      * Runs the specified script.  You should ensure that
      * setScriptMain() has been called first, otherwise
      * any references to "rheat" in the script will fail.
@@ -384,25 +603,50 @@ public class AppMain {
      */
     public void runScript(String filePath) throws IOException, ScriptException {
         ScriptContext scriptContext = scriptEngine.getContext();
-        String realPath = this.beginOpenFile(filePath);
-        BufferedReader reader = new BufferedReader(new FileReader(realPath));
-        // for convenience, ignore any Unix "#!" line (the default
-        // JavaScript reader will NOT do this...)
-        reader.mark(255/* max. char. to backtrack */);
-        String line = reader.readLine();
-        if ((line.length() > 1) && ((line.charAt(0) != '#') || (line.charAt(1) != '!'))) {
-            // no #!-line; keep the original line
-            reader.reset();
-        }
         try {
+            String realPath = beginOpenFile(filePath);
+            BufferedReader reader = new BufferedReader(new FileReader(realPath));
+            // for convenience, ignore any Unix "#!" line (the default
+            // JavaScript reader will NOT do this...)
+            reader.mark(255/* max. char. to backtrack */);
+            String line = reader.readLine();
+            if ((line.length() > 1) && ((line.charAt(0) != '#') || (line.charAt(1) != '!'))) {
+                // no #!-line; keep the original line
+                reader.reset();
+            }
             // specify the file so errors are easier to understand
             scriptContext.setAttribute(ScriptEngine.FILENAME, realPath, ScriptContext.ENGINE_SCOPE);
             // run the program
             scriptEngine.eval(reader);
         } finally {
-            this.endOpenFile();
+            endOpenFile(filePath);
             // reset current file
             scriptContext.setAttribute(ScriptEngine.FILENAME, "(no file specified)", ScriptContext.ENGINE_SCOPE);
+        }
+    }
+
+    /**
+     * Runs commands in any existing preferences file.  If there is
+     * no preferences file, a new one is created.  Any missing values
+     * are given default values.  The result is saved.
+     */
+    private void initPreferences() {
+        if (new File(this.preferencesScript).exists()) {
+            log(INFO, "Running script to restore user preferences…");
+            try {
+                runScript(this.preferencesScript);
+            } catch (Exception e) {
+                log(WARN, "Unable to restore preferences: '" + e.getMessage() + "'.");
+            }
+        }
+        String currentDir = getWorkingDir();
+        setDefaultPreference("ProgramsDir", currentDir);
+        setDefaultPreference("BPSEQ", currentDir);
+        setDefaultPreference("RunRootDir", makePath(currentDir, "Experiments"));
+        try {
+            savePreferences();
+        } catch (IOException e) {
+            log(WARN, "Unable to save preferences: '" + e.getMessage() + "'.");
         }
     }
 
@@ -413,22 +657,6 @@ public class AppMain {
      * a new one is created with default values.
      */
     private void runStartupScripts() throws IOException, ScriptException {
-        if (new File(this.preferencesScript).exists()) {
-            log(INFO, "Running script to restore user preferences…");
-            try {
-                runScript(this.preferencesScript);
-            } catch (Exception e) {
-                log(WARN, "Unable to restore preferences: '" + e.getMessage() + "'.");
-            }
-        } else {
-            // initialize new preferences file (the keys used below
-            // should be consistent with other uses of the keys)
-            log(INFO, "Creating a new preferences file.");
-            String currentDir = System.getProperty("user.dir");
-            setPreference("BPSEQ", currentDir);
-            setPreference("RunRootDir", currentDir);
-            savePreferences();
-        }
         for (String scriptPath : startupScripts) {
             runScript(scriptPath);
         }
@@ -462,6 +690,7 @@ public class AppMain {
             pw.println("rheat.setPreference(\'" + key + "\', \'" + value + "\')");
         }
         pw.close();
+        log(INFO, "Preferences file has been saved.");
     }
 
     /**
@@ -515,6 +744,7 @@ public class AppMain {
             try {
                 appMain.setScriptMain(new ScriptMain(appMain)); // sets "rheat" variable in scripts
                 appMain.scriptEngine.eval("rheat.log(rheat.INFO, 'JavaScript engine loaded successfully.')"); // trivial test
+                appMain.initPreferences();
                 appMain.runStartupScripts(); // execute any scripts given on the command line
             } catch (Exception e) {
                 e.printStackTrace();
