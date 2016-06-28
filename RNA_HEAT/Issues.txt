@@ -29,8 +29,6 @@ The following things were tried and there were problems:
 
   * Single base-pair should perhaps use a point, not a line.
 
-  * Increment is too small when clicking on zoom slider.
-
 - "Control Window":
 
   * Occasionally the "Current Helices", "Total Helices" and
@@ -77,6 +75,8 @@ The following items are now FIXED (moved from list above):
     UPDATE: Seems that after applying a Base Filter, and using
     buttons like "Flat View" and back to "2D View", helices may
     appear.  This could be a display-updating bug.
+
+  * Increment is too small when clicking on zoom slider.
 
 - "Control Window":
 

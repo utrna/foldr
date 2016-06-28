@@ -12,6 +12,7 @@ import java.util.*;
 import javax.imageio.ImageIO;
 import javax.script.*;
 import javax.swing.*;
+import javax.swing.plaf.metal.MetalSliderUI;
 
 /**
  * Main window of RNA HEAT application.
@@ -430,7 +431,28 @@ public class RheatApp extends javax.swing.JFrame {
                 zoomFit();
             }
         });
-        zoomSlider = new JSlider(1, 20000);
+        zoomSlider = new JSlider(200, 20000);
+        zoomSlider.setMajorTickSpacing(2000);
+        zoomSlider.setMinorTickSpacing(1000);
+        zoomSlider.setPaintTicks(true);
+        //zoomSlider.setPaintTrack(false);
+        zoomSlider.putClientProperty("JSlider.isFilled", Boolean.FALSE);
+        zoomSlider.setUI(new MetalSliderUI() {
+            // oddly, there is no way to set the amount shifted after
+            // clicking in the slider; it is controlled by look-and-feel
+            // so customize the look-and-feel accordingly
+            protected void scrollDueToClickInTrack(int direction) {
+                if (false) {
+                    // option 1: set value to point that is clicked:
+                    int value = zoomSlider.getValue();
+                    value = this.valueForXPosition(zoomSlider.getMousePosition().x);
+		    zoomSlider.setValue(value);
+		} else {
+                    // option 2: increment or decrement by fixed amount
+                    scrollByBlock(direction);
+                }
+            }
+        });
         zoomSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 zoomLevelChanged();
