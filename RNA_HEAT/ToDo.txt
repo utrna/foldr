@@ -15,9 +15,17 @@ To Do
   possible to see multiple sets of helices in different colors.
   Also, the default should be customizable (e.g. set to gray).
 
+- Grid lines and numeric/axis labels in display window.
+
 - Filters should have the option of superimposing results in a
   different color instead of hiding the other helices.  This is
   particularly desirable for visualizing helix energies.
+
+- May need options for E-Loop Filter (to use different
+  interpretations of this).
+
+- Interface ideas may be found in RNA2DMap (e.g. using a series
+  of checkboxes to enable/disable view options).
 
 - Highlight (optionally) predicted helices that match actual
   helices displayed in the top-right section.
@@ -36,6 +44,8 @@ To Do
 - Add a simultaneous zoomed-out view window when the display is
   zoomed-in.  Use a rectangle to represent the portion that is
   enlarged, and allow the rectangle to be moved with the mouse.
+
+- Add a “bookmarking” scheme to keep track of interesting areas.
 
 - Investigate a 45-degree-rotated version of the 2D display.
 
@@ -59,6 +69,9 @@ To Do
 
 - Provide a way to display arbitary image and text files so that
   a single interface can show results from other programs.
+
+- Documentation: Explain meaning of Complex/Simple Distance
+  defaults; clearly specify E-Loop.
 
 
 

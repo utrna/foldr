@@ -17,9 +17,19 @@ The following things were tried and there were problems:
 
   * "Complex Distance Filter": Out-of-bounds exception when used.
 
+  * When filter is applied, zoom level resets.
+
+  * Explanation of E-Loop Filter is not accurate.
+
 - "Display Window":
 
   * Helices are sometimes hard to select, even when zoomed.
+
+  * Helices above the diagonal cannot be selected.
+
+  * Single base-pair should perhaps use a point, not a line.
+
+  * Increment is too small when clicking on zoom slider.
 
 - "Control Window":
 
@@ -30,10 +40,6 @@ The following things were tried and there were problems:
 - "Filter History":
 
   * The Undo feature fails on Windows (file issue?).
-
-- Help:
-
-  * Display of HTML does not work on Windows (file issue?).
 
 - General:
 
@@ -90,6 +96,10 @@ The following items are now FIXED (moved from list above):
 - "Filter History":
 
   * Clicking "Undo" may display an error about saving data.
+
+- Help:
+
+  * Display of HTML does not work on Windows (file issue?).
 
 - Source Code:
 
