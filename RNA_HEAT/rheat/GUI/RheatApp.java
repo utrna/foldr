@@ -255,6 +255,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
     private void updateImage() {
         displayPane.setRNA(appMain.rnaData);
+        if (appMain.overlayData != null) {
+            displayPane.addOverlayRNA(appMain.overlayData);
+        }
         displayPane.setHelixImageGenerator(this.helixImgGen);
         if (this.helixImgGen != null) {
             setStatus("Updating image…", 0);
@@ -430,7 +433,13 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      */
     private void initComponents() {//GEN-BEGIN:initComponents
         desktopPane = new javax.swing.JDesktopPane();
+
+        customOpenPane = new JPanel();
+        openOverlayCheckBox = new JCheckBox("Overlay (keep existing RNA)");
+        customOpenPane.add(openOverlayCheckBox);
+
         helpFrame = new HelpContentJFrame();
+
         DisplayFrame = new javax.swing.JInternalFrame();
         displayControlPanel = new javax.swing.JPanel();
         zoomOutButton = new javax.swing.JButton();
@@ -720,7 +729,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         openMenuItem.setMnemonic('o');
         setKey(openMenuItem, KeyEvent.VK_O);
         openMenuItem.setText("Open RNA File…");
-        openMenuItem.setToolTipText("Replaces any current display with the contents of a different RNA data source (such as a '.bpseq' file).");
+        openMenuItem.setToolTipText("Updates the display with the contents of an RNA data source (such as a '.bpseq' file).");
         openMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 openMenuItemActionPerformed(evt);
@@ -1406,27 +1415,36 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         this.updateImage(); // erases to blank if "appMain.rnaData" is null
     }
 
-    private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
+    private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         File inputFile;
         fc = new JFileChooser(appMain.getPrefHelixDataDir());
+        this.openOverlayCheckBox.setSelected(false);
+        fc.setAccessory(this.customOpenPane); // contains "openOverlayCheckBox"
         fc.setMultiSelectionEnabled(false);
         fc.setAcceptAllFileFilterUsed(false);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("BPSEQ Files", "bpseq", "txt"));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == fc.APPROVE_OPTION){
+            final boolean isOverlay = openOverlayCheckBox.isSelected();
             inputFile = fc.getSelectedFile();
             try {
-                // openRNA() will call refreshForNewRNA()
-                appMain.openRNA(inputFile.getAbsolutePath());
-                // automatically request a base-pair filter, since
-                // otherwise the default display is not very useful
-                showBasePairFilterDialog();
+                // openRNA()/openOverlayRNA() will call refreshForNewRNA()
+                if (isOverlay) {
+                    // in AppMain class, overlay data automatically
+                    // uses the same base-pair filter as the original
+                    appMain.openOverlayRNA(inputFile.getAbsolutePath());
+                } else {
+                    appMain.openRNA(inputFile.getAbsolutePath());
+                    // automatically request a base-pair filter, since
+                    // otherwise the default display is not very useful
+                    showBasePairFilterDialog();
+                }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
             }
             updateImage();
         }
-    }//GEN-LAST:event_openMenuItemActionPerformed
+    }
 
     private void runScriptMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         File inputFile;
@@ -1575,8 +1593,10 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JButton zoomFitButton;
     private javax.swing.JList<String> historyList;
     // End of variables declaration//GEN-END:variables
-    private javax.swing.JPanel displayControlPanel;
-    private javax.swing.JLabel zoomLabel;
+    private JPanel customOpenPane;
+    private JCheckBox openOverlayCheckBox;
+    private JPanel displayControlPanel;
+    private JLabel zoomLabel;
     private JSlider zoomSlider;
     private RNADisplay displayPane;
     //private javax.swing.JLabel oldDisplayPane; // obsolete (replaced with custom-painted view)

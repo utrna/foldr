@@ -1,6 +1,7 @@
 package rheat.base;
 
 import rheat.filter.AllHelicesFilter;
+import rheat.filter.BPFilter;
 import rheat.filter.Filter;
 import rheat.GUI.RheatApp;
 import rheat.script.ScriptMain;
@@ -49,6 +50,8 @@ public class AppMain {
     private int currentUndo = 0;
     static private boolean isMac = false;
     public RNA rnaData = null;
+    public RNA overlayData = null;
+    public ArrayList<Filter> filterList = new ArrayList<Filter>();
 
     /**
      * Main application class; "args" should come from
@@ -359,11 +362,36 @@ public class AppMain {
         try {
             rheat.base.Reader reader = new rheat.base.Reader(realPath);
             this.rnaData = reader.readBPSEQ();
+            this.overlayData = null;
             this.currentRNAFilePath = realPath;
             removeFilters(); // initialize data and update display
             //if (this.gui != null) {
             //    this.gui.refreshForNewRNA();
             //}
+        } finally {
+            endOpenFile(filePath);
+        }
+    }
+
+    /**
+     * Opens the specified helix data file, which must be in a
+     * supported format such as ".bpseq".  If there is a GUI, it
+     * will be refreshed automatically.
+     */
+    public void openOverlayRNA(String filePath) throws IOException {
+        String realPath = beginOpenFile(filePath);
+        try {
+            rheat.base.Reader reader = new rheat.base.Reader(realPath);
+            this.overlayData = reader.readBPSEQ();
+            // apply same transforms to overlay data
+            for (Filter filter : this.filterList) {
+                if (filter instanceof BPFilter) {
+                    this.overlayData = filter.apply(this.overlayData);
+                }
+            }
+            if (this.gui != null) {
+                this.gui.refreshForNewRNA();
+            }
         } finally {
             endOpenFile(filePath);
         }
@@ -482,6 +510,7 @@ public class AppMain {
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(s));
         RNA old = (RNA)ois.readObject();
         this.rnaData = old;
+        this.filterList.remove(this.filterList.size() - 1);
         this.currentUndo = undoIndex;
     }
 
@@ -496,6 +525,16 @@ public class AppMain {
             log(ERROR, "Filter failed to apply.");
         } else {
             this.rnaData = newData;
+            this.filterList.add(filter);
+            if ((filter instanceof BPFilter) && (this.overlayData != null)) {
+                // if a base-pair filter is used, keep the overlay in sync
+                RNA newOverlayData = filter.apply(this.overlayData);
+                if (newOverlayData == null) {
+                    log(ERROR, "Filter failed to apply to overlay data.");
+                } else {
+                    this.overlayData = newData;
+                }
+            }
             if (this.gui != null) {
                 this.gui.refreshForNewRNA();
             }
@@ -513,6 +552,7 @@ public class AppMain {
             log(ERROR, "All-helices filter failed to apply.");
         } else {
             this.rnaData = newData;
+            this.filterList.clear();
             if (this.gui != null) {
                 this.gui.clearHistory();
                 this.gui.refreshForNewRNA();
@@ -553,8 +593,8 @@ public class AppMain {
         // current RNA data; for simplicity, copy the original file into
         // the experiment directory so that the program can assume the
         // name and location instead of requiring a parameter
+        String extension = "";
         if (currentRNAFilePath != null) {
-            String extension = "";
             int i = currentRNAFilePath.lastIndexOf('.');
             if (i > 0) {
                 extension = currentRNAFilePath.substring(i);
@@ -612,6 +652,15 @@ public class AppMain {
             exitStatus = -1;
         }
         log(INFO, "Exited (status " + exitStatus + "); output is in '" + logFile.getPath() + "'.");
+        if ((exitStatus == 0) && (this.gui != null)) {
+            // after a successful run, if a designated output file exists
+            // then automatically import it as an overlay
+            String outputPath = makePath(runDir, "output" + extension);
+            if (new File(outputPath).exists()) {
+                log(INFO, "Located results in '" + outputPath + "'; opening as overlay…");
+                openOverlayRNA(outputPath);
+            }
+        }
         return exitStatus;
     }
 
@@ -737,6 +786,7 @@ public class AppMain {
      */
     public void cleanUp(){
         rnaData = null;
+        overlayData = null;
         currentRNAFilePath = null;
         System.gc();
     }

@@ -32,6 +32,11 @@ public class HelixImageGenerator {
         PREDICTED
     };
 
+    public enum RenderingType {
+        NORMAL,
+        OVERLAY
+    };
+
     public static int VIEW_2D = 0;
     public static int VIEW_FLAT = 1;
 
@@ -44,6 +49,7 @@ public class HelixImageGenerator {
     private double zoomFactor;
     private final double effectiveZoomFactor = 4.0; // a single point occupies this many square pixels at zoom level 1
     private int imageType = this.VIEW_2D;
+    private boolean renderInProgress = false; // see beginRender()/endRender()
     private Point2D.Double clickPoint = new Point2D.Double(); // coordinates are relative to data (current zoom level)
     private Line2D.Double tmpLine = new Line2D.Double(); // used for various reasons (saves heap allocations)
     private BufferedImage helix2D;
@@ -64,6 +70,7 @@ public class HelixImageGenerator {
     private Color helixColorPredicted = Color.red;
     private Color helixColorSelected = Color.blue;
     private Helix selectedHelix = null;
+    private Helix originalSelection = null; // preserved by beginRender()/endRender()
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     /** Creates a new instance of HelixImageGenerator */
@@ -208,8 +215,40 @@ public class HelixImageGenerator {
     public BufferedImage drawImage(RNA rna) {
         BufferedImage result = getImage();
         Graphics2D g = result.createGraphics();
-        paintRNA(rna, g, getSize());
+        paintRNA(rna, g, getSize(), RenderingType.NORMAL);
         return result;
+    }
+
+    /**
+     * Call this before using a series of calls to paintRNA() or a
+     * similar chain of methods.  It ensures that the selection
+     * state is reset only once at the beginning.  See endRender().
+     */
+    public void beginRender() {
+        if (renderInProgress) {
+            throw new RuntimeException("already rendering; cannot beginRender() again");
+        }
+        this.originalSelection = this.selectedHelix;
+        this.selectedHelix = null; // initially...
+        renderInProgress = true;
+    }
+
+    /**
+     * Call this at the end of a chain of rendering calls.  It will
+     * finalize the selection state across all calls and trigger any
+     * actions related to selection of helices.
+     */
+    public void endRender() {
+        if (!renderInProgress) {
+            throw new RuntimeException("no render in progress; cannot endRender()");
+        }
+        renderInProgress = false;
+        if (this.selectedHelix != originalSelection) {
+            // TODO: add text labels for base-pairs or other properties?
+            // now notify observers (e.g. to update info pane)
+            pcs.firePropertyChange(PROPERTY_SELECTED_HELIX, originalSelection, this.selectedHelix);
+            this.originalSelection = null;
+        }
     }
 
     /**
@@ -252,18 +291,22 @@ public class HelixImageGenerator {
      * paintBackground().  This separation allows multiple RNAs to be
      * superimposed on the same initial background.
      *
+     * This must be called within a beginRender()/endRender() pair.
+     *
      * @param rna the data to display
      * @param g the context in which to draw
      * @param targetSize the size of the container in which the image will be centered
+     * @param renderingType whether or not to render an overlay
      */
-    public void paintRNA(RNA rna, Graphics2D g, Dimension targetSize) {
+    public void paintRNA(RNA rna, Graphics2D g, Dimension targetSize, RenderingType renderingType) {
+        assert renderInProgress;
         AffineTransform oldTransform = g.getTransform();
         try {
             transformGraphics(g, targetSize);
             if (this.imageType == this.VIEW_FLAT) {
-                paintFlatImage(rna, g);
+                paintFlatImage(rna, renderingType, g);
             } else {
-                paint2DImage(rna, g);
+                paint2DImage(rna, renderingType, g);
             }
         } finally {
             g.setTransform(oldTransform);
@@ -273,14 +316,19 @@ public class HelixImageGenerator {
     /**
      * Helper method for paint2DImage(); may change the value of the
      * "selectedHelix" (based on the "clickPoint" field value).
+     *
+     * This must be called within a beginRender()/endRender() pair.
      */
-    private void paintHelix2D(Helix h, HelixType helixType, Graphics2D helixGraphics) {
+    private void paintHelix2D(Helix h, HelixType helixType, RenderingType renderingType, Graphics2D helixGraphics) {
+        assert renderInProgress;
         final double clickX = clickPoint.getX();
         final double clickY = clickPoint.getY();
         if (helixType == HelixType.ACTUAL) {
             helixGraphics.setColor(this.helixColorActual);
         } else {
-            helixGraphics.setColor(this.helixColorPredicted);
+            helixGraphics.setColor((renderingType == RenderingType.OVERLAY)
+                                   ? Color.black // TODO: make this customizable?
+                                   : this.helixColorPredicted);
         }
         /*
         if (h.getEnergy() < -6) {
@@ -345,7 +393,13 @@ public class HelixImageGenerator {
         }
     }
 
-    private void paint2DImage(RNA rna, Graphics2D helixGraphics) {
+    /*
+     * Draws a 2D view of the given data in the graphics context.
+     *
+     * This must be called within a beginRender()/endRender() pair.
+     */
+    private void paint2DImage(RNA rna, RenderingType renderingType, Graphics2D helixGraphics) {
+        assert renderInProgress;
         if (rna == null) {
             // nothing to do
             return;
@@ -353,14 +407,12 @@ public class HelixImageGenerator {
         helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         HelixStore actual = rna.getActual();
-        Helix originalSelection = this.selectedHelix;
-        this.selectedHelix = null; // initially...
-        // draw the actual helices on top.
+        // draw the actual helices on top
         if (actual != null) {
             Iterator itr = actual.iterator();
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                paintHelix2D(h, HelixType.ACTUAL, helixGraphics);
+                paintHelix2D(h, HelixType.ACTUAL, renderingType, helixGraphics);
             }
         }
         HelixStore hstore = rna.getHelices();
@@ -368,7 +420,7 @@ public class HelixImageGenerator {
             Iterator itr = hstore.iterator();
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                paintHelix2D(h, HelixType.PREDICTED, helixGraphics);
+                paintHelix2D(h, HelixType.PREDICTED, renderingType, helixGraphics);
             }
             if (false) {
                 // debug: show click region
@@ -380,17 +432,18 @@ public class HelixImageGenerator {
                 helixGraphics.setColor(Color.darkGray);
                 helixGraphics.draw(clickArea);
             }
-            if (this.selectedHelix != originalSelection) {
-                // TODO: add text labels for base-pairs or other properties?
-                // now notify observers (e.g. to update info pane)
-                pcs.firePropertyChange(PROPERTY_SELECTED_HELIX, originalSelection, this.selectedHelix);
-            }
         } else {
             //System.out.println("No helices to draw");
         }
     }
 
-    private void paintFlatImage(RNA rna, Graphics2D helixGraphics) {
+    /*
+     * Draws a flat view of the given data in the graphics context.
+     *
+     * This must be called within a beginRender()/endRender() pair.
+     */
+    private void paintFlatImage(RNA rna, RenderingType renderingType, Graphics2D helixGraphics) {
+        assert renderInProgress;
         if (rna == null) {
             // nothing to do
             return;

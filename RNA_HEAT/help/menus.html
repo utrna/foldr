@@ -9,9 +9,11 @@
   <br /><br />
   <h2 id="File">File</h2>
   <p><b>Open RNA File</b>:
-  Replaces any current display with the contents of a different RNA
-  data source (such as a '.bpseq' file).  Any previously-opened
-  file is closed.
+  Updates the display with the contents of an RNA data source (such
+  as a '.bpseq' file).  If the option to overlay is not chosen then
+  any previously-opened file is closed.  If an overlay is requested
+  then the new RNA appears on top of the previous one, in a
+  different color.
   <p><b>Run Script</b>:
   Runs commands from a JavaScript ('.js') file, such as a series of
   filters.  Currently, such scripts must make use of a variable
@@ -51,7 +53,8 @@
   <h2 id="Filters">Filters</h2>
   <p><b>Basepair Filter</b>:
   Excludes helices that do not match selected base-pair values,
-  such as 'C-G'.
+  such as 'C-G'.  If another RNA overlay is being shown, the filter
+  applies to both (unlike other filters).
   <p><b>Helix Length Filter</b>:
   Excludes helices with a span more or less than the specified
   range.  One of the values may be omitted to include everything in
