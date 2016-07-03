@@ -221,7 +221,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      * @param size the desired point size of the font (like "12")
      * @return a fixed-width font of the given size, or the "fallback"
      */
-    static private Font getMonospacedFont(Font fallback, int size) {
+    static public Font getMonospacedFont(Font fallback, int size) {
         Font result = fallback;
         Font fixedWidthFont = new Font("Courier", Font.PLAIN, size);
         if (fixedWidthFont != null) {
@@ -541,13 +541,16 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         infoTextPane = new javax.swing.JTextPane();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
-        openMenuItem = new javax.swing.JMenuItem();
+        openRNAMenuItem = new javax.swing.JMenuItem();
+        openDataMenuItem = new javax.swing.JMenuItem();
         runScriptMenuItem = new javax.swing.JMenuItem();
         runProgramMenuItem = new javax.swing.JMenuItem();
         closeRNAMenuItem = new javax.swing.JMenuItem();
         closeWindowMenuItem = new javax.swing.JMenuItem();
         minimizeWindowMenuItem = new javax.swing.JMenuItem();
         zoomWindowMenuItem = new javax.swing.JMenuItem();
+        selectNextWindowMenuItem = new javax.swing.JMenuItem();
+        selectPreviousWindowMenuItem = new javax.swing.JMenuItem();
         saveAsMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
@@ -597,7 +600,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         DisplayFrame.getContentPane().add(DisplayScrollPane, java.awt.BorderLayout.CENTER);
 
         DisplayFrame.setBounds(270, 10, 500, 500);
-        addOrReuseComponent(DisplayFrame);
 
         ControlFrame.getContentPane().setLayout(new java.awt.GridLayout(3, 0));
 
@@ -669,7 +671,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         ControlFrame.getContentPane().add(jPanel2);
 
         ControlFrame.setBounds(10, 10, 250, 330);
-        addOrReuseComponent(ControlFrame);
 
         BorderLayout historyLayout = new java.awt.BorderLayout();
         HistoryFrame.getContentPane().setLayout(historyLayout);
@@ -703,7 +704,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         HistoryFrame.getContentPane().add(jPanel5, BorderLayout.SOUTH);
 
         HistoryFrame.setBounds(270, 520, 500, 190);
-        addOrReuseComponent(HistoryFrame);
 
         InfoFrame.getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
@@ -718,7 +718,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         InfoFrame.getContentPane().add(jScrollPane1);
 
         InfoFrame.setBounds(10, 350, 250, 360);
-        addOrReuseComponent(InfoFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
 
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
         setExtendedState(MAXIMIZED_BOTH);
@@ -726,17 +725,29 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
 
-        openMenuItem.setMnemonic('o');
-        setKey(openMenuItem, KeyEvent.VK_O);
-        openMenuItem.setText("Open RNA File…");
-        openMenuItem.setToolTipText("Updates the display with the contents of an RNA data source (such as a '.bpseq' file).");
-        openMenuItem.addActionListener(new java.awt.event.ActionListener() {
+        openRNAMenuItem.setMnemonic('o');
+        setKey(openRNAMenuItem, KeyEvent.VK_O);
+        openRNAMenuItem.setText("Open RNA File…");
+        openRNAMenuItem.setToolTipText("Updates the display with the contents of an RNA data source (such as a '.bpseq' file).");
+        openRNAMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                openMenuItemActionPerformed(evt);
+                openRNAMenuItemActionPerformed(evt);
             }
         });
 
-        fileMenu.add(openMenuItem);
+        fileMenu.add(openRNAMenuItem);
+
+        openDataMenuItem.setMnemonic('o');
+        //setKey(openDataMenuItem, KeyEvent.VK_O);
+        openDataMenuItem.setText("Open Data File…");
+        openDataMenuItem.setToolTipText("Opens a data file in a separate display, keeping the RNA display untouched.");
+        openDataMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openDataMenuItemActionPerformed(evt);
+            }
+        });
+
+        fileMenu.add(openDataMenuItem);
 
         runScriptMenuItem.setMnemonic('r');
         setKey(runScriptMenuItem, KeyEvent.VK_R);
@@ -1031,6 +1042,30 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         });
 
         windowMenu.add(zoomWindowMenuItem);
+
+        selectNextWindowMenuItem.setMnemonic('N');
+        setKey(selectNextWindowMenuItem, KeyEvent.VK_BACK_QUOTE);
+        selectNextWindowMenuItem.setText("Select Next Window");
+        selectNextWindowMenuItem.setToolTipText("Brings another window to the front.");
+        selectNextWindowMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectNextWindowMenuItemActionPerformed(evt);
+            }
+        });
+
+        windowMenu.add(selectNextWindowMenuItem);
+
+        selectPreviousWindowMenuItem.setMnemonic('P');
+        setShiftedKey(selectPreviousWindowMenuItem, KeyEvent.VK_BACK_QUOTE);
+        selectPreviousWindowMenuItem.setText("Select Previous Window");
+        selectPreviousWindowMenuItem.setToolTipText("Brings another window to the front (reverse order).");
+        selectPreviousWindowMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectPreviousWindowMenuItemActionPerformed(evt);
+            }
+        });
+
+        windowMenu.add(selectPreviousWindowMenuItem);
         windowMenu.addSeparator();
 
         viewDisplayMenuItem.setMnemonic('D');
@@ -1119,6 +1154,12 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         menuBar.add(helpMenu);
 
         setJMenuBar(menuBar);
+
+        addOrReuseComponent(ControlFrame);
+        addOrReuseComponent(InfoFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
+        addOrReuseComponent(HistoryFrame);
+        addOrReuseComponent(DisplayFrame);
+        bringToFront(DisplayFrame);
 
         pack();
     }//GEN-END:initComponents
@@ -1273,6 +1314,14 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         }
     }
 
+    private void selectNextWindowMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        this.desktopPane.selectFrame(false/* forward */);
+    }
+
+    private void selectPreviousWindowMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        this.desktopPane.selectFrame(true/* forward */);
+    }
+
     private void saveAsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsMenuItemActionPerformed
         File outputImage;
         fc = new JFileChooser(System.getProperty("user.dir"));
@@ -1415,7 +1464,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         this.updateImage(); // erases to blank if "appMain.rnaData" is null
     }
 
-    private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+    private void openRNAMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         File inputFile;
         fc = new JFileChooser(appMain.getPrefHelixDataDir());
         this.openOverlayCheckBox.setSelected(false);
@@ -1424,7 +1473,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         fc.setAcceptAllFileFilterUsed(false);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("BPSEQ Files", "bpseq", "txt"));
         int returnVal = fc.showOpenDialog(this);
-        if (returnVal == fc.APPROVE_OPTION){
+        if (returnVal == fc.APPROVE_OPTION) {
             final boolean isOverlay = openOverlayCheckBox.isSelected();
             inputFile = fc.getSelectedFile();
             try {
@@ -1443,6 +1492,27 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
             }
             updateImage();
+        }
+    }
+
+    private void openDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        fc = new JFileChooser(appMain.getPrefHelixDataDir());
+        fc.setMultiSelectionEnabled(true);
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Text Files", "txt"));
+        int returnVal = fc.showOpenDialog(this);
+        if (returnVal == fc.APPROVE_OPTION) {
+            for (File inputFile : fc.getSelectedFiles()) {
+                try {
+                    TextFileFrame textFrame = new TextFileFrame();
+                    textFrame.openFile(inputFile.getAbsolutePath());
+                    addOrReuseComponent(textFrame);
+                    bringToFront(textFrame);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
 
@@ -1522,6 +1592,15 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         item.setAccelerator(KeyStroke.getKeyStroke(keyCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     }
 
+    /**
+     * Same as setKey() but Shift key is also added.
+     * @param item the menu item to set a keyboard short-cut for
+     * @param keyCode e.g. "KeyEvent.VK_C" for the letter "C"
+     */
+    private void setShiftedKey(JMenuItem item, int keyCode) {
+        item.setAccelerator(KeyStroke.getKeyStroke(keyCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | java.awt.event.InputEvent.SHIFT_DOWN_MASK));
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JInternalFrame DisplayFrame;
     private javax.swing.JMenu windowMenu;
@@ -1568,7 +1647,8 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JLabel uidLabel;
     private javax.swing.JLabel accNumLabel;
     private javax.swing.JButton view2DBtn;
-    private javax.swing.JMenuItem openMenuItem;
+    private javax.swing.JMenuItem openRNAMenuItem;
+    private javax.swing.JMenuItem openDataMenuItem;
     private javax.swing.JMenuItem runScriptMenuItem;
     private javax.swing.JMenuItem runProgramMenuItem;
     private javax.swing.JLabel lengthLabel;
@@ -1577,6 +1657,8 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JMenuItem closeRNAMenuItem;
     private javax.swing.JMenuItem closeWindowMenuItem;
     private javax.swing.JMenuItem minimizeWindowMenuItem;
+    private javax.swing.JMenuItem selectNextWindowMenuItem;
+    private javax.swing.JMenuItem selectPreviousWindowMenuItem;
     private javax.swing.JMenuItem zoomWindowMenuItem;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JLabel orgLabel;
