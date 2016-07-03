@@ -20,7 +20,7 @@
   other programs (such as logs, statistics or graphs).
   <p><b>Run Script</b>:
   Runs commands from a JavaScript ('.js') file, such as a series of
-  filters.  Currently, such scripts must make use of a variable
+  constraints.  Currently, such scripts must make use of a variable
   named "rheat".  See <a href="scripting.html">scripting</a> for
   more information.
   <p><b>Run Program</b>:
@@ -38,7 +38,7 @@
   <p><b>Save As</b>:
   Exports a picture of the current display as an image file (such
   as '.png').  The image file will reflect what is displayed,
-  including any filters or selections.  Note that if the display
+  including constraints or selections.  Note that if the display
   has been zoomed, the image file will be much larger.
   <p><b>Exit</b> (or <b>Quit</b>):
   Ends the program.
@@ -55,35 +55,35 @@
   commands in your home folder, under ".rheat/prefs.js".
 
   <br /><br />
-  <h2 id="Filters">Filters</h2>
-  <p><b>Basepair Filter</b>:
+  <h2 id="Constraints">Constraints</h2>
+  <p><b>Basepairs</b>:
   Excludes helices that do not match selected base-pair values,
-  such as 'C-G'.  If another RNA overlay is being shown, the filter
-  applies to both (unlike other filters).
-  <p><b>Helix Length Filter</b>:
+  such as 'C-G'.  If another RNA overlay is being shown, this
+  applies to both (unlike other constraints).
+  <p><b>Helix Length</b>:
   Excludes helices with a span more or less than the specified
   range.  One of the values may be omitted to include everything in
   that direction (for instance, omitting the upper value will show
   helices greater than or equal to the minimum length).
-  <p><b>Diagonal Filter</b>:
+  <p><b>Diagonal Distance</b>:
   Excludes helices whose distance from the diagonal line (2D view)
   is outside the given range.  One of the values may be omitted to
   include everything in that direction (for instance, omitting the
   upper value will show helices that are at least as far from the
   diagonal as the minimum distance).
-  <p><b>AA / AG Ends Filter</b>:
+  <p><b>AA / AG Ends</b>:
   Excludes helices that do not have AA or AG “just past” their
   ends.
-  <p><b>E-Loop Filter</b>:
+  <p><b>E-Loop</b>:
   Excludes helices unless they have AAG at 3' start, AUG at 5'
   start, GAA at 3' end, and AUG at 5' end.
-  <p><b>Energy Filter</b>:
+  <p><b>Helix Energy</b>:
   Excludes helices that have an energy value outside the given
   range.  One of the values may be omitted to include everything in
   that direction (for instance, omitting the upper value will show
   helices with energy values greater than or equal to the minimum
   value).
-  <p><b>Complex Distance Filter</b>:
+  <p><b>Complex Distance</b>:
   Excludes helices with simple or complex distances that are
   greater than the specified maximums.
 
@@ -118,8 +118,8 @@
   <p><b>Controls</b>:
   Brings the Controls to the front.  For more information, see <a
   href="windows.html">the windows page</a>.
-  <p><b>Filter History</b>:
-  Brings the Filter History to the front.  For more information,
+  <p><b>Constraint History</b>:
+  Brings the Constraint History to the front.  For more information,
   see <a href="windows.html">the windows page</a>.
   <p><b>Helix Info</b>:
   Brings the Helix Info to the front.  For more information, see

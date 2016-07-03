@@ -2,7 +2,7 @@ package rheat.GUI;
 
 import rheat.base.*;
 import rheat.filter.*;
-import rheat.script.ScriptFilterInterpreter;
+import rheat.script.ConstraintInterpreter;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -364,22 +364,22 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         desktopPane.moveToFront(f);
     }
     
-    private void enableFilterMenuItems(boolean b){
+    private void enableConstraintMenuItems(boolean b){
         if (b){
-            this.helixFilterItem.setEnabled(true);
-            this.diagonalFilterItem.setEnabled(true);
-            this.aa_agFilterItem.setEnabled(true);
-            this.eLoopFilterItem.setEnabled(true);
-            this.energyFilterItem.setEnabled(true);
-            this.complexFilterItem.setEnabled(true);
+            this.helixConstraintItem.setEnabled(true);
+            this.diagonalConstraintItem.setEnabled(true);
+            this.aa_agConstraintItem.setEnabled(true);
+            this.eLoopConstraintItem.setEnabled(true);
+            this.energyConstraintItem.setEnabled(true);
+            this.complexConstraintItem.setEnabled(true);
         }
         else {
-            this.helixFilterItem.setEnabled(false);
-            this.diagonalFilterItem.setEnabled(false);
-            this.aa_agFilterItem.setEnabled(false);
-            this.eLoopFilterItem.setEnabled(false);
-            this.energyFilterItem.setEnabled(false);
-            this.complexFilterItem.setEnabled(false);
+            this.helixConstraintItem.setEnabled(false);
+            this.diagonalConstraintItem.setEnabled(false);
+            this.aa_agConstraintItem.setEnabled(false);
+            this.eLoopConstraintItem.setEnabled(false);
+            this.energyConstraintItem.setEnabled(false);
+            this.complexConstraintItem.setEnabled(false);
         }
     }
     
@@ -535,7 +535,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         jScrollPane2 = new javax.swing.JScrollPane();
         historyList = new javax.swing.JList<String>();
         jPanel5 = new javax.swing.JPanel();
-        undoFilterBtn = new javax.swing.JButton();
+        undoConstraintBtn = new javax.swing.JButton();
         InfoFrame = new javax.swing.JInternalFrame();
         jScrollPane1 = new javax.swing.JScrollPane();
         infoTextPane = new javax.swing.JTextPane();
@@ -557,13 +557,13 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         undoMenuItem = new javax.swing.JMenuItem();
         preferencesMenuItem = new javax.swing.JMenuItem();
         filterMenu = new javax.swing.JMenu();
-        basepairFilterItem = new javax.swing.JMenuItem();
-        helixFilterItem = new javax.swing.JMenuItem();
-        diagonalFilterItem = new javax.swing.JMenuItem();
-        aa_agFilterItem = new javax.swing.JMenuItem();
-        eLoopFilterItem = new javax.swing.JMenuItem();
-        energyFilterItem = new javax.swing.JMenuItem();
-        complexFilterItem = new javax.swing.JMenuItem();
+        basepairConstraintItem = new javax.swing.JMenuItem();
+        helixConstraintItem = new javax.swing.JMenuItem();
+        diagonalConstraintItem = new javax.swing.JMenuItem();
+        aa_agConstraintItem = new javax.swing.JMenuItem();
+        eLoopConstraintItem = new javax.swing.JMenuItem();
+        energyConstraintItem = new javax.swing.JMenuItem();
+        complexConstraintItem = new javax.swing.JMenuItem();
         viewMenu = new javax.swing.JMenu();
         viewType2DMenuItem = new javax.swing.JCheckBoxMenuItem();
         viewTypeFlatMenuItem = new javax.swing.JCheckBoxMenuItem();
@@ -676,7 +676,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         HistoryFrame.getContentPane().setLayout(historyLayout);
         HistoryFrame.setIconifiable(true);
         HistoryFrame.setResizable(true);
-        HistoryFrame.setTitle("Filter History");
+        HistoryFrame.setTitle("Constraint History");
         HistoryFrame.setVisible(true);
         jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane2.setPreferredSize(new java.awt.Dimension(420, 100));
@@ -692,14 +692,14 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         HistoryFrame.getContentPane().add(jPanel4, BorderLayout.CENTER);
 
-        undoFilterBtn.setText("Undo Last");
-        undoFilterBtn.addActionListener(new java.awt.event.ActionListener() {
+        undoConstraintBtn.setText("Undo Last");
+        undoConstraintBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 performUndo();
             }
         });
 
-        jPanel5.add(undoFilterBtn);
+        jPanel5.add(undoConstraintBtn);
 
         HistoryFrame.getContentPane().add(jPanel5, BorderLayout.SOUTH);
 
@@ -856,98 +856,98 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         menuBar.add(editMenu);
 
         filterMenu.setMnemonic('t');
-        filterMenu.setText("Filters");
+        filterMenu.setText("Constraints");
 
-        basepairFilterItem.setMnemonic('B');
-        setKey(basepairFilterItem, KeyEvent.VK_1);
-        basepairFilterItem.setText("Basepair Filter…");
-        basepairFilterItem.setToolTipText("Excludes helices that do not match selected base-pair values, such as 'C-G'.");
-        basepairFilterItem.setEnabled(false);
-        basepairFilterItem.addActionListener(new java.awt.event.ActionListener() {
+        basepairConstraintItem.setMnemonic('B');
+        setKey(basepairConstraintItem, KeyEvent.VK_1);
+        basepairConstraintItem.setText("Basepairs…");
+        basepairConstraintItem.setToolTipText("Excludes helices that do not match selected base-pair values, such as 'C-G'.");
+        basepairConstraintItem.setEnabled(false);
+        basepairConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showBasePairFilterDialog();
+                showBasePairConstraintDialog();
             }
         });
 
-        filterMenu.add(basepairFilterItem);
+        filterMenu.add(basepairConstraintItem);
 
-        helixFilterItem.setMnemonic('H');
-        setKey(helixFilterItem, KeyEvent.VK_2);
-        helixFilterItem.setText("Helix Length Filter…");
-        helixFilterItem.setToolTipText("Excludes helices with a span more or less than the specified range.");
-        helixFilterItem.setEnabled(false);
-        helixFilterItem.addActionListener(new java.awt.event.ActionListener() {
+        helixConstraintItem.setMnemonic('H');
+        setKey(helixConstraintItem, KeyEvent.VK_2);
+        helixConstraintItem.setText("Helix Length…");
+        helixConstraintItem.setToolTipText("Excludes helices with a span more or less than the specified range.");
+        helixConstraintItem.setEnabled(false);
+        helixConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showHelixLengthFilterDialog();
+                showHelixLengthConstraintDialog();
             }
         });
 
-        filterMenu.add(helixFilterItem);
+        filterMenu.add(helixConstraintItem);
 
-        diagonalFilterItem.setMnemonic('D');
-        setKey(diagonalFilterItem, KeyEvent.VK_3);
-        diagonalFilterItem.setText("Diagonal Filter…");
-        diagonalFilterItem.setToolTipText("Excludes helices whose distance from the diagonal line (2D view) is outside the given range.");
-        diagonalFilterItem.setEnabled(false);
-        diagonalFilterItem.addActionListener(new java.awt.event.ActionListener() {
+        diagonalConstraintItem.setMnemonic('D');
+        setKey(diagonalConstraintItem, KeyEvent.VK_3);
+        diagonalConstraintItem.setText("Diagonal Distance…");
+        diagonalConstraintItem.setToolTipText("Excludes helices whose distance from the diagonal line (2D view) is outside the given range.");
+        diagonalConstraintItem.setEnabled(false);
+        diagonalConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showDiagonalFilterDialog();
+                showDiagonalDistanceConstraintDialog();
             }
         });
 
-        filterMenu.add(diagonalFilterItem);
+        filterMenu.add(diagonalConstraintItem);
 
-        aa_agFilterItem.setMnemonic('A');
-        setKey(aa_agFilterItem, KeyEvent.VK_4);
-        aa_agFilterItem.setText("AA / AG Ends Filter…");
-        aa_agFilterItem.setToolTipText("Excludes helices that do not have AA or AG 'just past' their ends.");
-        aa_agFilterItem.setEnabled(false);
-        aa_agFilterItem.addActionListener(new java.awt.event.ActionListener() {
+        aa_agConstraintItem.setMnemonic('A');
+        setKey(aa_agConstraintItem, KeyEvent.VK_4);
+        aa_agConstraintItem.setText("AA / AG Ends…");
+        aa_agConstraintItem.setToolTipText("Excludes helices that do not have AA or AG 'just past' their ends.");
+        aa_agConstraintItem.setEnabled(false);
+        aa_agConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showAA_AGFilterDialog();
+                showAA_AGEndsConstraintDialog();
             }
         });
 
-        filterMenu.add(aa_agFilterItem);
+        filterMenu.add(aa_agConstraintItem);
 
-        eLoopFilterItem.setMnemonic('E');
-        setKey(eLoopFilterItem, KeyEvent.VK_5);
-        eLoopFilterItem.setText("E-Loop Filter…");
-        eLoopFilterItem.setToolTipText("Excludes helices unless they have AAG at 3' start, AUG at 5' start, GAA at 3' end, and AUG at 5' end.");
-        eLoopFilterItem.setEnabled(false);
-        eLoopFilterItem.addActionListener(new java.awt.event.ActionListener() {
+        eLoopConstraintItem.setMnemonic('E');
+        setKey(eLoopConstraintItem, KeyEvent.VK_5);
+        eLoopConstraintItem.setText("E-Loop…");
+        eLoopConstraintItem.setToolTipText("Excludes helices unless they have AAG at 3' start, AUG at 5' start, GAA at 3' end, and AUG at 5' end.");
+        eLoopConstraintItem.setEnabled(false);
+        eLoopConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showELoopFilterDialog();
+                showELoopConstraintDialog();
             }
         });
 
-        filterMenu.add(eLoopFilterItem);
+        filterMenu.add(eLoopConstraintItem);
 
-        energyFilterItem.setMnemonic('g');
-        setKey(energyFilterItem, KeyEvent.VK_6);
-        energyFilterItem.setText("Energy Filter…");
-        energyFilterItem.setToolTipText("Excludes helices that have an energy value outside the given range.");
-        energyFilterItem.setEnabled(false);
-        energyFilterItem.addActionListener(new java.awt.event.ActionListener() {
+        energyConstraintItem.setMnemonic('g');
+        setKey(energyConstraintItem, KeyEvent.VK_6);
+        energyConstraintItem.setText("Helix Energy…");
+        energyConstraintItem.setToolTipText("Excludes helices that have an energy value outside the given range.");
+        energyConstraintItem.setEnabled(false);
+        energyConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showEnergyFilterDialog();
+                showEnergyConstraintDialog();
             }
         });
 
-        filterMenu.add(energyFilterItem);
+        filterMenu.add(energyConstraintItem);
 
-        complexFilterItem.setMnemonic('C');
-        setKey(complexFilterItem, KeyEvent.VK_7);
-        complexFilterItem.setText("Complex Distance Filter…");
-        complexFilterItem.setToolTipText("Excludes helices with simple or complex distances that are greater than the specified maximums.");
-        complexFilterItem.setEnabled(false);
-        complexFilterItem.addActionListener(new java.awt.event.ActionListener() {
+        complexConstraintItem.setMnemonic('C');
+        setKey(complexConstraintItem, KeyEvent.VK_7);
+        complexConstraintItem.setText("Complex Distance…");
+        complexConstraintItem.setToolTipText("Excludes helices with simple or complex distances that are greater than the specified maximums.");
+        complexConstraintItem.setEnabled(false);
+        complexConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showComplexFilterDialog();
+                showComplexDistanceConstraintDialog();
             }
         });
 
-        filterMenu.add(complexFilterItem);
+        filterMenu.add(complexConstraintItem);
 
         menuBar.add(filterMenu);
 
@@ -1091,8 +1091,8 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         windowMenu.add(viewControlMenuItem);
 
         viewHistoryMenuItem.setMnemonic('H');
-        viewHistoryMenuItem.setText("Filter History");
-        viewHistoryMenuItem.setToolTipText("Brings the Filter History to the front.");
+        viewHistoryMenuItem.setText("Constraint History");
+        viewHistoryMenuItem.setToolTipText("Brings the Constraint History to the front.");
         viewHistoryMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewHistoryMenuItemActionPerformed(evt);
@@ -1168,7 +1168,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      * Adds a filter to the history list and applies its effects to
      * the currently-displayed RNA.
      */
-    public void addFilter(Filter filter) {
+    public void addConstraint(Filter filter) {
         try {
             try {
                 appMain.snapshotRNAData();
@@ -1176,11 +1176,11 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                 e.printStackTrace();
                 log(WARN, "Unable to take a snapshot of previous state (see trace above); Undo will not work.");
             }
-            // to guarantee that the script command is correct, the filter is
+            // to guarantee the script command is correct, constraints are
             // applied by executing the equivalent script command instead of
-            // by directly calling appMain.addFilter() and updateImage() (see
-            // "rheat/script/ScriptMain.java" implementations of each filter)
-            String equivalentScriptCommand = ScriptFilterInterpreter.getScriptCommandForFilter(filter);
+            // by calling appMain.addConstraint() and updateImage() (see
+            // "rheat/script/ScriptMain.java" implementations of each)
+            String equivalentScriptCommand = ConstraintInterpreter.getScriptCommandFor(filter);
             appMain.evaluateScriptCode(equivalentScriptCommand);
             appMain.incrementUndo(); // success; next snapshot should use a new number
             // TODO: should the history-update portion be an option?
@@ -1191,70 +1191,70 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         }
     }
 
-    private void showAA_AGFilterDialog() {
+    private void showAA_AGEndsConstraintDialog() {
         FilterDialog fd = new AAandAGFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
-            addFilter(newFilter);
+            addConstraint(newFilter);
         }
     }
 
-    private void showBasePairFilterDialog() {
+    private void showBasePairConstraintDialog() {
         FilterDialog fd = new BasepairFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
-            addFilter(newFilter);
-            this.enableFilterMenuItems(true);
+            addConstraint(newFilter);
+            this.enableConstraintMenuItems(true);
             HelixStore helices = appMain.rnaData.getHelices();
             int count = ((helices != null) ? helices.getCount() : 0);
             this.helixTotalField.setText("" + count);
         }
     }
 
-    private void showComplexFilterDialog() {
+    private void showComplexDistanceConstraintDialog() {
         FilterDialog fd = new ComplexFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
-            addFilter(newFilter);
+            addConstraint(newFilter);
         }
     }
 
-    private void showDiagonalFilterDialog() {
+    private void showDiagonalDistanceConstraintDialog() {
         FilterDialog fd = new DiagonalFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
-            addFilter(newFilter);
+            addConstraint(newFilter);
         }
     }
 
-    private void showELoopFilterDialog() {
+    private void showELoopConstraintDialog() {
         FilterDialog fd = new ELoopFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
-            addFilter(newFilter);
+            addConstraint(newFilter);
         }
     }
 
-    private void showEnergyFilterDialog() {
+    private void showEnergyConstraintDialog() {
         FilterDialog fd = new EnergyFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
-            addFilter(newFilter);
+            addConstraint(newFilter);
         }
     }
 
-    private void showHelixLengthFilterDialog() {
+    private void showHelixLengthConstraintDialog() {
         FilterDialog fd = new HelixFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
-            addFilter(newFilter);
+            addConstraint(newFilter);
         }
     }
 
@@ -1428,8 +1428,8 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private void closeRNA() {
         appMain.cleanUp();
         refreshForNewRNA();
-        this.enableFilterMenuItems(false);
-        this.basepairFilterItem.setEnabled(false);
+        this.enableConstraintMenuItems(false);
+        this.basepairConstraintItem.setEnabled(false);
         this.clearHistory();
     }
 
@@ -1460,7 +1460,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         this.zoomSlider.setValue(1000); // set to 1x
         this.infoTextPane.setText("");
         setControlLabels();
-        basepairFilterItem.setEnabled(true);
+        basepairConstraintItem.setEnabled(true);
         this.updateImage(); // erases to blank if "appMain.rnaData" is null
     }
 
@@ -1484,9 +1484,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                     appMain.openOverlayRNA(inputFile.getAbsolutePath());
                 } else {
                     appMain.openRNA(inputFile.getAbsolutePath());
-                    // automatically request a base-pair filter, since
+                    // automatically request a base-pair set, since
                     // otherwise the default display is not very useful
-                    showBasePairFilterDialog();
+                    showBasePairConstraintDialog();
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
@@ -1618,9 +1618,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenuItem viewControlMenuItem;
     private javax.swing.JMenuItem contentMenuItem;
-    private javax.swing.JButton undoFilterBtn;
-    private javax.swing.JMenuItem diagonalFilterItem;
-    private javax.swing.JMenuItem helixFilterItem;
+    private javax.swing.JButton undoConstraintBtn;
+    private javax.swing.JMenuItem diagonalConstraintItem;
+    private javax.swing.JMenuItem helixConstraintItem;
     private javax.swing.JMenuItem viewInfoMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenuItem viewHistoryMenuItem;
@@ -1633,8 +1633,8 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JMenuItem viewDisplayMenuItem;
     private javax.swing.JTextPane infoTextPane;
     private javax.swing.JInternalFrame InfoFrame;
-    private javax.swing.JMenuItem aa_agFilterItem;
-    private javax.swing.JMenuItem energyFilterItem;
+    private javax.swing.JMenuItem aa_agConstraintItem;
+    private javax.swing.JMenuItem energyConstraintItem;
     private javax.swing.JButton viewFlatBtn;
     private javax.swing.JMenuItem undoMenuItem;
     private javax.swing.JMenuItem preferencesMenuItem;
@@ -1643,12 +1643,12 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JPanel jPanel4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JMenuItem basepairFilterItem;
+    private javax.swing.JMenuItem basepairConstraintItem;
     private javax.swing.JDesktopPane desktopPane;
     public HelpContentJFrame helpFrame;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JMenuItem eLoopFilterItem;
+    private javax.swing.JMenuItem eLoopConstraintItem;
     private javax.swing.JInternalFrame HistoryFrame;
     private javax.swing.JMenuItem saveAsMenuItem;
     private javax.swing.JPanel jPanel2;
@@ -1673,7 +1673,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JMenu helpMenu;
     private javax.swing.JLabel orgLabel;
     private javax.swing.JMenu filterMenu;
-    private javax.swing.JMenuItem complexFilterItem;
+    private javax.swing.JMenuItem complexConstraintItem;
     private javax.swing.JMenu viewMenu;
     private javax.swing.JCheckBoxMenuItem viewType2DMenuItem;
     private javax.swing.JCheckBoxMenuItem viewTypeFlatMenuItem;

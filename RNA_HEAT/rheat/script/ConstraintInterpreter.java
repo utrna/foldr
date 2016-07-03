@@ -7,13 +7,13 @@ import java.util.*;
 import javax.script.*;
 
 /**
- * Given some type of Filter object, this API can generate the
+ * Given a recognized type of object, this API can generate the
  * scripting command that would be equivalent.  This is useful
  * for producing a history list, for example.
  *
  * @author Kevin Grant
  */
-public class ScriptFilterInterpreter {
+public class ConstraintInterpreter {
 
     /**
      * Creates a scripting command in terms of the "rheat" object for
@@ -23,7 +23,7 @@ public class ScriptFilterInterpreter {
      * @return a JavaScript command string
      * @throws RuntimeException if the filter cannot be interpreted
      */
-    static public String getScriptCommandForFilter(Filter filter) {
+    static public String getScriptCommandFor(Filter filter) {
         StringBuilder sb = new StringBuilder();
         sb.append("rheat.");
         if (filter instanceof AAandAGHelicesFilter) {

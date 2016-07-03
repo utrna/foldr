@@ -18,7 +18,7 @@ public class AAandAGFilterDialog
 extends FilterDialog {
 
     public AAandAGFilterDialog() {
-        super("AA and AG Filter");
+        super("AA and AG Ends");
         initComponents();
     }
 
@@ -42,7 +42,7 @@ extends FilterDialog {
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
-        jLabel1.setText("AA and AG Helix end filter.");
+        jLabel1.setText("(This currently has no parameters.)");
         jPanel1.add(jLabel1);
 
         getContentPane().add(jPanel1);

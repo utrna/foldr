@@ -18,7 +18,7 @@ public class ELoopFilterDialog
 extends FilterDialog {
 
     public ELoopFilterDialog() {
-        super("E-Loop Filter");
+        super("E-Loop");
         initComponents();
     }
 
@@ -45,7 +45,7 @@ extends FilterDialog {
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
-        jLabel1.setText("E-Loop Filter");
+        jLabel1.setText("(This currently has no parameters.)");
         jPanel1.add(jLabel1);
 
         getContentPane().add(jPanel1);

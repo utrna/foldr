@@ -19,7 +19,7 @@ public class DiagonalFilterDialog
 extends FilterDialog {
 
     public DiagonalFilterDialog() {
-        super("Diagonal Filter");
+        super("Diagonal Distance");
         initComponents();
     }
 
@@ -49,7 +49,7 @@ extends FilterDialog {
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
-        jLabel1.setText("Specify the helix range from the diagonal");
+        jLabel1.setText("Specify the helix range from the diagonal:");
         jPanel1.add(jLabel1);
 
         getContentPane().add(jPanel1);

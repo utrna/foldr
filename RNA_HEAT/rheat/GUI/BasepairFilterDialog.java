@@ -19,7 +19,7 @@ public class BasepairFilterDialog
 extends FilterDialog {
 
     public BasepairFilterDialog() {
-        super("Basepair Filter");
+        super("Basepairs");
         initComponents();
     }
 
@@ -55,7 +55,7 @@ extends FilterDialog {
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
-        jLabel1.setText("Please choose the basepairings");
+        jLabel1.setText("Basepairs to include:");
         jPanel1.add(jLabel1);
 
         getContentPane().add(jPanel1);

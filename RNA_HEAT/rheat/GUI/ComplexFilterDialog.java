@@ -19,7 +19,7 @@ public class ComplexFilterDialog
 extends FilterDialog {
 
     public ComplexFilterDialog() {
-        super("Complex Distance Filter");
+        super("Complex Distance");
         initComponents();
     }
 
@@ -49,7 +49,7 @@ extends FilterDialog {
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
-        jLabel1.setText("Specify the parameters for complex distance");
+        jLabel1.setText("Specify the parameters for complex distance:");
         jPanel1.add(jLabel1);
 
         getContentPane().add(jPanel1);

@@ -19,7 +19,7 @@ public class EnergyFilterDialog
 extends FilterDialog {
 
     public EnergyFilterDialog() {
-        super("Energy Filter");
+        super("Helix Energy");
         initComponents();
     }
 
@@ -49,7 +49,7 @@ extends FilterDialog {
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
-        jLabel1.setText("Specify the helix energetic stability");
+        jLabel1.setText("Specify the helix energetic stability:");
         jPanel1.add(jLabel1);
 
         getContentPane().add(jPanel1);

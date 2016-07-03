@@ -19,7 +19,7 @@ public class HelixFilterDialog
 extends FilterDialog {
 
     public HelixFilterDialog() {
-        super("Helix Filter");
+        super("Helix Length");
         initComponents();
     }
 
@@ -37,7 +37,6 @@ extends FilterDialog {
      */
     private void initComponents() {//GEN-BEGIN:initComponents
         jPanel1 = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -49,9 +48,6 @@ extends FilterDialog {
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-
-        jLabel3.setText("Find Helices under these constraints");
-        jPanel1.add(jLabel3);
 
         getContentPane().add(jPanel1);
 
@@ -122,7 +118,6 @@ extends FilterDialog {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel4;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JTextField maxHelixField;
     private javax.swing.JTextField minHelixField;
     private javax.swing.JLabel jLabel2;
