@@ -739,7 +739,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         openDataMenuItem.setMnemonic('o');
         //setKey(openDataMenuItem, KeyEvent.VK_O);
-        openDataMenuItem.setText("Open Data File…");
+        openDataMenuItem.setText("Open Text or Image File…");
         openDataMenuItem.setToolTipText("Opens a data file in a separate display, keeping the RNA display untouched.");
         openDataMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1499,15 +1499,25 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         fc = new JFileChooser(appMain.getPrefHelixDataDir());
         fc.setMultiSelectionEnabled(true);
         fc.setAcceptAllFileFilterUsed(false);
-        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Text Files", "txt"));
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Text or Image Files", "txt", "jpeg", "jpg", "png"));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == fc.APPROVE_OPTION) {
             for (File inputFile : fc.getSelectedFiles()) {
                 try {
-                    TextFileFrame textFrame = new TextFileFrame();
-                    textFrame.openFile(inputFile.getAbsolutePath());
-                    addOrReuseComponent(textFrame);
-                    bringToFront(textFrame);
+                    String filePath = inputFile.getAbsolutePath();
+                    if (filePath.endsWith(".jpeg") ||
+                        filePath.endsWith(".jpg") ||
+                        filePath.endsWith(".png")) {
+                        ImageFileFrame imageFrame = new ImageFileFrame();
+                        imageFrame.openFile(filePath);
+                        addOrReuseComponent(imageFrame);
+                        bringToFront(imageFrame);
+                    } else {
+                        TextFileFrame textFrame = new TextFileFrame();
+                        textFrame.openFile(filePath);
+                        addOrReuseComponent(textFrame);
+                        bringToFront(textFrame);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
