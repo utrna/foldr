@@ -23,11 +23,7 @@ The following things were tried and there were problems:
 
 - "Display Window":
 
-  * Helices are sometimes hard to select, even when zoomed.
-
-  * Helices above the diagonal cannot be selected.
-
-  * Single base-pair should perhaps use a point, not a line.
+  (none)
 
 - "Control Window":
 
@@ -77,6 +73,12 @@ The following items are now FIXED (moved from list above):
     appear.  This could be a display-updating bug.
 
   * Increment is too small when clicking on zoom slider.
+
+  * Helices are sometimes hard to select, even when zoomed.
+
+  * Helices above the diagonal cannot be selected.
+
+  * Single base-pair should perhaps use a point, not a line.
 
 - "Control Window":
 

@@ -7,6 +7,8 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.Math;
 import java.util.*;
 import javax.imageio.ImageIO;
@@ -19,7 +21,7 @@ import javax.swing.plaf.metal.MetalSliderUI;
  *
  * @author  jyzhang
  */
-public class RheatApp extends javax.swing.JFrame {
+public class RheatApp extends javax.swing.JFrame implements PropertyChangeListener {
 
     static public abstract class RheatActionPanel extends javax.swing.JComponent {
 
@@ -129,6 +131,33 @@ public class RheatApp extends javax.swing.JFrame {
     }
 
     /**
+     * Implements PropertyChangeListener; used to update info display.
+     */
+    public void propertyChange(PropertyChangeEvent event) {
+        if (event.getPropertyName().equals(HelixImageGenerator.PROPERTY_SELECTED_HELIX)) {
+            JTextPane textArea = this.infoTextPane;
+            if (textArea != null) {
+                StringBuilder sb = new StringBuilder();
+                Helix selectedHelix = getSelectedHelix();
+                if (selectedHelix == null) {
+                    sb.append("You did not select a helix.\n");
+                } else {
+                    HelixInfo info = new HelixInfo(selectedHelix, appMain.rnaData);
+                    sb.append("Helix Length: " + info.getLength() + "\n");
+                    sb.append("Helix Energy: " + String.format("%.5f", info.getEnergy()) + "\n");
+                    sb.append("5'...." + info.get5PrimeSequence() + "....3'\n");
+                    sb.append("3'...." + info.get3PrimeSequence() + "....5'\n");
+                    sb.append("5' Start: " + (info.get5PrimeStart() + 1) + "\n");
+                    sb.append("5' End: " + (info.get5PrimeEnd() + 1) + "\n");
+                    sb.append("3' Start: " + (info.get3PrimeStart() + 1) + "\n");
+                    sb.append("3' End: " + (info.get3PrimeEnd() + 1) + "\n");
+                }
+                textArea.setText(sb.toString());
+            }
+        }
+    }
+
+    /**
      * Returns the selected helix, or null.
      * @return a Helix object
      */
@@ -152,17 +181,17 @@ public class RheatApp extends javax.swing.JFrame {
         this.appMain.clearHistoryCommands();
     }
 
-    private float getZoomLevel() {
+    private double getZoomLevel() {
         return (zoomSlider.getValue() / 1000f);
     }
 
     private void zoomIn() {
-        float currentZoom = getZoomLevel();
+        double currentZoom = getZoomLevel();
         setZoomLevel(getZoomLevel() + 0.25f); // should match zoom-out amount below
     }
 
     private void zoomOut() {
-        float currentZoom = getZoomLevel();
+        double currentZoom = getZoomLevel();
         setZoomLevel(getZoomLevel() - 0.25f); // should match zoom-in amount above
     }
 
@@ -183,7 +212,7 @@ public class RheatApp extends javax.swing.JFrame {
                                  ? availableSize.getWidth()
                                  : availableSize.getHeight());
         double imageRange = imageSize.getWidth(); // image is square
-        setZoomLevel(getZoomLevel() * (float)(availableRange / imageRange));
+        setZoomLevel(getZoomLevel() * (availableRange / imageRange));
     }
 
     /**
@@ -446,8 +475,8 @@ public class RheatApp extends javax.swing.JFrame {
                     // option 1: set value to point that is clicked:
                     int value = zoomSlider.getValue();
                     value = this.valueForXPosition(zoomSlider.getMousePosition().x);
-		    zoomSlider.setValue(value);
-		} else {
+                    zoomSlider.setValue(value);
+                } else {
                     // option 2: increment or decrement by fixed amount
                     scrollByBlock(direction);
                 }
@@ -468,6 +497,11 @@ public class RheatApp extends javax.swing.JFrame {
         DisplayFrame.getContentPane().add(displayControlPanel);
         DisplayScrollPane = new javax.swing.JScrollPane();
         displayPane = new RNADisplay();
+        displayPane.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                displayPaneMouseClicked(evt);
+            }
+        });
         DisplayScrollPane.setViewportView(displayPane);
         //oldDisplayPane = new javax.swing.JLabel();
         //DisplayScrollPane.setViewportView(oldDisplayPane);
@@ -549,11 +583,6 @@ public class RheatApp extends javax.swing.JFrame {
         DisplayFrame.setMinimumSize(new java.awt.Dimension(100, 100));
         DisplayFrame.setNormalBounds(new java.awt.Rectangle(270, 20, 400, 400));
         DisplayFrame.setVisible(true);
-        DisplayScrollPane.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                displayScrollPaneMouseClicked(evt);
-            }
-        });
 
         DisplayFrame.getContentPane().add(displayControlPanel, java.awt.BorderLayout.NORTH);
         DisplayFrame.getContentPane().add(DisplayScrollPane, java.awt.BorderLayout.CENTER);
@@ -1267,23 +1296,22 @@ public class RheatApp extends javax.swing.JFrame {
      * select a helix for example).  Information about the
      * selected helix will also be updated accordingly.
      */
-    private void displayScrollPaneMouseClicked(java.awt.event.MouseEvent evt) {
+    private void displayPaneMouseClicked(java.awt.event.MouseEvent evt) {
         if (this.helixImgGen != null) {
             java.awt.Point p = evt.getPoint();
             java.awt.Rectangle rect = this.DisplayScrollPane.getViewport().getViewRect();
-            double x = p.getX() + rect.getX();
-            double y = p.getY() + rect.getY();
-            String s = "x: " + x + "; y: " + y + "\n";
-            x = helixImgGen.getUnzoomedX(x);
-            y = helixImgGen.getUnzoomedY(y);
-            this.infoTextPane.setText(s);
-            helixImgGen.clicked(x, y, this.infoTextPane);
+            double x = p.getX();
+            double y = p.getY();
+            helixImgGen.setPrimarySelectionLocation(x, y, rect.getSize());
             this.updateImage();
             // for an unknown reason, normal updates do not seem to
             // take place in the case of a click; perhaps it is due
             // to interference from processing events but in any
             // case, an explicit repaint will work
             displayPane.repaint();
+            // IMPORTANT: current helix is not up-to-date until after
+            // the image is updated; the propertyChange() method is
+            // used to respond slightly later, after an update
         }
     }
 
@@ -1303,13 +1331,17 @@ public class RheatApp extends javax.swing.JFrame {
         about.setVisible(true);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
 
-    private void setZoomLevel(float newLevel) {
+    private void setZoomLevel(double newLevel) {
         zoomSlider.setValue((int)(1000 * newLevel));
         //zoomLevelChanged(); // implicit, from events in slider
     }
 
     private void zoomLevelChanged() {
-        zoomLabel.setText("" + this.getZoomLevel() + "x");
+        double zoom = this.getZoomLevel();
+        String floatFormat = ((zoom < 10)
+                              ? String.format("%.2f", zoom)
+                              : String.format("%.1f", zoom));
+        zoomLabel.setText(floatFormat + "x");
         if (helixImgGen != null) {
             helixImgGen.setZoomLevel(this.getZoomLevel());
             this.updateImage();
@@ -1353,6 +1385,7 @@ public class RheatApp extends javax.swing.JFrame {
             this.helixActualField.setText("" + rna.getActual().getCount());
             this.setTitle("RNA HEAT: " + rna.getUID());
             this.helixImgGen = new HelixImageGenerator(rna.getLength());
+            this.helixImgGen.addPropertyChangeListener(HelixImageGenerator.PROPERTY_SELECTED_HELIX, this); // updates info pane for selected helix
             //this.helixGraphicsLabel = new HelixGraphicsLabel(rna.getLength());
             HelixStore helices = rna.getHelices();
             int count = ((helices != null) ? helices.getCount() : 0);

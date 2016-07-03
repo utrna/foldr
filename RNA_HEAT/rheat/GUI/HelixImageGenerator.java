@@ -7,23 +7,19 @@
 package rheat.GUI;
 
 import rheat.base.*;
-import java.awt.image.BufferedImage;
-import java.awt.Image;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import javax.swing.ImageIcon;
+import java.awt.*;
 import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageFilter;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
 import java.awt.image.FilteredImageSource;
 import java.awt.geom.AffineTransform;
-import java.util.Iterator;
-import java.awt.Point;
 import java.awt.geom.Line2D;
-import javax.swing.JTextPane;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.Iterator;
+import javax.swing.ImageIcon;
 
 /**
  *
@@ -31,65 +27,83 @@ import javax.swing.JTextPane;
  */
 public class HelixImageGenerator {
 
+    public enum HelixType {
+        ACTUAL,
+        PREDICTED
+    };
+
     public static int VIEW_2D = 0;
     public static int VIEW_FLAT = 1;
 
+    /**
+     * Sent to PropertyChangeListener registered with observeSelectedHelix().
+     */
+    public static String PROPERTY_SELECTED_HELIX = "PROPERTY_SELECTED_HELIX";
+
     private int length;
-    private int baseMaxX; // without zoom
-    private int baseMaxY; // without zoom
-    private int maxX;
-    private int maxY;
-    private float zoom;
-    private int imageType;
+    private double zoomFactor;
+    private final double effectiveZoomFactor = 4.0; // a single point occupies this many square pixels at zoom level 1
+    private int imageType = this.VIEW_2D;
+    private Point2D.Double clickPoint = new Point2D.Double(); // coordinates are relative to data (current zoom level)
+    private Line2D.Double tmpLine = new Line2D.Double(); // used for various reasons (saves heap allocations)
     private BufferedImage helix2D;
     private BufferedImage helixFlat;
-    private Point clicked; // coordinates are relative to data (zoom level 1)
+    // a "butt" cap is helpful because it shows exactly how long a line is
+    // (the line is cut off at the end points instead of being extended
+    // with a round or square shape); unfortunately this would make a
+    // single point completely invisible so the length-1 case uses a shape
+    private Stroke strokeLength1Helix = new BasicStroke(0.25f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
+    private Stroke strokeNormalHelix = new BasicStroke(0.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private Stroke strokeSelectedHelix = new BasicStroke(0.75f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private Stroke strokeLength1SelectedHelix = new BasicStroke(0.75f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
+    private Stroke strokeHelixHandle = new BasicStroke(0.1f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
+    private Stroke strokeFlatNormalHelix = new BasicStroke(0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
+    private Stroke strokeAxisLine = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private Stroke strokeClickLocation = new BasicStroke(0.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private Color helixColorActual = Color.blue;
+    private Color helixColorPredicted = Color.red;
+    private Color helixColorSelected = Color.blue;
     private Helix selectedHelix = null;
-    private JTextPane textArea;
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     /** Creates a new instance of HelixImageGenerator */
     public HelixImageGenerator(int l) {
         length = l;
-        baseMaxX = 3 * l;
-        baseMaxY = 3 * l;
-        // as long as image is used, nonzero width/height needed
-        // (will be overwritten if any file is opened)
-        if (baseMaxX <= 0) {
-            baseMaxX = 1;
-            maxX = 1;
-        }
-        if (baseMaxY <= 0) {
-            baseMaxY = 1;
-            maxY = 1;
-        }
-        imageType = this.VIEW_2D;
-        clicked = null;
         setZoomLevel(1);
+    }
+
+    /**
+     * Arranges to notify the given listener (via propertyChange())
+     * when the currently-selected helix changes.  This is especially
+     * useful when responding to events, to make sure that the value
+     * returned by getSelectedHelix() is consistent with the reaction
+     * to the event.
+     */
+    public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(property, listener);
     }
 
     /**
      * Returns the width and height at current zoom level.
      */
     public Dimension getSize() {
-        return new Dimension(maxX, maxY);
+        return new Dimension((int)(zoomFactor * length), (int)(zoomFactor * length));
     }
 
     /**
      * Current display-scale factor (both X and Y directions).
      * @return scale factor, such as 1.0 or 0.5 or 2.0
      */
-    public float getZoomLevel() {
-        return zoom;
+    public double getZoomLevel() {
+        return zoomFactor / effectiveZoomFactor;
     }
 
     /**
      * Changes the horizontal and vertical scaling factors and updates
      * internally-cached values to be consistent.
      */
-    public void setZoomLevel(float z) {
-        zoom = z;
-        maxX = (int)((float)baseMaxX * zoom);
-        maxY = (int)((float)baseMaxY * zoom);
+    public void setZoomLevel(double z) {
+        zoomFactor = z * effectiveZoomFactor;
     }
 
     /**
@@ -100,11 +114,11 @@ public class HelixImageGenerator {
      */
     @Deprecated
     public BufferedImage zoomImage(BufferedImage img) {
-        if (zoom == 1.0) {
+        if (zoomFactor == 1.0) {
             return img;
         }
-        BufferedImage tmp = new BufferedImage((int)maxX, (int)maxY, BufferedImage.TYPE_INT_RGB);
-        AffineTransformOp aop = new AffineTransformOp(AffineTransform.getScaleInstance(zoom, zoom), AffineTransformOp.TYPE_BILINEAR);
+        BufferedImage tmp = new BufferedImage(length, length, BufferedImage.TYPE_INT_RGB);
+        AffineTransformOp aop = new AffineTransformOp(AffineTransform.getScaleInstance(zoomFactor, zoomFactor), AffineTransformOp.TYPE_BILINEAR);
         tmp = aop.createCompatibleDestImage(img, img.getColorModel());
         aop.filter(img, tmp);
         return tmp;
@@ -128,15 +142,16 @@ public class HelixImageGenerator {
      * the size appropriate for the zoom, a new image is created.
      */
     public BufferedImage getImage() {
+        final int zoomDim = (int)(zoomFactor * length);
         if (imageType == this.VIEW_2D) {
-            if ((this.helix2D == null) || (this.helix2D.getWidth() != maxX)) {
-                this.helix2D = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_RGB);
+            if ((this.helix2D == null) || (this.helix2D.getWidth() != zoomDim)) {
+                this.helix2D = new BufferedImage(zoomDim, zoomDim, BufferedImage.TYPE_INT_RGB);
             }
             return this.helix2D;
         }
         if (imageType == this.VIEW_FLAT) {
-            if ((this.helixFlat == null) || (this.helixFlat.getWidth() != maxX)) {
-                this.helixFlat = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_RGB);
+            if ((this.helixFlat == null) || (this.helixFlat.getWidth() != zoomDim)) {
+                this.helixFlat = new BufferedImage(zoomDim, zoomDim, BufferedImage.TYPE_INT_RGB);
             }
             return this.helixFlat;
         }
@@ -144,11 +159,40 @@ public class HelixImageGenerator {
     }
 
     /**
-     * Returns the selected helix, or null.
+     * Returns the selected helix, or null.  See also the method
+     * addPropertyChangeListener(), to find out about changes; it is
+     * VITAL that you query the selected helix from a listener if it
+     * is in response to a mouse event, as the clicked helix might
+     * not be up-to-date within the original event handler.
      * @return a Helix object
      */
     public Helix getSelectedHelix() {
         return this.selectedHelix;
+    }
+
+    /**
+     * Given a (mouse) point relative to a component that displays
+     * this image, and the total size of that component view area,
+     * changes the primary helix selection.  The image is not redrawn
+     * until you call a method such as paintRNA().
+     *
+     * This is referred to as the primary selection because it may
+     * eventually be possible to target multiple helices.
+     *
+     * @param x horizontal coordinate relative to origin of display component
+     * @param y vertical coordinate relative to origin of display component
+     * @param targetSize view dimensions of component (even if image is smaller)
+     */
+    public void setPrimarySelectionLocation(double x, double y, Dimension targetSize) {
+        double xOffset = (zoomFactor * length - targetSize.getWidth()) / 2.0;
+        double yOffset = (zoomFactor * length - targetSize.getHeight()) / 2.0;
+        if (xOffset < 0) {
+            // mouse origin does not match image origin
+            this.clickPoint.setLocation((x + xOffset) / zoomFactor, (y + yOffset) / zoomFactor);
+        } else {
+            // entire image is displayed without padding
+            this.clickPoint.setLocation(x / zoomFactor, y / zoomFactor);
+        }
     }
 
     /**
@@ -164,7 +208,7 @@ public class HelixImageGenerator {
     public BufferedImage drawImage(RNA rna) {
         BufferedImage result = getImage();
         Graphics2D g = result.createGraphics();
-        paintRNA(rna, g, new Dimension(maxX, maxY));
+        paintRNA(rna, g, getSize());
         return result;
     }
 
@@ -177,19 +221,26 @@ public class HelixImageGenerator {
      */
     public void paintBackground(Graphics2D g, Dimension targetSize) {
         AffineTransform oldTransform = g.getTransform();
-        transformGraphics(g, targetSize);
-        int zoomedMaxX = (int)(maxX / zoom);
-        int zoomedMaxY = (int)(maxY / zoom);
-        g.setColor(Color.white);
-        g.fillRect(0, 0, zoomedMaxX, zoomedMaxY);
-        if (this.imageType == this.VIEW_FLAT) {
-            g.setColor(Color.black);
-            g.drawLine(0, zoomedMaxY / 2, zoomedMaxX, zoomedMaxY / 2);
-        } else {
-            g.setColor(Color.black);
-            g.drawLine(0, 0, zoomedMaxX, zoomedMaxY);
+        try {
+            transformGraphics(g, targetSize);
+            // start to end inclusive but there is also extra
+            // room for the dividing line (at 0) so there must
+            // be an extra +1 in each direction
+            g.setColor(Color.white);
+            g.fillRect(0, 0, length, length);
+            if (this.imageType == this.VIEW_FLAT) {
+                //g.setColor(Color.black);
+                //g.setStroke(strokeAxisLine);
+                //g.drawLine(0, length / 2, length - 1, length / 2);
+            } else {
+                g.setColor(Color.black);
+                g.setStroke(strokeAxisLine);
+                // diagonal line covers background rectangle range above
+                g.drawLine(0, 0, length, length);
+            }
+        } finally {
+            g.setTransform(oldTransform);
         }
-        g.setTransform(oldTransform);
     }
 
     /**
@@ -207,13 +258,91 @@ public class HelixImageGenerator {
      */
     public void paintRNA(RNA rna, Graphics2D g, Dimension targetSize) {
         AffineTransform oldTransform = g.getTransform();
-        transformGraphics(g, targetSize);
-        if (this.imageType == this.VIEW_FLAT) {
-            paintFlatImage(rna, g);
-        } else {
-            paint2DImage(rna, g);
+        try {
+            transformGraphics(g, targetSize);
+            if (this.imageType == this.VIEW_FLAT) {
+                paintFlatImage(rna, g);
+            } else {
+                paint2DImage(rna, g);
+            }
+        } finally {
+            g.setTransform(oldTransform);
         }
-        g.setTransform(oldTransform);
+    }
+
+    /**
+     * Helper method for paint2DImage(); may change the value of the
+     * "selectedHelix" (based on the "clickPoint" field value).
+     */
+    private void paintHelix2D(Helix h, HelixType helixType, Graphics2D helixGraphics) {
+        final double clickX = clickPoint.getX();
+        final double clickY = clickPoint.getY();
+        if (helixType == HelixType.ACTUAL) {
+            helixGraphics.setColor(this.helixColorActual);
+        } else {
+            helixGraphics.setColor(this.helixColorPredicted);
+        }
+        /*
+        if (h.getEnergy() < -6) {
+            helixGraphics.setColor(Color.orange);
+        }
+        if (h.getEnergy() < -10) {
+            helixGraphics.setColor(Color.yellow);
+        }
+        if (h.getEnergy() < -18) {
+            helixGraphics.setColor(Color.green);
+        }*/
+        double x0, y0, x1, y1;
+        y0 = h.getStartX();
+        x0 = h.getStartY();
+        if (helixType == HelixType.ACTUAL) {
+            x1 = x0 + (h.getLength() - 1);
+            y1 = y0 - (h.getLength() - 1);
+        } else {
+            x1 = x0 - (h.getLength() - 1);
+            y1 = y0 + (h.getLength() - 1);
+        }
+        this.tmpLine.setLine(x0, y0, x1, y1);
+        boolean becameSelected = false;
+        if (this.selectedHelix == null) {
+            // no helix has been selected in this iteration yet;
+            // scan for clicks slightly outside the target line
+            // as well, to make helices easier to select
+            if (this.tmpLine.ptSegDist(clickX, clickY) < 0.5) {
+                becameSelected = true;
+            }
+        }
+        // TODO: repeatedly testing for intersection is not efficient
+        // if it involves ALL helices; if the data can be rearranged
+        // into a geometric form (such as an R-tree), the start point
+        // can be used to greatly reduce the number of test points;
+        // similarly, such a tree could be used to render only the
+        // helices in a certain area and not necessarily everything
+        if (becameSelected) {
+            this.selectedHelix = h;
+            helixGraphics.setColor(this.helixColorSelected);
+            if (h.getLength() == 1) {
+                // IMPORTANT: cannot use a cap-butt stroke type for a
+                // single-pixel line (it will be invisible); need to
+                // force a stroke that caps with a visible shape
+                helixGraphics.setStroke(strokeLength1SelectedHelix);
+            } else {
+                helixGraphics.setStroke(strokeSelectedHelix);
+            }
+            helixGraphics.draw(this.tmpLine);
+            // draw "handles" (blobs on each end) so that the
+            // selection is more distinct
+            helixGraphics.setStroke(strokeHelixHandle);
+            helixGraphics.drawLine((int)x0 - 1, (int)y0 - 1, (int)x0 + 1, (int)y0 + 1);
+            helixGraphics.drawLine((int)x1 - 1, (int)y1 - 1, (int)x1 + 1, (int)y1 + 1);
+        } else {
+            if (h.getLength() == 1) {
+                helixGraphics.setStroke(strokeLength1Helix);
+            } else {
+                helixGraphics.setStroke(strokeNormalHelix);
+            }
+            helixGraphics.draw(this.tmpLine);
+        }
     }
 
     private void paint2DImage(RNA rna, Graphics2D helixGraphics) {
@@ -221,77 +350,40 @@ public class HelixImageGenerator {
             // nothing to do
             return;
         }
-        //helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        //helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         HelixStore actual = rna.getActual();
+        Helix originalSelection = this.selectedHelix;
+        this.selectedHelix = null; // initially...
         // draw the actual helices on top.
-        if (actual != null){
-            helixGraphics.setColor(Color.blue);
+        if (actual != null) {
             Iterator itr = actual.iterator();
-            while (itr.hasNext()){
+            while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                int x0, y0, x1, y1;
-                y0 = 3 * (h.getStartX());
-                x0 = 3 * (h.getStartY());
-                //System.out.println("" + x0 + "; " + y0);
-                x1 = x0 + 3 * h.getLength();
-                y1 = y0 - 3 * h.getLength();
-                Line2D.Double line = new Line2D.Double(x0, y0, x1, y1);
-                helixGraphics.draw(line);
+                paintHelix2D(h, HelixType.ACTUAL, helixGraphics);
             }
         }
         HelixStore hstore = rna.getHelices();
-        //System.out.println("redrawing 2D image.");
-        this.selectedHelix = null; // initially...
         if (hstore != null) {
-            //helixGraphics.setColor(Color.red);
             Iterator itr = hstore.iterator();
-            boolean helixSelected = false;
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                helixGraphics.setColor(Color.red);
-                /*
-                if (h.getEnergy() < -6){
-                    helixGraphics.setColor(Color.orange);
-                }
-                if (h.getEnergy() < -10){
-                    helixGraphics.setColor(Color.yellow);
-                }
-                if (h.getEnergy() < -18){
-                    helixGraphics.setColor(Color.green);
-                }*/
-                int x0, y0, x1, y1;
-                y0 = 3 * (h.getStartX() + 1);
-                x0 = 3 * (h.getStartY() + 1);
-                //System.out.println("" + x0 + "; " + y0);
-                x1 = x0 - 3 * h.getLength();
-                y1 = y0 + 3 * h.getLength();
-                Line2D.Double line = new Line2D.Double(x0, y0, x1, y1);
-                
-                // scan for clicks slightly outside the target line
-                // as well, to make helices easier to select
-                if (clicked != null &&
-                    (this.contains(x0, y0, x1, y1, clicked) ||
-                     this.contains(x0, y0 - 1, x1, y1 - 1, clicked) ||
-                     this.contains(x0, y0 + 1, x1, y1 + 1, clicked))) {
-                    helixSelected = true;
-                    //System.out.println("Found Point... " + clicked);
-                    helixGraphics.setColor(Color.blue);
-                    helixGraphics.draw(line);
-                    // draw "handles" (blobs on each end) so that the
-                    // selection is more distinct
-                    helixGraphics.fillRect(x0 - 1, y0 - 1, 2, 2);
-                    helixGraphics.fillRect(x1 - 1, y1 - 1, 2, 2);
-                    this.selectedHelix = h;
-                    setInfoText(h, rna);
-                    //clicked = null;
-                    helixGraphics.setColor(Color.red);
-                } else {
-                    helixGraphics.draw(line);
-                }
+                paintHelix2D(h, HelixType.PREDICTED, helixGraphics);
             }
-            if ((!helixSelected) && (textArea != null)) {
-                textArea.setText("You did not select a helix.");
+            if (false) {
+                // debug: show click region
+                final double clickX = clickPoint.getX();
+                final double clickY = clickPoint.getY();
+                Rectangle2D.Double clickArea = new Rectangle2D.Double
+                                                   (clickX - 0.5, clickY - 0.5, 1, 1);
+                helixGraphics.setStroke(strokeClickLocation);
+                helixGraphics.setColor(Color.darkGray);
+                helixGraphics.draw(clickArea);
+            }
+            if (this.selectedHelix != originalSelection) {
+                // TODO: add text labels for base-pairs or other properties?
+                // now notify observers (e.g. to update info pane)
+                pcs.firePropertyChange(PROPERTY_SELECTED_HELIX, originalSelection, this.selectedHelix);
             }
         } else {
             //System.out.println("No helices to draw");
@@ -303,37 +395,32 @@ public class HelixImageGenerator {
             // nothing to do
             return;
         }
-        //helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        //helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         HelixStore hstore = rna.getHelices();
         helixGraphics.setColor(Color.red);
-        if (hstore != null){
-            
+        if (hstore != null) {
             Iterator itr = hstore.iterator();
-            while (itr.hasNext()){
+            helixGraphics.setStroke(strokeFlatNormalHelix);
+            while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                //System.out.println(h.toString());
                 int x0, x1, y, hi, wi;
                 wi = h.getLength();
                 hi = (h.getStartX() - h.getStartY());
-                x0 = 3 * h.getStartX();
-                y = maxY/2 - hi;
+                x0 = h.getStartX();
+                y = (int)(length) - hi;
                 helixGraphics.setColor(Color.red);
-                helixGraphics.drawLine(x0, y - 1, x0, maxY/2);
-                x1 = 3 * h.getStartY();
+                helixGraphics.drawLine(x0, y - 1, x0, (int)(length));
+                x1 = h.getStartY();
                 helixGraphics.setColor(Color.blue);
-                helixGraphics.drawLine(x1, y - 1, x1, maxY/2);
+                helixGraphics.drawLine(x1, y - 1, x1, (int)(length));
                 helixGraphics.setColor(Color.green);
-                helixGraphics.drawLine(x0, y - 1, x1, y -1);
-                //helixGraphics.drawRect(x - 1, y - 1, wi, hi);
-                //helixGraphics.fillRect(x + 3*h.getLength(), y, hi, wi);
-                //x = 3*h.getStartY();
-                //helixGraphics.fillRect(x, y, wi, hi);
+                helixGraphics.drawLine(x0, y - 1, x1, y - 1);
             }
         }
     }
 
-    private Image toImage(BufferedImage bufImage){
+    private Image toImage(BufferedImage bufImage) {
         AffineTransformOp aop = new AffineTransformOp(new AffineTransform(), AffineTransformOp.TYPE_BILINEAR);
         BufferedImageFilter bif = new BufferedImageFilter(aop);
         FilteredImageSource fsource = new FilteredImageSource(bufImage.getSource(), bif);
@@ -347,75 +434,9 @@ public class HelixImageGenerator {
      * @param targetSize the size of the container in which the image will be centered
      */
     private void transformGraphics(Graphics2D g, Dimension targetSize) {
-        double xOffset = (targetSize.getWidth() - maxX) / 2.0;
-        double yOffset = (targetSize.getHeight() - maxY) / 2.0;
+        double xOffset = (targetSize.getWidth() - zoomFactor * length) / 2.0;
+        double yOffset = (targetSize.getHeight() - zoomFactor * length) / 2.0;
         g.translate(xOffset, yOffset);
-        g.scale(this.zoom, this.zoom); // this scales drawing but not image size (see getImage())
+        g.scale(zoomFactor, zoomFactor); // this scales drawing but not image size (see getImage())
     }
-
-    public int getUnzoomedX(double x) {
-        return (int)(x / zoom);
-    }
-
-    public int getUnzoomedY(double y) {
-        return (int)(y / zoom);
-    }
-
-    /**
-     * The given coordinates must be relative to the data
-     * (zoom level 1); see getUnzoomedX().
-     */
-    public void clicked(double x, double y, JTextPane text){
-        int xpt = (int)x;
-        int ypt = (int)y;
-        textArea = text;
-        //System.out.println("Clicked near: " + xpt + "; " + ypt);
-        clicked = new Point(xpt, ypt);
-    }
-
-    private boolean contains(int x0, int y0, int x1, int y1, Point pt){
-        do{
-            if (x0 == (int)pt.getX() && y0 == (int)pt.getY()){
-                return true;
-            }
-            x0--;
-            y0++;
-        }while (x0 != x1 && y0 != y1);
-        return false;
-    }
-
-    private void setInfoText(Helix h, RNA rna){
-        HelixInfo info = new HelixInfo(h, rna);
-        String s = "Helix Length: " + info.getLength() + "\nHelix Energy: " + info.getEnergy() +"\n";
-        s += "5'...." + info.get5PrimeSequence() + "....3'\n";
-        s += "3'...." + info.get3PrimeSequence() + "....5'\n";
-        s += "5' Start: " + (info.get5PrimeStart() + 1) + "\n5' End: " + (info.get5PrimeEnd() + 1) + "\n";
-        s += "3' Start: " + (info.get3PrimeStart() + 1) + "\n3' End: " + (info.get3PrimeEnd() + 1);
-        textArea.setText(s);
-    }
-
-    /* OLD VERSION
-    private void setInfoText(Helix h, RNA rna){
-        int l = h.getLength();
-        int x = h.getStartX();
-        int y = h.getStartY();
-        int dis = Math.abs(y - x) -1;
-        String s = "Helix Length: " + h.getLength() + "\n";
-     
-     
-        String seq = "";
-        for (int i = 0; i < l; i++){
-            seq = rna.getSequence().get(y) +seq;
-            y--;
-        }
-        seq += "..(" + dis + ")..";
-        for (int i = 0; i < l; i++){
-            seq += rna.getSequence().get(x);
-            x++;
-        }
-        s += seq;
-     
-        textArea.setText(s);
-    }
-     */
 }
