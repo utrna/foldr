@@ -23,6 +23,10 @@ import javax.swing.plaf.metal.MetalSliderUI;
  */
 public class RheatApp extends javax.swing.JFrame implements PropertyChangeListener {
 
+    public enum RNADisplayFeature {
+        ZOOM_LEVEL // current zoom level of RNA display
+    }
+
     static public abstract class RheatActionPanel extends javax.swing.JComponent {
 
         private String title = null;
@@ -80,7 +84,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
          * should NOT try to change the window state.
          */
         abstract void actionPanelAccepted();
-    };
+    }
 
     /**
      * For the log() method.
@@ -91,7 +95,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
     // PRIVATE DATAMEMBERS RELEVANT TO RNAHEAT
     private AppMain appMain;
-    private HelixImageGenerator helixImgGen;
+    private HelixImageGenerator helixImgGen = new HelixImageGenerator();
     private JFileChooser fc = new JFileChooser();
     private BufferedImage img = null;
     private Rectangle tmpRect = new Rectangle(); // reused as needed to repaint
@@ -103,6 +107,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     public RheatApp(AppMain appMain) {
         this.appMain = appMain;
         initComponents();
+        this.helixImgGen.addPropertyChangeListener(HelixImageGenerator.PROPERTY_SELECTED_HELIX, this); // updates info pane for selected helix
         this.setBounds(0, 0 , 700, 700);
     }
 
@@ -162,11 +167,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      * @return a Helix object
      */
     public Helix getSelectedHelix() {
-        Helix result = null;
-        if (helixImgGen != null) {
-            result = helixImgGen.getSelectedHelix();
-        }
-        return result;
+        return helixImgGen.getSelectedHelix();
     }
 
     private void addHistoryCommand(String scriptCommandLines) {
@@ -196,9 +197,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     }
 
     private void zoomFit() {
-        if (helixImgGen == null) {
-            return;
-        }
         Dimension availableSize = DisplayScrollPane.getViewport().getSize();
         Dimension imageSize = helixImgGen.getSize();
         if (imageSize.getWidth() <= 0.001) {
@@ -303,9 +301,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
             }
         }
     }
-    
-    private void setControlLabels(){
-        if (appMain.rnaData != null){
+
+    private void setControlLabels() {
+        if (appMain.rnaData != null) {
             this.uidLabel.setText(appMain.rnaData.getUID());
             this.orgLabel.setText(appMain.rnaData.getOrganism());
             this.accNumLabel.setText(appMain.rnaData.getAccession());
@@ -469,7 +467,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                 zoomFit();
             }
         });
-        zoomSlider = new JSlider(200, 20000);
+        zoomSlider = new JSlider(10, 20000);
         zoomSlider.setMajorTickSpacing(2000);
         zoomSlider.setMinorTickSpacing(1000);
         zoomSlider.setPaintTicks(true);
@@ -1355,22 +1353,20 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      * selected helix will also be updated accordingly.
      */
     private void displayPaneMouseClicked(java.awt.event.MouseEvent evt) {
-        if (this.helixImgGen != null) {
-            java.awt.Point p = evt.getPoint();
-            java.awt.Rectangle rect = this.DisplayScrollPane.getViewport().getViewRect();
-            double x = p.getX();
-            double y = p.getY();
-            helixImgGen.setPrimarySelectionLocation(x, y, rect.getSize());
-            this.updateImage();
-            // for an unknown reason, normal updates do not seem to
-            // take place in the case of a click; perhaps it is due
-            // to interference from processing events but in any
-            // case, an explicit repaint will work
-            displayPane.repaint();
-            // IMPORTANT: current helix is not up-to-date until after
-            // the image is updated; the propertyChange() method is
-            // used to respond slightly later, after an update
-        }
+        java.awt.Point p = evt.getPoint();
+        java.awt.Rectangle rect = this.DisplayScrollPane.getViewport().getViewRect();
+        double x = p.getX();
+        double y = p.getY();
+        helixImgGen.setPrimarySelectionLocation(x, y, rect.getSize());
+        this.updateImage();
+        // for an unknown reason, normal updates do not seem to
+        // take place in the case of a click; perhaps it is due
+        // to interference from processing events but in any
+        // case, an explicit repaint will work
+        displayPane.repaint();
+        // IMPORTANT: current helix is not up-to-date until after
+        // the image is updated; the propertyChange() method is
+        // used to respond slightly later, after an update
     }
 
     private void viewHistoryMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHistoryMenuItemActionPerformed
@@ -1400,16 +1396,14 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                               ? String.format("%.2f", zoom)
                               : String.format("%.1f", zoom));
         zoomLabel.setText(floatFormat + "x");
-        if (helixImgGen != null) {
-            helixImgGen.setZoomLevel(this.getZoomLevel());
-            this.updateImage();
-        }
+        helixImgGen.setZoomLevel(this.getZoomLevel());
+        this.updateImage();
     }
 
     private void setViewTypeFlat() {
         viewType2DMenuItem.setState(false);
         viewTypeFlatMenuItem.setState(true);
-        if (helixImgGen != null && helixImgGen.setImageType(HelixImageGenerator.VIEW_FLAT)){
+        if (helixImgGen.setImageType(HelixImageGenerator.VIEW_FLAT)) {
             this.updateImage();
         }
     }
@@ -1417,7 +1411,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private void setViewType2D() {
         viewType2DMenuItem.setState(true);
         viewTypeFlatMenuItem.setState(false);
-        if (helixImgGen != null && helixImgGen.setImageType(HelixImageGenerator.VIEW_2D)){
+        if (helixImgGen.setImageType(HelixImageGenerator.VIEW_2D)) {
             this.updateImage();
         }
     }
@@ -1434,30 +1428,38 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     }
 
     /**
+     * Convenience version of this method that resets everything.
+     */
+    public void refreshForNewRNA() {
+        refreshForNewRNA(EnumSet.noneOf(RNADisplayFeature.class));
+    }
+
+    /**
      * Updates the display to reflect current RNA data.
      * Used after opening helix files.
      */
-    public void refreshForNewRNA() {
+    public void refreshForNewRNA(EnumSet<RNADisplayFeature> thingsToKeep) {
         RNA rna = appMain.rnaData;
         if (rna != null) {
-            this.helixActualField.setText("" + rna.getActual().getCount());
             this.setTitle("RNA HEAT: " + rna.getUID());
-            this.helixImgGen = new HelixImageGenerator(rna.getLength());
-            this.helixImgGen.addPropertyChangeListener(HelixImageGenerator.PROPERTY_SELECTED_HELIX, this); // updates info pane for selected helix
-            //this.helixGraphicsLabel = new HelixGraphicsLabel(rna.getLength());
+            this.helixImgGen.setBaseWidth(rna.getLength());
+            this.helixImgGen.setBaseHeight(rna.getLength());
             HelixStore helices = rna.getHelices();
             int count = ((helices != null) ? helices.getCount() : 0);
+            this.helixActualField.setText("" + rna.getActual().getCount());
             this.helixNumField.setText("" + count);
             this.helixTotalField.setText("");
         } else {
-            this.helixActualField.setText("");
             this.setTitle("RNA HEAT");
-            this.helixImgGen = new HelixImageGenerator(0);
-            //this.helixGraphicsLabel = new HelixGraphicsLabel(0);
+            this.helixImgGen.setBaseWidth(100); // arbitrary (will be blank)
+            this.helixImgGen.setBaseHeight(100);
+            this.helixActualField.setText("");
             this.helixNumField.setText("");
             this.helixTotalField.setText("");
         }
-        this.zoomSlider.setValue(1000); // set to 1x
+        if (!thingsToKeep.contains(RNADisplayFeature.ZOOM_LEVEL)) {
+            setZoomLevel(1);
+        }
         this.infoTextPane.setText("");
         setControlLabels();
         basepairConstraintItem.setEnabled(true);

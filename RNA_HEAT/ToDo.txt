@@ -6,10 +6,6 @@ Written by Kevin Grant (kmgrant@utexas.edu).
 To Do
 ~~~~~
 
-- Allow the contents of multiple RNA files to be superimposed.
-  (When running a separate program, it is necessary to display
-  results on top of the original RNA.)
-
 - Allow colors and helix line widths to be configured; perhaps a
   scripting command to set them for future filters.  It should be
   possible to see multiple sets of helices in different colors.
@@ -29,14 +25,6 @@ To Do
 
 - Highlight (optionally) predicted helices that match actual
   helices displayed in the top-right section.
-
-- Provide a way to organize experiments (e.g. categorized
-  directory structure, use date, etc.) so that external programs
-  run in a particular place.  Probably, when another program is
-  invoked, a new directory should be created and made current so
-  that the external program has a designated place to put its
-  files.  A naming convention for results files should be agreed
-  upon so that the graphical display can update automatically.
 
 - Separate concept of “filter” from “algorithm”, perhaps using
   different top-level menus for running each.
@@ -67,9 +55,6 @@ To Do
   applied at a slow rate.  Another option is the ability to
   export images via scripts and animate the images later.
 
-- Provide a way to display arbitary image and text files so that
-  a single interface can show results from other programs.
-
 - Documentation: Explain meaning of Complex/Simple Distance
   defaults; clearly specify E-Loop.
 
@@ -77,6 +62,21 @@ To Do
 
 Recently Done
 ~~~~~~~~~~~~~
+
+- Provide a way to display arbitary image and text files so that
+  a single interface can show results from other programs.
+
+- Allow the contents of multiple RNA files to be superimposed.
+  (When running a separate program, it is necessary to display
+  results on top of the original RNA.)
+
+- Provide a way to organize experiments (e.g. categorized
+  directory structure, use date, etc.) so that external programs
+  run in a particular place.  Probably, when another program is
+  invoked, a new directory should be created and made current so
+  that the external program has a designated place to put its
+  files.  A naming convention for results files should be agreed
+  upon so that the graphical display can update automatically.
 
 - Move zoom controls to main display window.
 

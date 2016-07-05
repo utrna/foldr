@@ -17,8 +17,6 @@ The following things were tried and there were problems:
 
   * "Complex Distance Filter": Out-of-bounds exception when used.
 
-  * When filter is applied, zoom level resets.
-
   * Explanation of E-Loop Filter is not accurate.
 
 - "Display Window":
@@ -31,14 +29,11 @@ The following things were tried and there were problems:
     "Actual Helices" fields appear to be enabled for typing but
     I think they are meant to always be disabled/view-only.
 
-- "Filter History":
+- "Filter History" (now "Constraint History"):
 
-  * The Undo feature fails on Windows (file issue?).
+  (none)
 
 - General:
-
-  * There are display glitches in Flat View, and when zooming
-    the 2D view to certain levels.
 
   * UI could be tweaked to leave more space for things and have
     more ways to resize, etc.
@@ -64,6 +59,8 @@ The following items are now FIXED (moved from list above):
 - Filters:
 
   * Undoing a filter in the list will remove all those below.
+
+  * When filter is applied, zoom level resets.
 
 - "Display Window":
 
@@ -95,9 +92,16 @@ The following items are now FIXED (moved from list above):
   * Zoom levels as low as 5 or 10 can also run out of memory if
     the file that was loaded is quite large (e.g. 2000 helices).
 
-- "Filter History":
+- "Filter History" (now "Constraint History"):
 
   * Clicking "Undo" may display an error about saving data.
+
+  * The Undo feature fails on Windows (file issue?).
+
+- General:
+
+  * There are display glitches in Flat View, and when zooming
+    the 2D view to certain levels.
 
 - Help:
 

@@ -41,15 +41,16 @@ public class HelixImageGenerator {
     public static int VIEW_FLAT = 1;
 
     /**
-     * Sent to PropertyChangeListener registered with observeSelectedHelix().
+     * Sent to PropertyChangeListener registered with addPropertyChangeListener().
      */
     public static String PROPERTY_SELECTED_HELIX = "PROPERTY_SELECTED_HELIX";
 
-    private int length;
     private double zoomFactor;
     private final double effectiveZoomFactor = 4.0; // a single point occupies this many square pixels at zoom level 1
     private int imageType = this.VIEW_2D;
     private boolean renderInProgress = false; // see beginRender()/endRender()
+    private double baseWidth = 1.0; // pre-zoom pixels of image width
+    private double baseHeight = 1.0; // pre-zoom pixels of image height
     private Point2D.Double clickPoint = new Point2D.Double(); // coordinates are relative to data (current zoom level)
     private Line2D.Double tmpLine = new Line2D.Double(); // used for various reasons (saves heap allocations)
     private BufferedImage helix2D;
@@ -74,8 +75,7 @@ public class HelixImageGenerator {
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     /** Creates a new instance of HelixImageGenerator */
-    public HelixImageGenerator(int l) {
-        length = l;
+    public HelixImageGenerator() {
         setZoomLevel(1);
     }
 
@@ -91,10 +91,35 @@ public class HelixImageGenerator {
     }
 
     /**
+     * Specifies the pre-zoom pixel width to the specified value.
+     * Even if larger renders are requested, the background size
+     * will use the pixel width (and be transformed to zoomed size).
+     *
+     * Generally, the base width should be reset whenever a new RNA
+     * is being used as the primary data source.
+     */
+    public void setBaseWidth(double width) {
+        this.baseWidth = width;
+    }
+
+    /**
+     * Specifies the pre-zoom pixel height to the specified value.
+     * Even if larger renders are requested, the background size
+     * will use the pixel height (and be transformed to zoomed size).
+     *
+     * Generally, the base height should be reset whenever a new RNA
+     * is being used as the primary data source.
+     */
+    public void setBaseHeight(double height) {
+        this.baseHeight = height;
+    }
+
+    /**
      * Returns the width and height at current zoom level.
      */
     public Dimension getSize() {
-        return new Dimension((int)(zoomFactor * length), (int)(zoomFactor * length));
+        return new Dimension((int)(zoomFactor * this.baseWidth),
+                             (int)(zoomFactor * this.baseHeight));
     }
 
     /**
@@ -114,17 +139,17 @@ public class HelixImageGenerator {
     }
 
     /**
-     * Returns a transformed version of the given image, based on the
-     * most recent value given to setZoomLevel().
-     *
-     * Directly implement paintComponent() in a JComponent instead.
+     * Returns a transformed version of the given image.
+     * @param zoomFactor 1.0 for equal size, greater than 1 to blow up, less to shrink
+     * @param img the image to use as a source
+     * @param dims length of each side
+     * @return new image with scaling applied (or "img", if factor is 1.0)
      */
-    @Deprecated
-    public BufferedImage zoomImage(BufferedImage img) {
+    public BufferedImage createZoomedImage(double zoomFactor, BufferedImage img, double dims) {
         if (zoomFactor == 1.0) {
             return img;
         }
-        BufferedImage tmp = new BufferedImage(length, length, BufferedImage.TYPE_INT_RGB);
+        BufferedImage tmp = new BufferedImage((int)dims, (int)dims, BufferedImage.TYPE_INT_RGB);
         AffineTransformOp aop = new AffineTransformOp(AffineTransform.getScaleInstance(zoomFactor, zoomFactor), AffineTransformOp.TYPE_BILINEAR);
         tmp = aop.createCompatibleDestImage(img, img.getColorModel());
         aop.filter(img, tmp);
@@ -149,16 +174,21 @@ public class HelixImageGenerator {
      * the size appropriate for the zoom, a new image is created.
      */
     public BufferedImage getImage() {
-        final int zoomDim = (int)(zoomFactor * length);
+        final int zoomW = (int)(zoomFactor * this.baseWidth);
+        final int zoomH = (int)(zoomFactor * this.baseHeight);
         if (imageType == this.VIEW_2D) {
-            if ((this.helix2D == null) || (this.helix2D.getWidth() != zoomDim)) {
-                this.helix2D = new BufferedImage(zoomDim, zoomDim, BufferedImage.TYPE_INT_RGB);
+            if ((this.helix2D == null) ||
+                (this.helix2D.getWidth() != zoomW) ||
+                (this.helix2D.getHeight() != zoomH)) {
+                this.helix2D = new BufferedImage(zoomW, zoomH, BufferedImage.TYPE_INT_RGB);
             }
             return this.helix2D;
         }
         if (imageType == this.VIEW_FLAT) {
-            if ((this.helixFlat == null) || (this.helixFlat.getWidth() != zoomDim)) {
-                this.helixFlat = new BufferedImage(zoomDim, zoomDim, BufferedImage.TYPE_INT_RGB);
+            if ((this.helixFlat == null) ||
+                (this.helixFlat.getWidth() != zoomW) ||
+                (this.helixFlat.getHeight() != zoomH)) {
+                this.helixFlat = new BufferedImage(zoomW, zoomH, BufferedImage.TYPE_INT_RGB);
             }
             return this.helixFlat;
         }
@@ -191,8 +221,8 @@ public class HelixImageGenerator {
      * @param targetSize view dimensions of component (even if image is smaller)
      */
     public void setPrimarySelectionLocation(double x, double y, Dimension targetSize) {
-        double xOffset = (zoomFactor * length - targetSize.getWidth()) / 2.0;
-        double yOffset = (zoomFactor * length - targetSize.getHeight()) / 2.0;
+        double xOffset = (zoomFactor * this.baseWidth - targetSize.getWidth()) / 2.0;
+        double yOffset = (zoomFactor * this.baseHeight - targetSize.getHeight()) / 2.0;
         if (xOffset < 0) {
             // mouse origin does not match image origin
             this.clickPoint.setLocation((x + xOffset) / zoomFactor, (y + yOffset) / zoomFactor);
@@ -266,16 +296,16 @@ public class HelixImageGenerator {
             // room for the dividing line (at 0) so there must
             // be an extra +1 in each direction
             g.setColor(Color.white);
-            g.fillRect(0, 0, length, length);
+            g.fillRect(0, 0, (int)this.baseWidth, (int)this.baseHeight);
             if (this.imageType == this.VIEW_FLAT) {
                 //g.setColor(Color.black);
                 //g.setStroke(strokeAxisLine);
-                //g.drawLine(0, length / 2, length - 1, length / 2);
+                //g.drawLine(0, this.baseHeight / 2, this.baseWidth - 1, this.baseHeight / 2);
             } else {
                 g.setColor(Color.black);
                 g.setStroke(strokeAxisLine);
                 // diagonal line covers background rectangle range above
-                g.drawLine(0, 0, length, length);
+                g.drawLine(0, 0, (int)this.baseWidth, (int)this.baseHeight);
             }
         } finally {
             g.setTransform(oldTransform);
@@ -461,12 +491,12 @@ public class HelixImageGenerator {
                 wi = h.getLength();
                 hi = (h.getStartX() - h.getStartY());
                 x0 = h.getStartX();
-                y = (int)(length) - hi;
+                y = (int)(this.baseHeight) - hi;
                 helixGraphics.setColor(Color.red);
-                helixGraphics.drawLine(x0, y - 1, x0, (int)(length));
+                helixGraphics.drawLine(x0, y - 1, x0, (int)(this.baseHeight));
                 x1 = h.getStartY();
                 helixGraphics.setColor(Color.blue);
-                helixGraphics.drawLine(x1, y - 1, x1, (int)(length));
+                helixGraphics.drawLine(x1, y - 1, x1, (int)(this.baseHeight));
                 helixGraphics.setColor(Color.green);
                 helixGraphics.drawLine(x0, y - 1, x1, y - 1);
             }
@@ -487,8 +517,8 @@ public class HelixImageGenerator {
      * @param targetSize the size of the container in which the image will be centered
      */
     private void transformGraphics(Graphics2D g, Dimension targetSize) {
-        double xOffset = (targetSize.getWidth() - zoomFactor * length) / 2.0;
-        double yOffset = (targetSize.getHeight() - zoomFactor * length) / 2.0;
+        double xOffset = (targetSize.getWidth() - zoomFactor * this.baseWidth) / 2.0;
+        double yOffset = (targetSize.getHeight() - zoomFactor * this.baseHeight) / 2.0;
         g.translate(xOffset, yOffset);
         g.scale(zoomFactor, zoomFactor); // this scales drawing but not image size (see getImage())
     }

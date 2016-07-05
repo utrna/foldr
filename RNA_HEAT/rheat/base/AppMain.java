@@ -536,7 +536,7 @@ public class AppMain {
                 }
             }
             if (this.gui != null) {
-                this.gui.refreshForNewRNA();
+                this.gui.refreshForNewRNA(EnumSet.of(RheatApp.RNADisplayFeature.ZOOM_LEVEL));
             }
         }
     }
