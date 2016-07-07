@@ -28,6 +28,7 @@ CLASS_PREFIXES += rheat/filter/Filter
 CLASS_PREFIXES += rheat/filter/MaxMinFilter
 CLASS_PREFIXES += rheat/filter/NonDiagonalHelicesFilter
 CLASS_PREFIXES += rheat/GUI/AAandAGFilterDialog
+CLASS_PREFIXES += rheat/GUI/AboutFrame
 CLASS_PREFIXES += rheat/GUI/BasepairFilterDialog
 CLASS_PREFIXES += rheat/GUI/BusyWaitDialog
 CLASS_PREFIXES += rheat/GUI/ComplexFilterDialog
@@ -65,7 +66,6 @@ rheat.jar: $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)  $(HELP_FILES)
 	@# inner classes and they have dollar signs, a search
 	@# is performed and the results are quoted
 	jar cmvf META-INF/MANIFEST.MF $@ \
-		rheat/GUI/AboutIcon.gif \
 		$(HELP_FILES) \
 		$(foreach X,$(shell find rheat -name '*.class'),'$(X)')
 

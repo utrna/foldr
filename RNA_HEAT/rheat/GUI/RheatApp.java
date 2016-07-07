@@ -140,7 +140,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      */
     public void propertyChange(PropertyChangeEvent event) {
         if (event.getPropertyName().equals(HelixImageGenerator.PROPERTY_SELECTED_HELIX)) {
-            JTextPane textArea = this.infoTextPane;
+            JTextPane textArea = this.helixInfoTextPane;
             if (textArea != null) {
                 StringBuilder sb = new StringBuilder();
                 Helix selectedHelix = getSelectedHelix();
@@ -379,49 +379,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
             this.complexConstraintItem.setEnabled(false);
         }
     }
-    
-    /**
-     * A public method that returns the coordinates that will center
-     * a newly opened JFrame against the application JFrame
-     * (Using this does not guarantee window will be onscreen)
-     */
-    public Point getCenteredOrigin(java.awt.Window f){
-        int frontWidth, frontHeight;    //Width and Height of newly opened
-        int backHeight, backWidth;      //Width and height of current
-        int backX, backY;               //Origin of current
-        int frontX = 0, frontY = 0;             //Origin of new (to be determined)
-        
-        frontWidth = f.getWidth();
-        frontHeight = f.getHeight();
-        
-        backWidth = this.getWidth();
-        backHeight = this.getWidth();
-        
-        backX = this.getX();
-        backY = this.getY();
-        
-        //Find difference in height between the two windows
-        int diffHeight = Math.abs(backHeight/2 - frontHeight/2);
-        //Find difference in width between the two windows
-        int diffWidth = Math.abs(backWidth/2 - frontWidth/2);
-        
-        // Compare to see if the new JFrame is larger/smaller in height/width
-        // and calculate new coordinates accordingly
-        if (backWidth >= frontWidth){
-            frontX = (backX + diffWidth);
-        }
-        else if (backWidth < frontWidth){
-            frontX = Math.max(0, backX - diffWidth);
-        }
-        
-        if (backHeight >= backHeight){
-            frontY = backY + diffHeight;
-        }
-        else if (backWidth < backWidth){
-            frontY = Math.max(0, backY - diffHeight);
-        }
-        return new Point(frontX, frontY);
-    }
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -436,6 +393,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         customOpenPane.add(openOverlayCheckBox);
 
         helpFrame = new HelpContentJFrame();
+        aboutFrame = new AboutFrame();
 
         DisplayFrame = new javax.swing.JInternalFrame();
         displayControlPanel = new javax.swing.JPanel();
@@ -511,15 +469,13 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         DisplayScrollPane.setViewportView(displayPane);
         //oldDisplayPane = new javax.swing.JLabel();
         //DisplayScrollPane.setViewportView(oldDisplayPane);
-        ControlFrame = new javax.swing.JInternalFrame();
+        currentRNAInfoFrame = new javax.swing.JInternalFrame();
         jPanel1 = new javax.swing.JPanel();
         uidLabel = new javax.swing.JLabel();
         orgLabel = new javax.swing.JLabel();
         accNumLabel = new javax.swing.JLabel();
         lengthLabel = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        view2DBtn = new javax.swing.JButton();
-        viewFlatBtn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         helixNumField = new javax.swing.JTextField();
@@ -535,7 +491,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         undoConstraintBtn = new javax.swing.JButton();
         InfoFrame = new javax.swing.JInternalFrame();
         jScrollPane1 = new javax.swing.JScrollPane();
-        infoTextPane = new javax.swing.JTextPane();
+        helixInfoTextPane = new javax.swing.JTextPane();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openRNAMenuItem = new javax.swing.JMenuItem();
@@ -569,9 +525,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         zoomFitMenuItem = new javax.swing.JMenuItem();
         windowMenu = new javax.swing.JMenu();
         viewDisplayMenuItem = new javax.swing.JMenuItem();
-        viewControlMenuItem = new javax.swing.JMenuItem();
+        viewRNAInfoMenuItem = new javax.swing.JMenuItem();
         viewHistoryMenuItem = new javax.swing.JMenuItem();
-        viewInfoMenuItem = new javax.swing.JMenuItem();
+        viewHelixInfoMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentMenuItem = new javax.swing.JMenuItem();
         goBackMenuItem = new javax.swing.JMenuItem();
@@ -598,11 +554,11 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         DisplayFrame.setBounds(270, 10, 500, 500);
 
-        ControlFrame.getContentPane().setLayout(new java.awt.GridLayout(3, 0));
+        currentRNAInfoFrame.getContentPane().setLayout(new java.awt.GridLayout(3, 0));
 
-        ControlFrame.setIconifiable(true);
-        ControlFrame.setTitle("Controls");
-        ControlFrame.setVisible(true);
+        currentRNAInfoFrame.setIconifiable(true);
+        currentRNAInfoFrame.setTitle("RNA File Info");
+        currentRNAInfoFrame.setVisible(true);
         jPanel1.setLayout(new java.awt.GridLayout(5, 0));
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
@@ -615,29 +571,11 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         jPanel1.add(lengthLabel);
 
-        ControlFrame.getContentPane().add(jPanel1);
+        currentRNAInfoFrame.getContentPane().add(jPanel1);
 
         jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
-        view2DBtn.setText("2D View");
-        view2DBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                setViewType2D();
-            }
-        });
-
-        jPanel3.add(view2DBtn);
-
-        viewFlatBtn.setText("Flat View");
-        viewFlatBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                setViewTypeFlat();
-            }
-        });
-
-        jPanel3.add(viewFlatBtn);
-
-        ControlFrame.getContentPane().add(jPanel3);
+        currentRNAInfoFrame.getContentPane().add(jPanel3);
 
         jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -665,9 +603,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         helixActualField.setEnabled(false);
         jPanel2.add(helixActualField);
 
-        ControlFrame.getContentPane().add(jPanel2);
+        currentRNAInfoFrame.getContentPane().add(jPanel2);
 
-        ControlFrame.setBounds(10, 10, 250, 330);
+        currentRNAInfoFrame.setBounds(10, 10, 250, 330);
 
         BorderLayout historyLayout = new java.awt.BorderLayout();
         HistoryFrame.getContentPane().setLayout(historyLayout);
@@ -708,9 +646,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         InfoFrame.setResizable(true);
         InfoFrame.setTitle("Helix Info");
         InfoFrame.setVisible(true);
-        infoTextPane.setEditable(false);
-        infoTextPane.setFont(getMonospacedFont(infoTextPane.getFont(), 12)); // monospaced font so pairs are easier to see
-        jScrollPane1.setViewportView(infoTextPane);
+        helixInfoTextPane.setEditable(false);
+        helixInfoTextPane.setFont(getMonospacedFont(helixInfoTextPane.getFont(), 12)); // monospaced font so pairs are easier to see
+        jScrollPane1.setViewportView(helixInfoTextPane);
 
         InfoFrame.getContentPane().add(jScrollPane1);
 
@@ -963,7 +901,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         viewMenu.add(viewType2DMenuItem);
 
-        viewTypeFlatMenuItem.setMnemonic('F');
+        viewTypeFlatMenuItem.setMnemonic('l');
         viewTypeFlatMenuItem.setText("Flat");
         viewTypeFlatMenuItem.setToolTipText("Changes to a single-axis display mode.");
         viewTypeFlatMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -1067,7 +1005,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         viewDisplayMenuItem.setMnemonic('D');
         viewDisplayMenuItem.setText("Display Window");
-        viewDisplayMenuItem.setToolTipText("Brings the Display Window to the front.");
+        viewDisplayMenuItem.setToolTipText("Brings Display Window to the front.");
         viewDisplayMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewDisplayMenuItemActionPerformed(evt);
@@ -1076,20 +1014,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         windowMenu.add(viewDisplayMenuItem);
 
-        viewControlMenuItem.setMnemonic('C');
-        viewControlMenuItem.setText("Controls");
-        viewControlMenuItem.setToolTipText("Brings the Controls to the front.");
-        viewControlMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                viewControlMenuItemActionPerformed(evt);
-            }
-        });
-
-        windowMenu.add(viewControlMenuItem);
-
         viewHistoryMenuItem.setMnemonic('H');
         viewHistoryMenuItem.setText("Constraint History");
-        viewHistoryMenuItem.setToolTipText("Brings the Constraint History to the front.");
+        viewHistoryMenuItem.setToolTipText("Brings Constraint History to the front.");
         viewHistoryMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewHistoryMenuItemActionPerformed(evt);
@@ -1098,17 +1025,28 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         windowMenu.add(viewHistoryMenuItem);
 
-        viewInfoMenuItem.setMnemonic('I');
-        setKey(viewInfoMenuItem, KeyEvent.VK_I);
-        viewInfoMenuItem.setText("Helix Info");
-        viewInfoMenuItem.setToolTipText("Brings the Helix Info to the front.");
-        viewInfoMenuItem.addActionListener(new java.awt.event.ActionListener() {
+        viewRNAInfoMenuItem.setMnemonic('R');
+        viewRNAInfoMenuItem.setText("RNA File Info");
+        viewRNAInfoMenuItem.setToolTipText("Brings RNA File Info to the front.");
+        viewRNAInfoMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                viewInfoMenuItemActionPerformed(evt);
+                viewRNAInfoMenuItemActionPerformed(evt);
             }
         });
 
-        windowMenu.add(viewInfoMenuItem);
+        windowMenu.add(viewRNAInfoMenuItem);
+
+        viewHelixInfoMenuItem.setMnemonic('I');
+        setKey(viewHelixInfoMenuItem, KeyEvent.VK_I);
+        viewHelixInfoMenuItem.setText("Helix Info");
+        viewHelixInfoMenuItem.setToolTipText("Brings Helix Info to the front.");
+        viewHelixInfoMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                viewHelixInfoMenuItemActionPerformed(evt);
+            }
+        });
+
+        windowMenu.add(viewHelixInfoMenuItem);
 
         menuBar.add(windowMenu);
 
@@ -1152,7 +1090,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         setJMenuBar(menuBar);
 
-        addOrReuseComponent(ControlFrame);
+        addOrReuseComponent(currentRNAInfoFrame);
         addOrReuseComponent(InfoFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
         addOrReuseComponent(HistoryFrame);
         addOrReuseComponent(DisplayFrame);
@@ -1342,9 +1280,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         }
     }//GEN-LAST:event_saveAsMenuItemActionPerformed
 
-    private void viewInfoMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewInfoMenuItemActionPerformed
+    private void viewHelixInfoMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHelixInfoMenuItemActionPerformed
         this.bringToFront(this.InfoFrame);
-    }//GEN-LAST:event_viewInfoMenuItemActionPerformed
+    }//GEN-LAST:event_viewHelixInfoMenuItemActionPerformed
 
     /**
      * Responds to a mouse click by updating the display (to
@@ -1377,12 +1315,10 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         bringToFront(helpFrame);
     }
 
-    private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
-        HelpAboutJFrame about = new HelpAboutJFrame();
-        Point origin = getCenteredOrigin(about);
-        about.setLocation(origin);
-        about.setVisible(true);
-    }//GEN-LAST:event_aboutMenuItemActionPerformed
+    private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        addOrReuseComponent(aboutFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
+        bringToFront(aboutFrame);
+    }
 
     private void setZoomLevel(double newLevel) {
         zoomSlider.setValue((int)(1000 * newLevel));
@@ -1459,7 +1395,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         if (!thingsToKeep.contains(RNADisplayFeature.ZOOM_LEVEL)) {
             setZoomLevel(1);
         }
-        this.infoTextPane.setText("");
+        this.helixInfoTextPane.setText("");
         setControlLabels();
         basepairConstraintItem.setEnabled(true);
         this.updateImage(); // erases to blank if "appMain.rnaData" is null
@@ -1577,9 +1513,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         }
     }
 
-    private void viewControlMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewControlMenuItemActionPerformed
-        bringToFront(this.ControlFrame);
-    }//GEN-LAST:event_viewControlMenuItemActionPerformed
+    private void viewRNAInfoMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewRNAInfoMenuItemActionPerformed
+        bringToFront(this.currentRNAInfoFrame);
+    }//GEN-LAST:event_viewRNAInfoMenuItemActionPerformed
 
     private void viewDisplayMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewDisplayMenuItemActionPerformed
         bringToFront(this.DisplayFrame);
@@ -1617,26 +1553,25 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JMenu windowMenu;
     private javax.swing.JTextField helixNumField;
     private javax.swing.JMenu fileMenu;
-    private javax.swing.JMenuItem viewControlMenuItem;
+    private javax.swing.JMenuItem viewRNAInfoMenuItem;
     private javax.swing.JMenuItem contentMenuItem;
     private javax.swing.JButton undoConstraintBtn;
     private javax.swing.JMenuItem diagonalConstraintItem;
     private javax.swing.JMenuItem helixConstraintItem;
-    private javax.swing.JMenuItem viewInfoMenuItem;
+    private javax.swing.JMenuItem viewHelixInfoMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenuItem viewHistoryMenuItem;
     private javax.swing.JTextField helixTotalField;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JScrollPane DisplayScrollPane;
-    private javax.swing.JInternalFrame ControlFrame;
+    private javax.swing.JInternalFrame currentRNAInfoFrame;
     private javax.swing.JMenu editMenu;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JMenuItem viewDisplayMenuItem;
-    private javax.swing.JTextPane infoTextPane;
+    private javax.swing.JTextPane helixInfoTextPane;
     private javax.swing.JInternalFrame InfoFrame;
     private javax.swing.JMenuItem aa_agConstraintItem;
     private javax.swing.JMenuItem energyConstraintItem;
-    private javax.swing.JButton viewFlatBtn;
     private javax.swing.JMenuItem undoMenuItem;
     private javax.swing.JMenuItem preferencesMenuItem;
     private javax.swing.JTextField helixActualField;
@@ -1657,7 +1592,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel uidLabel;
     private javax.swing.JLabel accNumLabel;
-    private javax.swing.JButton view2DBtn;
     private javax.swing.JMenuItem openRNAMenuItem;
     private javax.swing.JMenuItem openDataMenuItem;
     private javax.swing.JMenuItem runScriptMenuItem;
@@ -1692,6 +1626,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private JLabel zoomLabel;
     private JSlider zoomSlider;
     private RNADisplay displayPane;
+    private AboutFrame aboutFrame;
     //private javax.swing.JLabel oldDisplayPane; // obsolete (replaced with custom-painted view)
 
 }
