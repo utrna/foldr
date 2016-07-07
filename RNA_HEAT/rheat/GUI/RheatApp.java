@@ -306,10 +306,9 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         if (appMain.rnaData != null) {
             this.uidLabel.setText(appMain.rnaData.getUID());
             this.orgLabel.setText(appMain.rnaData.getOrganism());
-            this.accNumLabel.setText(appMain.rnaData.getAccession());
-            this.lengthLabel.setText(appMain.rnaData.getSize());
-        }
-        else {
+            this.accNumLabel.setText("Accession #: " + appMain.rnaData.getAccession());
+            this.lengthLabel.setText("Length: " + appMain.rnaData.getLength() + " bp");
+        } else {
             this.uidLabel.setText("");
             this.orgLabel.setText("");
             this.accNumLabel.setText("");

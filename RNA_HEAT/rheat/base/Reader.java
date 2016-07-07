@@ -23,26 +23,19 @@ import java.util.Iterator;
  * @author Team MatriX
  */
 public class Reader {
-    
-    /** Constructor for a Reader.
-     * @param absPath The name of the input file.
-     */
+
     public Reader(String absPath) throws IOException {
         FileInputStream fis;
         fis = new FileInputStream(absPath);
         reader = new BufferedReader(new InputStreamReader(fis));
     }
-    
-    public Reader(File f) throws IOException {
-        FileInputStream fis = new FileInputStream(f);
-        reader = new BufferedReader(new InputStreamReader(fis));
-    }
-    
-    /** Reads a BPSEQ file and outputs the RNA read.  It also reads some other
-     * information contained in the BPSEQ file headers.
-     * @return An RNA object from the BPSEQ file read.
+
+    /**
+     * Constructs RNA data from a ".bpseq" file.
+     * @return object representing data in file, or null on failure
      */
-    public RNA readBPSEQ(){
+    public RNA readBPSEQ() {
+        RNA result = null;
         final ArrayList<String> alist = new ArrayList<String>();
         final ArrayList<Pair> realBP = new ArrayList<Pair>();
         try {
@@ -70,91 +63,76 @@ public class Reader {
             System.out.println(acc);
             // read misc information for this RNA
             String otherInfo = reader.readLine();
-            Thread t = new Thread(){
-                public void run(){
+            Thread t = new Thread() {
+                public void run() {
                     try {
                         String temp = reader.readLine();
-                        while(temp != "" && temp != null){
-                            //System.out.println(temp);
+                        while (temp != "" && temp != null) {
                             StringTokenizer token = new StringTokenizer(temp);
                             int pos = Integer.parseInt(token.nextToken());
                             String nucleotide = token.nextToken();
                             int align = Integer.parseInt(token.nextToken());
-                            if (align != 0){
+                            // 0 here indicates a "lack of pairing"; note
+                            // that later, index 1 becomes 0 (zero-based)
+                            if (align != 0) {
                                 Pair p = new Pair(pos, align);
                                 realBP.add(p);
-                                //System.out.println(p.toString());
                             }
-                            //System.out.print(nucleotide);
                             alist.add(nucleotide);
                             temp = reader.readLine();
                         }
-                    }
-                    catch(IOException e){
-                        //e.printStackTrace();
-                        System.out.println();
-                        System.out.println("End of File");
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
             };
             t.start();
             t.join();
-            RNA rna = new RNA(uid, org, acc, otherInfo, alist);
+            result = new RNA(uid, org, acc, otherInfo, alist);
             boolean[][] actual = new boolean[alist.size()][alist.size()];
             Iterator itr = realBP.iterator();
-            while (itr.hasNext()){
+            while (itr.hasNext()) {
                 Pair p = (Pair)itr.next();
-                //System.out.println(p.toString());
-                int i = p.getA();
-                int j = p.getB();
-                actual[i][j] = true;
+                // convert to zero-based (to serve as array indices)
+                int i = (p.a - 1);
+                int j = (p.b - 1);
+                //actual[i][j] = true;
+                actual[j][i] = true;
             }
-            rna.setActual(actual);
-            return rna;
+            result.setActual(actual);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = null;
         }
-        catch (IOException e){
-            
-        }
-        catch(InterruptedException e){
-            throw new RuntimeException("Error: Read thread is interrupted.");
-        }
-        catch(NumberFormatException e){
-            throw new RuntimeException("Error: Wrong file format.");
-        }
-        catch(NoSuchElementException e){
-            throw new RuntimeException("Error: Wrong file format.");
-        }
-        return null;
+        return result;
     }
-    
-    BufferedReader reader;
+
+    private BufferedReader reader;
 }
 
-class Pair{
-    
-    public Pair(int i, int j){
-        if (i < j){
+/**
+ * Construct pairing with canonical ordering.
+ */
+class Pair {
+
+    public Pair(int i, int j) {
+        setValues(i, j);
+    }
+
+    public void setValues(int i, int j) {
+        if (i < j) {
             a = i;
             b = j;
-        }
-        else {
+        } else {
             a = j;
             b = i;
         }
     }
-    
-    public int getA(){
-        return a;
-    }
-    
-    public int getB(){
-        return b;
-    }
-    
-    public String toString(){
+
+    public String toString() {
         return "" + a + " - " + b;
     }
-    
-    private int a;
-    private int b;
+
+    public int a;
+    public int b;
 }

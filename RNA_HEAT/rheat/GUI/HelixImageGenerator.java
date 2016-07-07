@@ -351,6 +351,7 @@ public class HelixImageGenerator {
      */
     private void paintHelix2D(Helix h, HelixType helixType, RenderingType renderingType, Graphics2D helixGraphics) {
         assert renderInProgress;
+        final double helixLength = h.getLength();
         final double clickX = clickPoint.getX();
         final double clickY = clickPoint.getY();
         if (helixType == HelixType.ACTUAL) {
@@ -370,15 +371,20 @@ public class HelixImageGenerator {
         if (h.getEnergy() < -18) {
             helixGraphics.setColor(Color.green);
         }*/
-        double x0, y0, x1, y1;
-        y0 = h.getStartX();
-        x0 = h.getStartY();
+        // baseline: place helix in lower-left section, not mirrored
+        double x0 = h.getStartY() + 1;
+        double y0 = h.getStartX() + 1;
+        double x1 = x0 - (helixLength - 1);
+        double y1 = y0 + (helixLength - 1);
         if (helixType == HelixType.ACTUAL) {
-            x1 = x0 + (h.getLength() - 1);
-            y1 = y0 - (h.getLength() - 1);
-        } else {
-            x1 = x0 - (h.getLength() - 1);
-            y1 = y0 + (h.getLength() - 1);
+            // place helix in upper-right section, mirrored on diagonal;
+            // note that this is a visual choice only, as the original helix
+            // data remains relative to the same origin as predicted helices
+            // (this makes them easy to compare)
+            x0 = h.getStartX() + 1;
+            y0 = h.getStartY() + 1;
+            x1 = x0 + (helixLength - 1); // grow line in opposite direction from point (away from diagonal)
+            y1 = y0 - (helixLength - 1);
         }
         this.tmpLine.setLine(x0, y0, x1, y1);
         boolean becameSelected = false;
@@ -399,7 +405,7 @@ public class HelixImageGenerator {
         if (becameSelected) {
             this.selectedHelix = h;
             helixGraphics.setColor(this.helixColorSelected);
-            if (h.getLength() == 1) {
+            if (helixLength == 1) {
                 // IMPORTANT: cannot use a cap-butt stroke type for a
                 // single-pixel line (it will be invisible); need to
                 // force a stroke that caps with a visible shape
@@ -411,10 +417,12 @@ public class HelixImageGenerator {
             // draw "handles" (blobs on each end) so that the
             // selection is more distinct
             helixGraphics.setStroke(strokeHelixHandle);
-            helixGraphics.drawLine((int)x0 - 1, (int)y0 - 1, (int)x0 + 1, (int)y0 + 1);
-            helixGraphics.drawLine((int)x1 - 1, (int)y1 - 1, (int)x1 + 1, (int)y1 + 1);
+            this.tmpLine.setLine(x0 - 1, y0 - 1, x0 + 1, y0 + 1);
+            helixGraphics.draw(this.tmpLine);
+            this.tmpLine.setLine(x1 - 1, y1 - 1, x1 + 1, y1 + 1);
+            helixGraphics.draw(this.tmpLine);
         } else {
-            if (h.getLength() == 1) {
+            if (helixLength == 1) {
                 helixGraphics.setStroke(strokeLength1Helix);
             } else {
                 helixGraphics.setStroke(strokeNormalHelix);
@@ -436,15 +444,7 @@ public class HelixImageGenerator {
         }
         helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        HelixStore actual = rna.getActual();
-        // draw the actual helices on top
-        if (actual != null) {
-            Iterator itr = actual.iterator();
-            while (itr.hasNext()) {
-                Helix h = (Helix)itr.next();
-                paintHelix2D(h, HelixType.ACTUAL, renderingType, helixGraphics);
-            }
-        }
+        // draw the predicted helices in the lower-left triangle
         HelixStore hstore = rna.getHelices();
         if (hstore != null) {
             Iterator itr = hstore.iterator();
@@ -462,8 +462,15 @@ public class HelixImageGenerator {
                 helixGraphics.setColor(Color.darkGray);
                 helixGraphics.draw(clickArea);
             }
-        } else {
-            //System.out.println("No helices to draw");
+        }
+        // draw the actual helices in the top-right triangle
+        HelixStore actual = rna.getActual();
+        if (actual != null) {
+            Iterator itr = actual.iterator();
+            while (itr.hasNext()) {
+                Helix h = (Helix)itr.next();
+                paintHelix2D(h, HelixType.ACTUAL, renderingType, helixGraphics);
+            }
         }
     }
 
