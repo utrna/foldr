@@ -251,6 +251,25 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         // TODO: statusPercent is not displayed
     }
 
+    /**
+     * Displays the contents of the given file in a new window.
+     */
+    public void openDataFile(String filePath) throws IOException {
+        if (filePath.endsWith(".jpeg") ||
+            filePath.endsWith(".jpg") ||
+            filePath.endsWith(".png")) {
+            ImageFileFrame imageFrame = new ImageFileFrame();
+            imageFrame.openFile(filePath);
+            addOrReuseComponent(imageFrame);
+            bringToFront(imageFrame);
+        } else {
+            TextFileFrame textFrame = new TextFileFrame();
+            textFrame.openFile(filePath);
+            addOrReuseComponent(textFrame);
+            bringToFront(textFrame);
+        }
+    }
+
     private void updateImage() {
         displayPane.setRNA(appMain.rnaData);
         if (appMain.overlayData != null) {
@@ -1437,24 +1456,13 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         fc.setMultiSelectionEnabled(true);
         fc.setAcceptAllFileFilterUsed(false);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Text or Image Files", "txt", "jpeg", "jpg", "png"));
+        fc.setAcceptAllFileFilterUsed(true); // try to open anything as text
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == fc.APPROVE_OPTION) {
             for (File inputFile : fc.getSelectedFiles()) {
                 try {
                     String filePath = inputFile.getAbsolutePath();
-                    if (filePath.endsWith(".jpeg") ||
-                        filePath.endsWith(".jpg") ||
-                        filePath.endsWith(".png")) {
-                        ImageFileFrame imageFrame = new ImageFileFrame();
-                        imageFrame.openFile(filePath);
-                        addOrReuseComponent(imageFrame);
-                        bringToFront(imageFrame);
-                    } else {
-                        TextFileFrame textFrame = new TextFileFrame();
-                        textFrame.openFile(filePath);
-                        addOrReuseComponent(textFrame);
-                        bringToFront(textFrame);
-                    }
+                    this.openDataFile(filePath);
                 } catch (Exception e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);

@@ -69,6 +69,7 @@ public class HelpContentJFrame extends javax.swing.JInternalFrame {
           new BookInfo("Getting Started", "intro.html"),
           new BookInfo("Windows", "windows.html"),
           new BookInfo("Menus", "menus.html"),
+          new BookInfo("Running Programs", "programs.html"),
           new BookInfo("Scripting", "scripting.html")
         });
         jTree1 = new javax.swing.JTree(root);

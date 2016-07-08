@@ -652,6 +652,9 @@ public class AppMain {
             exitStatus = -1;
         }
         log(INFO, "Exited (status " + exitStatus + "); output is in '" + logFile.getPath() + "'.");
+        // TODO: there might be file system race conditions here; may
+        // want a mechanism for delaying or otherwise retrying the
+        // opening of output files
         if ((exitStatus == 0) && (this.gui != null)) {
             // after a successful run, if a designated output file exists
             // then automatically import it as an overlay
@@ -660,6 +663,17 @@ public class AppMain {
                 log(INFO, "Located results in '" + outputPath + "'; opening as overlay…");
                 openOverlayRNA(outputPath);
             }
+            // if any explicit text or image output exists, open the file in a new window
+            String[] candidates = new String[]{ "txt", "png", "jpg", "jpeg" };
+            for (String s : candidates) {
+                outputPath = makePath(runDir, "output." + s);
+                File asFile = new File(outputPath);
+                if (asFile.exists() && (asFile.length() > 0)) {
+                    log(INFO, "Located results in '" + outputPath + "'; opening as data…");
+                    this.gui.openDataFile(outputPath);
+                }
+            }
+            // append the log output to the log area
         }
         return exitStatus;
     }

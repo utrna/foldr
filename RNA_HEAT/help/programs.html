@@ -1,0 +1,52 @@
+<html>
+<head>
+<title>RNA HEAT: Running Programs</title>
+<link rel="stylesheet" type="text/css" href="default.css" />
+</head>
+<body>
+  <h1>RNA HEAT: Running Programs</h1>
+
+  <br /><br />
+  <h2>Using the GUI to Run</h2>
+  <p>Select the "Run Program" command in the File menu to run arbitrary
+  programs (or see below for information on doing this from a script).
+
+  <br /><br />
+  <h2>Program Input</h2>
+  <p>Before the program runs, the directory is changed to the current
+  experiment tree (the root of which is set by Preferences; a unique
+  subdirectory is automatically created first).
+  <p>If you have opened an RNA, the file that you used is automatically
+  copied to the experiment directory, under the name "input.bpseq" (or
+  whichever file extension you used).  This convention allows programs
+  to easily guess the name and location of the data, without having to be
+  told where the data is.
+
+  <br /><br />
+  <h2>Program Output</h2>
+  <p>The program output will be in the current experiment tree unless
+  the program has been written to dump files somewhere else.
+  <p>Anything that the program prints to standard output or standard error
+  is captured to a file "log.txt".  This is not opened automatically but
+  you can choose to view it manually.
+  <p>The program must exit with a status of 0 in order to be considered
+  successful (if any other exit occurs, output is ignored).  Upon successful
+  exit:
+  <ul>
+  <li>If the program that you run generates a file named "output.bpseq",
+  the data will be automatically displayed as an overlay of the current
+  RNA (as if you had opened the file yourself and checked the box to
+  use an overlay).
+  <li>If the program that you run generates any other non-empty file with
+  the prefix "output" and an extension supported by "Open Text or Image File",
+  the file will be opened in the GUI automatically in a separate window
+  (as if you had selected "Open Text or Image File").  For example, the file
+  "output.txt" or the image "output.png" will be opened for you.
+  </ul>
+
+  <br /><br />
+  <h2>Automation</h2>
+  <p>Programs can also be run from scripts; see <a href="scripting.html"
+  >the scripting page</a> for details.
+</body>
+</html>
