@@ -53,7 +53,7 @@ for (i = 0; i < helices.length(); ++i) {
 }
 
 // look at actual helices (would appear top-right of diagonal)
-expected_lengths = [8, 7, 4, 3, 6, 2, 10]
+expected_lengths = [4, 3, 6, 2, 8, 7, 10]
 helices = rheat.eachActualHelix()
 println("number of actual helices: " + helices.length())
 if (helices.length() != expected_lengths.length) {
@@ -63,6 +63,6 @@ for (i = 0; i < helices.length(); ++i) {
     helix = helices.next()
     rheat.log(rheat.INFO, "actual helix #" + i + ": len=" + helix.length())
     if (expected_lengths[i] != helix.length()) {
-        throw "TEST FAILED: wrong helix length returned"
+        throw "TEST FAILED: wrong helix length returned (#" + i + " exp. " + expected_lengths[i] + " but saw " + helix.length() + ")"
     }
 }
