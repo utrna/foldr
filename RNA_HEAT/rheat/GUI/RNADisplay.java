@@ -7,6 +7,7 @@
 package rheat.GUI;
 
 import rheat.base.RNA;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -21,6 +22,7 @@ public class RNADisplay extends javax.swing.JComponent {
     private HelixImageGenerator helixImageGenerator = null;
     private RNA rnaData = null;
     private ArrayList<RNA> overlayData = null;
+    private ArrayList<Color> overlayColors = null;
 
     public RNADisplay() {
     }
@@ -38,16 +40,21 @@ public class RNADisplay extends javax.swing.JComponent {
     public void setRNA(RNA rna) {
         this.rnaData = rna;
         this.overlayData = null;
+        this.overlayColors = null;
     }
 
     /**
      * Specifies additional data to render on top of normal data.
      */
-    public void addOverlayRNA(RNA overlay) {
+    public void addOverlayRNA(RNA overlay, Color color) {
         if (this.overlayData == null) {
             this.overlayData = new ArrayList<RNA>();
         }
+        if (this.overlayColors == null) {
+            this.overlayColors = new ArrayList<Color>();
+        }
         this.overlayData.add(overlay);
+        this.overlayColors.add(color);
     }
 
     /**
@@ -72,11 +79,14 @@ public class RNADisplay extends javax.swing.JComponent {
             try {
                 helixImageGenerator.beginRender();
                 helixImageGenerator.paintBackground(g2D, getSize());
-                helixImageGenerator.paintRNA(rnaData, g2D, getSize(), HelixImageGenerator.RenderingType.NORMAL);
+                // FIXME: make base helix color customizable
+                helixImageGenerator.paintRNA(rnaData, Color.red, g2D, getSize(), HelixImageGenerator.RenderingType.NORMAL);
                 if (overlayData != null) {
-                    for (RNA otherRNA : overlayData) {
-                        // TODO: vary the colors
-                        helixImageGenerator.paintRNA(otherRNA, g2D, getSize(), HelixImageGenerator.RenderingType.OVERLAY);
+                    // color and data lists must be the same size
+                    for (int i = 0; i < overlayData.size(); ++i) {
+                        RNA otherRNA = overlayData.get(i);
+                        Color color = overlayColors.get(i);
+                        helixImageGenerator.paintRNA(otherRNA, color, g2D, getSize(), HelixImageGenerator.RenderingType.OVERLAY);
                     }
                 }
             } finally {

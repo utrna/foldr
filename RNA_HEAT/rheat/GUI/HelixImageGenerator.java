@@ -68,7 +68,6 @@ public class HelixImageGenerator {
     private Stroke strokeAxisLine = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeClickLocation = new BasicStroke(0.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Color helixColorActual = Color.blue;
-    private Color helixColorPredicted = Color.red;
     private Color helixColorSelected = Color.blue;
     private Helix selectedHelix = null;
     private Helix originalSelection = null; // preserved by beginRender()/endRender()
@@ -245,7 +244,8 @@ public class HelixImageGenerator {
     public BufferedImage drawImage(RNA rna) {
         BufferedImage result = getImage();
         Graphics2D g = result.createGraphics();
-        paintRNA(rna, g, getSize(), RenderingType.NORMAL);
+        // FIXME: make base helix color customizable
+        paintRNA(rna, Color.red, g, getSize(), RenderingType.NORMAL);
         return result;
     }
 
@@ -328,7 +328,8 @@ public class HelixImageGenerator {
      * @param targetSize the size of the container in which the image will be centered
      * @param renderingType whether or not to render an overlay
      */
-    public void paintRNA(RNA rna, Graphics2D g, Dimension targetSize, RenderingType renderingType) {
+    public void paintRNA(RNA rna, Color predictedHelixColor, Graphics2D g, Dimension targetSize,
+                         RenderingType renderingType) {
         assert renderInProgress;
         AffineTransform oldTransform = g.getTransform();
         try {
@@ -336,7 +337,7 @@ public class HelixImageGenerator {
             if (this.imageType == this.VIEW_FLAT) {
                 paintFlatImage(rna, renderingType, g);
             } else {
-                paint2DImage(rna, renderingType, g);
+                paint2DImage(rna, predictedHelixColor, renderingType, g);
             }
         } finally {
             g.setTransform(oldTransform);
@@ -349,18 +350,13 @@ public class HelixImageGenerator {
      *
      * This must be called within a beginRender()/endRender() pair.
      */
-    private void paintHelix2D(Helix h, HelixType helixType, RenderingType renderingType, Graphics2D helixGraphics) {
+    private void paintHelix2D(Helix h, HelixType helixType, RenderingType renderingType,
+                              Color primaryColor, Graphics2D helixGraphics) {
         assert renderInProgress;
         final double helixLength = h.getLength();
         final double clickX = clickPoint.getX();
         final double clickY = clickPoint.getY();
-        if (helixType == HelixType.ACTUAL) {
-            helixGraphics.setColor(this.helixColorActual);
-        } else {
-            helixGraphics.setColor((renderingType == RenderingType.OVERLAY)
-                                   ? Color.black // TODO: make this customizable?
-                                   : this.helixColorPredicted);
-        }
+        helixGraphics.setColor(primaryColor);
         /*
         if (h.getEnergy() < -6) {
             helixGraphics.setColor(Color.orange);
@@ -436,7 +432,8 @@ public class HelixImageGenerator {
      *
      * This must be called within a beginRender()/endRender() pair.
      */
-    private void paint2DImage(RNA rna, RenderingType renderingType, Graphics2D helixGraphics) {
+    private void paint2DImage(RNA rna, Color predictedHelixColor, RenderingType renderingType,
+                              Graphics2D helixGraphics) {
         assert renderInProgress;
         if (rna == null) {
             // nothing to do
@@ -450,7 +447,7 @@ public class HelixImageGenerator {
             Iterator itr = hstore.iterator();
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                paintHelix2D(h, HelixType.PREDICTED, renderingType, helixGraphics);
+                paintHelix2D(h, HelixType.PREDICTED, renderingType, predictedHelixColor, helixGraphics);
             }
             if (false) {
                 // debug: show click region
@@ -469,7 +466,7 @@ public class HelixImageGenerator {
             Iterator itr = actual.iterator();
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                paintHelix2D(h, HelixType.ACTUAL, renderingType, helixGraphics);
+                paintHelix2D(h, HelixType.ACTUAL, renderingType, this.helixColorActual, helixGraphics);
             }
         }
     }

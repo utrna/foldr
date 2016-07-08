@@ -6,6 +6,7 @@ import rheat.filter.Filter;
 import rheat.GUI.RheatApp;
 import rheat.script.ScriptMain;
 
+import java.awt.Color;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.nio.file.Files;
@@ -50,7 +51,8 @@ public class AppMain {
     private int currentUndo = 0;
     static private boolean isMac = false;
     public RNA rnaData = null;
-    public RNA overlayData = null;
+    public ArrayList<RNA> overlayData = new ArrayList<RNA>();
+    public ArrayList<Color> overlayColors = new ArrayList<Color>();
     public ArrayList<Filter> filterList = new ArrayList<Filter>();
 
     /**
@@ -362,7 +364,8 @@ public class AppMain {
         try {
             rheat.base.Reader reader = new rheat.base.Reader(realPath);
             this.rnaData = reader.readBPSEQ();
-            this.overlayData = null;
+            this.overlayData.clear();
+            this.overlayColors.clear();
             this.currentRNAFilePath = realPath;
             removeFilters(); // initialize data and update display
             //if (this.gui != null) {
@@ -378,17 +381,19 @@ public class AppMain {
      * supported format such as ".bpseq".  If there is a GUI, it
      * will be refreshed automatically.
      */
-    public void openOverlayRNA(String filePath) throws IOException {
+    public void openOverlayRNA(String filePath, Color color) throws IOException {
         String realPath = beginOpenFile(filePath);
         try {
             rheat.base.Reader reader = new rheat.base.Reader(realPath);
-            this.overlayData = reader.readBPSEQ();
+            RNA newData = reader.readBPSEQ();
             // apply same transforms to overlay data
             for (Filter filter : this.filterList) {
                 if (filter instanceof BPFilter) {
-                    this.overlayData = filter.apply(this.overlayData);
+                    newData = filter.apply(newData);
                 }
             }
+            this.overlayData.add(newData);
+            this.overlayColors.add(color);
             if (this.gui != null) {
                 this.gui.refreshForNewRNA();
             }
@@ -526,13 +531,16 @@ public class AppMain {
         } else {
             this.rnaData = newData;
             this.filterList.add(filter);
-            if ((filter instanceof BPFilter) && (this.overlayData != null)) {
+            if (filter instanceof BPFilter) {
                 // if a base-pair filter is used, keep the overlay in sync
-                RNA newOverlayData = filter.apply(this.overlayData);
-                if (newOverlayData == null) {
-                    log(ERROR, "Filter failed to apply to overlay data.");
-                } else {
-                    this.overlayData = newData;
+                for (int i = 0; i < this.overlayData.size(); ++i) {
+                    RNA oldData = this.overlayData.get(i);
+                    RNA newOverlayData = filter.apply(oldData);
+                    if (newOverlayData == null) {
+                        log(ERROR, "Filter failed to apply to overlay data.");
+                    } else {
+                        this.overlayData.set(i, newData);
+                    }
                 }
             }
             if (this.gui != null) {
@@ -661,7 +669,8 @@ public class AppMain {
             String outputPath = makePath(runDir, "output" + extension);
             if (new File(outputPath).exists()) {
                 log(INFO, "Located results in '" + outputPath + "'; opening as overlay…");
-                openOverlayRNA(outputPath);
+                // FIXME: pull this color from preferences or somewhere else
+                openOverlayRNA(outputPath, Color.black);
             }
             // if any explicit text or image output exists, open the file in a new window
             String[] candidates = new String[]{ "txt", "png", "jpg", "jpeg" };
@@ -798,9 +807,10 @@ public class AppMain {
     /**
      * Performs clean-up when closing the current session.
      */
-    public void cleanUp(){
+    public void cleanUp() {
         rnaData = null;
-        overlayData = null;
+        overlayData.clear();
+        overlayColors.clear();
         currentRNAFilePath = null;
         System.gc();
     }
