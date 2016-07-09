@@ -48,9 +48,17 @@ public class HelixImageGenerator {
     private double zoomFactor;
     private final double effectiveZoomFactor = 4.0; // a single point occupies this many square pixels at zoom level 1
     private int imageType = this.VIEW_2D;
+    private boolean gridHidden = false;
     private boolean renderInProgress = false; // see beginRender()/endRender()
     private double baseWidth = 1.0; // pre-zoom pixels of image width
+    private double baseHalfWidth = 0.5; // pre-calculated optimization (see methods below)
+    private double baseZoomedWidth = 1.0; // pre-calculated optimization (see methods below)
     private double baseHeight = 1.0; // pre-zoom pixels of image height
+    private double baseHalfHeight = 0.5; // pre-calculated optimization (see methods below)
+    private double baseZoomedHeight = 1.0; // pre-calculated optimization (see methods below)
+    // grid line locations are expressed as fractions of width/height
+    private double gridSpacingX = 0.125; // <= 1.0; as fraction of width
+    private double gridSpacingY = 0.125; // <= 1.0; as fraction of height
     private Point2D.Double clickPoint = new Point2D.Double(); // coordinates are relative to data (current zoom level)
     private Line2D.Double tmpLine = new Line2D.Double(); // used for various reasons (saves heap allocations)
     private BufferedImage helix2D;
@@ -66,9 +74,11 @@ public class HelixImageGenerator {
     private Stroke strokeHelixHandle = new BasicStroke(0.1f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
     private Stroke strokeFlatNormalHelix = new BasicStroke(0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
     private Stroke strokeAxisLine = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private Stroke strokeGridLine = new BasicStroke(0.2f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0/* miter limit */, new float[]{ 1.5f, 0.5f }, 0/* dash phase */);
     private Stroke strokeClickLocation = new BasicStroke(0.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Color helixColorActual = Color.blue;
     private Color helixColorSelected = Color.blue;
+    private Color colorGridLine = new Color(200, 240, 255);
     private Helix selectedHelix = null;
     private Helix originalSelection = null; // preserved by beginRender()/endRender()
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -90,6 +100,20 @@ public class HelixImageGenerator {
     }
 
     /**
+     * Specifies the fraction of the total width that determines the
+     * distance between grid lines (0.125 would be 8 boxes across,
+     * for example).  Insane values may be ignored.
+     *
+     * The new value is not used until the next paint.
+     */
+    public void setGridFraction(double fraction) {
+        if ((fraction >= 0.05/* arbitrary */) && (fraction <= 1.0)) {
+            gridSpacingX = fraction;
+            gridSpacingY = fraction;
+        }
+    }
+
+    /**
      * Specifies the pre-zoom pixel width to the specified value.
      * Even if larger renders are requested, the background size
      * will use the pixel width (and be transformed to zoomed size).
@@ -98,7 +122,9 @@ public class HelixImageGenerator {
      * is being used as the primary data source.
      */
     public void setBaseWidth(double width) {
-        this.baseWidth = width;
+        baseWidth = width;
+        baseHalfWidth = width / 2.0;
+        baseZoomedWidth = width * zoomFactor; // see also setZoomLevel()
     }
 
     /**
@@ -110,7 +136,9 @@ public class HelixImageGenerator {
      * is being used as the primary data source.
      */
     public void setBaseHeight(double height) {
-        this.baseHeight = height;
+        baseHeight = height;
+        baseHalfHeight = height / 2.0;
+        baseZoomedHeight = height * zoomFactor; // see also setZoomLevel()
     }
 
     /**
@@ -135,6 +163,8 @@ public class HelixImageGenerator {
      */
     public void setZoomLevel(double z) {
         zoomFactor = z * effectiveZoomFactor;
+        baseZoomedWidth = zoomFactor * baseWidth; // see also setBaseWidth()
+        baseZoomedHeight = zoomFactor * baseHeight; // see also setBaseHeight()
     }
 
     /**
@@ -172,9 +202,9 @@ public class HelixImageGenerator {
      * exist yet, it is created.  If the image size no longer matches
      * the size appropriate for the zoom, a new image is created.
      */
-    public BufferedImage getImage() {
-        final int zoomW = (int)(zoomFactor * this.baseWidth);
-        final int zoomH = (int)(zoomFactor * this.baseHeight);
+    private BufferedImage getImage() {
+        final int zoomW = (int)(this.baseZoomedWidth);
+        final int zoomH = (int)(this.baseZoomedHeight);
         if (imageType == this.VIEW_2D) {
             if ((this.helix2D == null) ||
                 (this.helix2D.getWidth() != zoomW) ||
@@ -220,8 +250,8 @@ public class HelixImageGenerator {
      * @param targetSize view dimensions of component (even if image is smaller)
      */
     public void setPrimarySelectionLocation(double x, double y, Dimension targetSize) {
-        double xOffset = (zoomFactor * this.baseWidth - targetSize.getWidth()) / 2.0;
-        double yOffset = (zoomFactor * this.baseHeight - targetSize.getHeight()) / 2.0;
+        double xOffset = (this.baseZoomedWidth - targetSize.getWidth()) / 2.0;
+        double yOffset = (this.baseZoomedHeight - targetSize.getHeight()) / 2.0;
         if (xOffset < 0) {
             // mouse origin does not match image origin
             this.clickPoint.setLocation((x + xOffset) / zoomFactor, (y + yOffset) / zoomFactor);
@@ -244,6 +274,7 @@ public class HelixImageGenerator {
     public BufferedImage drawImage(RNA rna) {
         BufferedImage result = getImage();
         Graphics2D g = result.createGraphics();
+        paintBackground(g, getSize());
         // FIXME: make base helix color customizable
         paintRNA(rna, Color.red, g, getSize(), RenderingType.NORMAL);
         return result;
@@ -284,7 +315,6 @@ public class HelixImageGenerator {
     /**
      * Directly renders the given RNA data in the specified graphics
      * context, based on the current view (2D or flat).
-     * @param rna the data to display
      * @param g the context in which to draw
      * @param targetSize the size of the container in which the image will be centered
      */
@@ -302,10 +332,43 @@ public class HelixImageGenerator {
                 //g.setStroke(strokeAxisLine);
                 //g.drawLine(0, this.baseHeight / 2, this.baseWidth - 1, this.baseHeight / 2);
             } else {
+                if (!gridHidden) {
+                    // draw some grid lines; the grid is always centered
+                    // (line spacing grows outward from middle)
+                    final double deltaX = (this.baseWidth * gridSpacingX);
+                    final double deltaY = (this.baseHeight * gridSpacingY);
+                    g.setColor(colorGridLine);
+                    g.setStroke(strokeGridLine);
+                    // vertical lines
+                    for (double x = this.baseHalfWidth;
+                         x < this.baseWidth; x += deltaX) {
+                        this.tmpLine.setLine(x, 0, x, this.baseHeight);
+                        g.draw(this.tmpLine);
+                    }
+                    for (double x = this.baseHalfWidth - deltaX;
+                         x >= 0; x -= deltaX) {
+                        this.tmpLine.setLine(x, 0, x, this.baseHeight);
+                        g.draw(this.tmpLine);
+                    }
+                    // horizontal lines
+                    for (double y = this.baseHalfHeight;
+                         y < this.baseHeight; y += deltaY) {
+                        this.tmpLine.setLine(0, y, this.baseWidth, y);
+                        g.draw(this.tmpLine);
+                    }
+                    for (double y = this.baseHalfHeight - deltaY;
+                         y >= 0; y -= deltaY) {
+                        this.tmpLine.setLine(0, y, this.baseWidth, y);
+                        g.draw(this.tmpLine);
+                    }
+
+                }
+                // draw a diagonal line to separate predicted/actual helices
+                // (covers background rectangle range above)
                 g.setColor(Color.black);
                 g.setStroke(strokeAxisLine);
-                // diagonal line covers background rectangle range above
-                g.drawLine(0, 0, (int)this.baseWidth, (int)this.baseHeight);
+                this.tmpLine.setLine(0, 0, this.baseWidth, this.baseHeight);
+                g.draw(this.tmpLine);
             }
         } finally {
             g.setTransform(oldTransform);
@@ -521,8 +584,8 @@ public class HelixImageGenerator {
      * @param targetSize the size of the container in which the image will be centered
      */
     private void transformGraphics(Graphics2D g, Dimension targetSize) {
-        double xOffset = (targetSize.getWidth() - zoomFactor * this.baseWidth) / 2.0;
-        double yOffset = (targetSize.getHeight() - zoomFactor * this.baseHeight) / 2.0;
+        double xOffset = (targetSize.getWidth() - this.baseZoomedWidth) / 2.0;
+        double yOffset = (targetSize.getHeight() - this.baseZoomedHeight) / 2.0;
         g.translate(xOffset, yOffset);
         g.scale(zoomFactor, zoomFactor); // this scales drawing but not image size (see getImage())
     }

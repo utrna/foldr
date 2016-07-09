@@ -63,6 +63,7 @@ public class AppMain {
         validPrefKeys.add("BPSEQ");
         validPrefKeys.add("ProgramsDir");
         validPrefKeys.add("RunRootDir");
+        validPrefKeys.add("GridFraction");
         try {
             initScriptingEngine();
         } catch (ScriptException e) {
@@ -81,6 +82,8 @@ public class AppMain {
                 startupScripts.add(argument);
             }
         }
+        setScriptMain(new ScriptMain(this)); // sets "rheat" variable in scripts
+        initPreferences();
         if (createGUI) {
             // set cross-platform interface because GUI layout
             // currently does not look good when translated to
@@ -161,6 +164,14 @@ public class AppMain {
             throw new RuntimeException("invalid preference key: '" + key + "'");
         }
         preferencesMap.put(key, value);
+        // NOTE: perhaps this should be handled indirectly by
+        // firing property-changed events, etc. but for now
+        // this will suffice
+        if (key.equals("GridFraction")) {
+            if (this.gui != null) {
+                this.gui.updateGrid();
+            }
+        }
     }
 
     /**
@@ -196,6 +207,22 @@ public class AppMain {
         if ((allowTmp) && (tmpPrefsMap.containsKey(key))) {
             //log(INFO, "Return temporary override: '" + key + "' = '" + result + "'");
             result = tmpPrefsMap.get(key);
+        }
+        return result;
+    }
+
+    /**
+     * Returns user-specified fraction of total width for grid spacing.
+     * Illegal stored values are ignored, returning a fallback instead.
+     */
+    public double getPrefGridFraction() {
+        final double fallback = 0.125;
+        double result = fallback;
+        try {
+            result = Double.parseDouble(getPreference("GridFraction"));
+        } catch (NumberFormatException e) {
+            // invalid (e.g. not a number)
+            result = fallback;
         }
         return result;
     }
@@ -736,6 +763,7 @@ public class AppMain {
         setDefaultPreference("ProgramsDir", currentDir);
         setDefaultPreference("BPSEQ", currentDir);
         setDefaultPreference("RunRootDir", makePath(currentDir, "Experiments"));
+        setDefaultPreference("GridFraction", "0.125");
         try {
             savePreferences();
         } catch (IOException e) {
@@ -838,9 +866,7 @@ public class AppMain {
             // run any scripts given on the command line, and run any
             // other special scripts (such as the preferences file)
             try {
-                appMain.setScriptMain(new ScriptMain(appMain)); // sets "rheat" variable in scripts
                 appMain.scriptEngine.eval("rheat.log(rheat.INFO, 'JavaScript engine loaded successfully.')"); // trivial test
-                appMain.initPreferences();
                 appMain.runStartupScripts(); // execute any scripts given on the command line
             } catch (Exception e) {
                 e.printStackTrace();
