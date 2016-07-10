@@ -16,6 +16,8 @@ import javax.script.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.MatteBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.metal.MetalSliderUI;
 
 /**
@@ -403,7 +405,34 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         }
         desktopPane.moveToFront(f);
     }
-    
+
+    /**
+     * Updates the mini-frame to match current scroll proportions.
+     * Call this when the display view port changes.
+     */
+    private void updateMiniFrame() {
+        Rectangle viewRect = DisplayScrollPane.getViewport().getViewRect();
+        Dimension fullSize = DisplayScrollPane.getViewport().getView().getSize();
+        // express location and view frame as fractions out of 1.0;
+        // e.g. width 0.3 means 30% of the total width is visible;
+        // and an X coordinate of 0.1 means the left edge is at 10%
+        final double normX = (double)viewRect.getX() / fullSize.getWidth();
+        final double normY = (double)viewRect.getY() / fullSize.getHeight();
+        final double normW = (double)viewRect.getWidth() / fullSize.getWidth();
+        final double normH = (double)viewRect.getHeight() / fullSize.getHeight();
+        miniFrame.setNormalizedViewRect(normX, normY, normW, normH);
+        // it is not always necessary to show the frame; if the
+        // view frame shows everything, hide the mini-frame
+        if ((normW >= 1) && (normH >= 1)) {
+            miniFrame.setVisible(false);
+        } else {
+            addOrReuseComponent(miniFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
+            // new frame will already float due to layering; do not want
+            // to change active state of display frame
+            //bringToFront(miniFrame);
+        }
+    }
+
     private void enableConstraintMenuItems(boolean b){
         if (b){
             this.helixConstraintItem.setEnabled(true);
@@ -463,6 +492,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         helpFrame = new HelpContentJFrame();
         aboutFrame = new AboutFrame();
+        miniFrame = new MiniFrame();
 
         DisplayFrame = new javax.swing.JInternalFrame();
         displayControlPanel = new javax.swing.JPanel();
@@ -536,8 +566,13 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
             }
         });
         DisplayScrollPane.setViewportView(displayPane);
-        //oldDisplayPane = new javax.swing.JLabel();
-        //DisplayScrollPane.setViewportView(oldDisplayPane);
+        DisplayScrollPane.getViewport().addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                updateMiniFrame();
+            }
+        });
+
         currentRNAInfoFrame = new javax.swing.JInternalFrame();
         jPanel1 = new javax.swing.JPanel();
         uidLabel = new javax.swing.JLabel();
@@ -1688,6 +1723,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private JSlider zoomSlider;
     private RNADisplay displayPane;
     private AboutFrame aboutFrame;
-    //private javax.swing.JLabel oldDisplayPane; // obsolete (replaced with custom-painted view)
+    private MiniFrame miniFrame;
 
 }

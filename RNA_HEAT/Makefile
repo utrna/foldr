@@ -40,6 +40,7 @@ CLASS_PREFIXES += rheat/GUI/HelixFilterDialog
 CLASS_PREFIXES += rheat/GUI/HelixImageGenerator
 CLASS_PREFIXES += rheat/GUI/HelpContentJFrame
 CLASS_PREFIXES += rheat/GUI/ImageFileFrame
+CLASS_PREFIXES += rheat/GUI/MiniFrame
 CLASS_PREFIXES += rheat/GUI/PreferenceDialog
 CLASS_PREFIXES += rheat/GUI/RheatApp
 CLASS_PREFIXES += rheat/GUI/RNADisplay
