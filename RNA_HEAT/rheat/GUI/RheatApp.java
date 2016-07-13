@@ -274,6 +274,22 @@ implements PropertyChangeListener {
         setZoomLevel(getZoomLevel() * (availableRange / imageRange));
     }
 
+    private void scrollUpLeft() {
+        // activate two scroll bars at once
+        JScrollBar bar = displayScrollPane.getHorizontalScrollBar();
+        bar.setValue(bar.getValue() - bar.getBlockIncrement());
+        bar = displayScrollPane.getVerticalScrollBar();
+        bar.setValue(bar.getValue() - bar.getBlockIncrement());
+    }
+
+    private void scrollDownRight() {
+        // activate two scroll bars at once
+        JScrollBar bar = displayScrollPane.getHorizontalScrollBar();
+        bar.setValue(bar.getValue() + bar.getBlockIncrement());
+        bar = displayScrollPane.getVerticalScrollBar();
+        bar.setValue(bar.getValue() + bar.getBlockIncrement());
+    }
+
     /**
      * Returns a fixed-width font, if one is available.
      * @param fallback a font to return if the monospaced lookup fails
@@ -667,6 +683,29 @@ implements PropertyChangeListener {
         });
         displayScrollPane.setMinimumSize(new Dimension(420, 200));
         displayScrollPane.setPreferredSize(new Dimension(700, 500));
+        displayScrollPane.getHorizontalScrollBar().setUnitIncrement(10); // arbitrary
+        displayScrollPane.getVerticalScrollBar().setUnitIncrement(10); // arbitrary
+        JPanel paneDiagonalScroll = new JPanel();
+        paneDiagonalScroll.setLayout(new GridLayout(2, 2));
+        scrollUpLeftBtn = new JButton();
+        scrollUpLeftBtn.setText("");
+        scrollUpLeftBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                scrollUpLeft();
+            }
+        });
+        scrollDownRightBtn = new JButton();
+        scrollDownRightBtn.setText("");
+        scrollDownRightBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                scrollDownRight();
+            }
+        });
+        paneDiagonalScroll.add(scrollUpLeftBtn);
+        paneDiagonalScroll.add(Box.createRigidArea(new Dimension(10, 10)));
+        paneDiagonalScroll.add(Box.createRigidArea(new Dimension(10, 10)));
+        paneDiagonalScroll.add(scrollDownRightBtn);
+        displayScrollPane.setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, paneDiagonalScroll);
         JPanel paneDisplay = new JPanel();
         paneDisplay.setLayout(new BorderLayout());
         paneDisplay.add(displayControlPanel, BorderLayout.NORTH);
@@ -1686,6 +1725,8 @@ implements PropertyChangeListener {
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenuItem contentMenuItem;
     private javax.swing.JButton undoConstraintBtn;
+    private javax.swing.JButton scrollUpLeftBtn;
+    private javax.swing.JButton scrollDownRightBtn;
     private javax.swing.JMenuItem diagonalConstraintItem;
     private javax.swing.JMenuItem helixConstraintItem;
     private javax.swing.JMenuItem exitMenuItem;
