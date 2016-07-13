@@ -1,4 +1,4 @@
-Feature that are yet to be implemented.
+Features that are yet to be implemented.
  
 Written by Kevin Grant (kmgrant@utexas.edu).
  
@@ -29,10 +29,6 @@ To Do
 - Separate concept of “filter” from “algorithm”, perhaps using
   different top-level menus for running each.
 
-- Add a simultaneous zoomed-out view window when the display is
-  zoomed-in.  Use a rectangle to represent the portion that is
-  enlarged, and allow the rectangle to be moved with the mouse.
-
 - Add a “bookmarking” scheme to keep track of interesting areas.
 
 - Investigate a 45-degree-rotated version of the 2D display.
@@ -62,6 +58,10 @@ To Do
 
 Recently Done
 ~~~~~~~~~~~~~
+
+- Add a simultaneous zoomed-out view window when the display is
+  zoomed-in.  Use a rectangle to represent the portion that is
+  enlarged, and allow the rectangle to be moved with the mouse.
 
 - Provide a way to display arbitary image and text files so that
   a single interface can show results from other programs.

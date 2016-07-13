@@ -7,6 +7,9 @@ Written by Kevin Grant (kmgrant@utexas.edu).
 Issues
 ~~~~~~
 
+(NOTE: As issues are resolved, they move from this list to the
+“Now Fixed” section that follows.)
+
 The following things were tried and there were problems:
 
 - Filters:
@@ -25,9 +28,7 @@ The following things were tried and there were problems:
 
 - "Control Window":
 
-  * Occasionally the "Current Helices", "Total Helices" and
-    "Actual Helices" fields appear to be enabled for typing but
-    I think they are meant to always be disabled/view-only.
+  (none)
 
 - "Filter History" (now "Constraint History"):
 
@@ -35,8 +36,7 @@ The following things were tried and there were problems:
 
 - General:
 
-  * UI could be tweaked to leave more space for things and have
-    more ways to resize, etc.
+  (none)
 
 
 
@@ -92,6 +92,10 @@ The following items are now FIXED (moved from list above):
   * Zoom levels as low as 5 or 10 can also run out of memory if
     the file that was loaded is quite large (e.g. 2000 helices).
 
+  * Occasionally the "Current Helices", "Total Helices" and
+    "Actual Helices" fields appear to be enabled for typing but
+    I think they are meant to always be disabled/view-only.
+
 - "Filter History" (now "Constraint History"):
 
   * Clicking "Undo" may display an error about saving data.
@@ -102,6 +106,9 @@ The following items are now FIXED (moved from list above):
 
   * There are display glitches in Flat View, and when zooming
     the 2D view to certain levels.
+
+  * UI could be tweaked to leave more space for things and have
+    more ways to resize, etc.
 
 - Help:
 

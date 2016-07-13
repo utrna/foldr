@@ -24,14 +24,18 @@ import javax.swing.plaf.metal.MetalSliderUI;
  * Main window of RNA HEAT application.
  *
  * @author  jyzhang
+ * @author  Kevin Grant
  */
-public class RheatApp extends javax.swing.JFrame implements PropertyChangeListener {
+public class RheatApp
+extends javax.swing.JFrame
+implements PropertyChangeListener {
 
     public enum RNADisplayFeature {
         ZOOM_LEVEL // current zoom level of RNA display
     }
 
-    static public abstract class RheatActionPanel extends javax.swing.JComponent {
+    static public abstract class RheatActionPanel
+    extends javax.swing.JComponent {
 
         private String title = null;
         private String okTitle = "OK";
@@ -101,6 +105,37 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     }
 
     /**
+     * Used to implement menu items that bring windows to the front.
+     */
+    static public class FrameSelectAction
+    extends AbstractAction {
+
+        FrameSelectAction(JDesktopPane desktop, JInternalFrame f) {
+            super(f.getTitle());
+            this.desktop = desktop;
+            this.frame = f;
+        }
+
+        @Override
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            try {
+                frame.setVisible(true);
+                if (frame.isIcon()) {
+                    frame.setIcon(false);
+                }
+                frame.setSelected(true);
+                desktop.moveToFront(frame);
+            } catch (java.beans.PropertyVetoException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private JDesktopPane desktop;
+        private JInternalFrame frame;
+
+    }
+
+    /**
      * For the log() method.
      */
     public static final int INFO = AppMain.INFO;
@@ -155,7 +190,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      */
     public void propertyChange(PropertyChangeEvent event) {
         if (event.getPropertyName().equals(HelixImageGenerator.PROPERTY_SELECTED_HELIX)) {
-            JTextPane textArea = this.helixInfoTextPane;
+            JTextArea textArea = this.helixInfoTextPane;
             if (textArea != null) {
                 StringBuilder sb = new StringBuilder();
                 Helix selectedHelix = getSelectedHelix();
@@ -174,7 +209,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                 }
                 textArea.setText(sb.toString());
             }
-        } else if (event.getPropertyName().equals(DisplayFrame.IS_MAXIMUM_PROPERTY)) {
+        } else if (event.getPropertyName().equals(mainWindowFrame.IS_MAXIMUM_PROPERTY)) {
             // always size back to fit when the display is maximized or restored
             zoomFit();
         }
@@ -223,7 +258,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     }
 
     private void zoomFit() {
-        Dimension availableSize = DisplayScrollPane.getViewport().getSize();
+        Dimension availableSize = displayScrollPane.getViewport().getSize();
         Dimension imageSize = helixImgGen.getSize();
         if (imageSize.getWidth() <= 0.001) {
             // special case: if image is zoomed way out, its width
@@ -308,7 +343,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                 System.gc();
                 //img = helixImgGen.drawImage(appMain.rnaData);
                 displayPane.repaint(displayPane.getBounds(this.tmpRect));
-                JViewport viewPort = this.DisplayScrollPane.getViewport();
+                JViewport viewPort = this.displayScrollPane.getViewport();
                 Dimension oldVisibleSize = viewPort.getExtentSize();
                 double oldViewCenterX = (viewPort.getViewPosition().getX() + (oldVisibleSize.getWidth() / 2.0));
                 double oldViewCenterY = (viewPort.getViewPosition().getY() + (oldVisibleSize.getHeight() / 2.0));
@@ -349,15 +384,15 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
     private void setControlLabels() {
         if (appMain.rnaData != null) {
-            this.uidLabel.setText(appMain.rnaData.getUID());
-            this.orgLabel.setText(appMain.rnaData.getOrganism());
-            this.accNumLabel.setText("Accession #: " + appMain.rnaData.getAccession());
-            this.lengthLabel.setText("Length: " + appMain.rnaData.getLength() + " bp");
+            this.uidValue.setText(appMain.rnaData.getUID());
+            this.organismValue.setText(appMain.rnaData.getOrganism());
+            this.accNumValue.setText(appMain.rnaData.getAccession());
+            this.lengthValue.setText(appMain.rnaData.getLength() + " bp");
         } else {
-            this.uidLabel.setText("");
-            this.orgLabel.setText("");
-            this.accNumLabel.setText("");
-            this.lengthLabel.setText("");
+            this.uidValue.setText("");
+            this.organismValue.setText("");
+            this.accNumValue.setText("");
+            this.lengthValue.setText("");
         }
     }
 
@@ -411,8 +446,8 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      * Call this when the display view port changes.
      */
     private void updateMiniFrame() {
-        Rectangle viewRect = DisplayScrollPane.getViewport().getViewRect();
-        Dimension fullSize = DisplayScrollPane.getViewport().getView().getSize();
+        Rectangle viewRect = displayScrollPane.getViewport().getViewRect();
+        Dimension fullSize = displayScrollPane.getViewport().getView().getSize();
         // express location and view frame as fractions out of 1.0;
         // e.g. width 0.3 means 30% of the total width is visible;
         // and an X coordinate of 0.1 means the left edge is at 10%
@@ -452,15 +487,58 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         }
     }
 
+    /**
+     * Removes any window-selecting items and adds new ones to
+     * reflect currently-opened windows.  This lets the user
+     * bring any window to the front by selecting a menu item.
+     */
+    private void rebuildWindowMenu() {
+        JInternalFrame[] windows = desktopPane.getAllFramesInLayer(JLayeredPane.DEFAULT_LAYER);
+        ArrayList<JMenuItem> itemsToRemove = new ArrayList<JMenuItem>();
+        JMenu targetMenu = this.windowMenu;
+        for (int i = 0; i < targetMenu.getItemCount(); ++i) {
+            JMenuItem item = targetMenu.getItem(i);
+            if (item == null) {
+                // e.g. separators do not have items
+                continue;
+            }
+            Action action = item.getAction();
+            if ((action != null) && (action instanceof FrameSelectAction)) {
+                itemsToRemove.add(item);
+            }
+        }
+        for (JMenuItem toDelete : itemsToRemove) {
+            targetMenu.remove(toDelete);
+        }
+        for (JInternalFrame frame : windows) {
+            if (!frame.getTitle().equals("")) {
+                targetMenu.add(new FrameSelectAction(desktopPane, frame));
+            }
+        }
+    }
+
     private void initComponents() {
         final RheatApp app = this;
 
         desktopPane = new javax.swing.JDesktopPane();
+        desktopPane.addContainerListener(new java.awt.event.ContainerAdapter() {
+            public void componentAdded(java.awt.event.ContainerEvent evt) {
+                Component added = evt.getChild();
+                if (added instanceof JInternalFrame) {
+                    app.rebuildWindowMenu();
+                }
+            }
+            public void componentRemoved(java.awt.event.ContainerEvent evt) {
+                Component added = evt.getChild();
+                if (added instanceof JInternalFrame) {
+                    app.rebuildWindowMenu();
+                }
+            }
+        });
 
         customOpenPane = new JPanel();
         openOverlayColorPanel = new JPanel();
-        Border colorPanelBorder = new MatteBorder(2, 2, 2, 2, Color.black);
-        openOverlayColorPanel.setBorder(colorPanelBorder);
+        openOverlayColorPanel.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.black));
         openOverlayColorPanel.setBackground(Color.black);
         openOverlayColorPanel.setVisible(false); // see listener below
         openOverlayColorButton = new JButton("Color…");
@@ -493,8 +571,24 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         helpFrame = new HelpContentJFrame();
         aboutFrame = new AboutFrame();
         miniFrame = new MiniFrame();
+        mainWindowFrame = new javax.swing.JInternalFrame();
 
-        DisplayFrame = new javax.swing.JInternalFrame();
+        leftToolBar = new JToolBar();
+        leftToolBar.setFloatable(false);
+        leftToolBar.setOrientation(JToolBar.VERTICAL);
+
+        rightToolBar = new JToolBar();
+        rightToolBar.setFloatable(false);
+        rightToolBar.setOrientation(JToolBar.VERTICAL);
+
+        topToolBar = new JToolBar();
+        topToolBar.setFloatable(false);
+        topToolBar.setOrientation(JToolBar.HORIZONTAL);
+
+        bottomToolBar = new JToolBar();
+        bottomToolBar.setFloatable(false);
+        bottomToolBar.setOrientation(JToolBar.HORIZONTAL);
+
         displayControlPanel = new javax.swing.JPanel();
         zoomOutButton = new javax.swing.JButton();
         zoomOutButton.setText("-");
@@ -557,45 +651,41 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         displayControlPanel.add(zoomFitButton);
         displayControlPanel.add(zoomSlider);
         displayControlPanel.add(zoomLabel);
-        DisplayFrame.getContentPane().add(displayControlPanel);
-        DisplayScrollPane = new javax.swing.JScrollPane();
+        displayScrollPane = new javax.swing.JScrollPane();
         displayPane = new RNADisplay();
         displayPane.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 displayPaneMouseClicked(evt);
             }
         });
-        DisplayScrollPane.setViewportView(displayPane);
-        DisplayScrollPane.getViewport().addChangeListener(new ChangeListener() {
+        displayScrollPane.setViewportView(displayPane);
+        displayScrollPane.getViewport().addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
                 updateMiniFrame();
             }
         });
+        displayScrollPane.setMinimumSize(new Dimension(420, 200));
+        displayScrollPane.setPreferredSize(new Dimension(700, 500));
+        JPanel paneDisplay = new JPanel();
+        paneDisplay.setLayout(new BorderLayout());
+        paneDisplay.add(displayControlPanel, BorderLayout.NORTH);
+        paneDisplay.add(displayScrollPane, BorderLayout.CENTER);
 
-        currentRNAInfoFrame = new javax.swing.JInternalFrame();
-        jPanel1 = new javax.swing.JPanel();
-        uidLabel = new javax.swing.JLabel();
-        orgLabel = new javax.swing.JLabel();
-        accNumLabel = new javax.swing.JLabel();
-        lengthLabel = new javax.swing.JLabel();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        helixNumField = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        helixTotalField = new javax.swing.JTextField();
+        uidValue = new javax.swing.JLabel();
+        organismValue = new javax.swing.JLabel();
+        accNumValue = new javax.swing.JLabel();
+        lengthValue = new javax.swing.JLabel();
+        helixNumField = new javax.swing.JLabel();
+        helixTotalField = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        helixActualField = new javax.swing.JTextField();
-        HistoryFrame = new javax.swing.JInternalFrame();
+        helixActualField = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         historyList = new javax.swing.JList<String>();
         jPanel5 = new javax.swing.JPanel();
         undoConstraintBtn = new javax.swing.JButton();
-        InfoFrame = new javax.swing.JInternalFrame();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        helixInfoTextPane = new javax.swing.JTextPane();
+        helixInfoTextPane = new javax.swing.JTextArea();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openRNAMenuItem = new javax.swing.JMenuItem();
@@ -628,10 +718,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         zoomInMenuItem = new javax.swing.JMenuItem();
         zoomFitMenuItem = new javax.swing.JMenuItem();
         windowMenu = new javax.swing.JMenu();
-        viewDisplayMenuItem = new javax.swing.JMenuItem();
-        viewRNAInfoMenuItem = new javax.swing.JMenuItem();
-        viewHistoryMenuItem = new javax.swing.JMenuItem();
-        viewHelixInfoMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentMenuItem = new javax.swing.JMenuItem();
         goBackMenuItem = new javax.swing.JMenuItem();
@@ -640,87 +726,76 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         setTitle("RNA HEAT");
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
-                exitForm(evt);
+                exitProgram();
             }
         });
 
-        DisplayFrame.getContentPane().setLayout(new BorderLayout());
+        // IMPORTANT: in order for floatable toolbars to work correctly,
+        // a BorderLayout can only have ONE non-CENTER element that is
+        // used; therefore, to allow “multiple” toolbars, the illusion
+        // of a single frame must be created by nesting panels that use
+        // BorderLayout, where each CENTER component holds one of the
+        // other panels and only ONE non-CENTER element is a toolbar in
+        // each case
+        final boolean LIVE_REPAINT = true; // see JSplitPane constructor
+        JSplitPane joinDisplayRightToolBar = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, LIVE_REPAINT, paneDisplay, rightToolBar);
+        JSplitPane joinDisplayLeftRightToolBars = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, LIVE_REPAINT, leftToolBar, joinDisplayRightToolBar);
+        JPanel joinDisplayLeftRightBottomToolBars = new JPanel();
+        joinDisplayLeftRightBottomToolBars.setLayout(new BorderLayout());
+        joinDisplayLeftRightBottomToolBars.add(bottomToolBar, BorderLayout.SOUTH);
+        joinDisplayLeftRightBottomToolBars.add(joinDisplayLeftRightToolBars, BorderLayout.CENTER);
+        JPanel paneMainWindowContent = new JPanel();
+        paneMainWindowContent.setLayout(new BorderLayout());
+        //paneMainWindowContent.add(topToolBar, BorderLayout.NORTH); // FIXME: add this when there are controls present
+        paneMainWindowContent.add(joinDisplayLeftRightBottomToolBars, BorderLayout.CENTER);
+        //mainWindowFrame.getContentPane().setLayout(new BorderLayout());
+        mainWindowFrame.getContentPane().add(paneMainWindowContent);
+        mainWindowFrame.setMaximizable(true);
+        mainWindowFrame.setResizable(true);
+        mainWindowFrame.setTitle("Main Window");
+        mainWindowFrame.setMinimumSize(new java.awt.Dimension(100, 100));
+        mainWindowFrame.setNormalBounds(new java.awt.Rectangle(270, 20, 400, 400));
+        mainWindowFrame.setVisible(true);
+        mainWindowFrame.setBounds(10, 10, 600, 500);
+        mainWindowFrame.addPropertyChangeListener(mainWindowFrame.IS_MAXIMUM_PROPERTY, this);
 
-        DisplayFrame.setMaximizable(true);
-        DisplayFrame.setResizable(true);
-        DisplayFrame.setTitle("Display Window");
-        DisplayFrame.setMinimumSize(new java.awt.Dimension(100, 100));
-        DisplayFrame.setNormalBounds(new java.awt.Rectangle(270, 20, 400, 400));
-        DisplayFrame.setVisible(true);
+        JPanel paneCurrentRNAInfo = new JPanel();
+        paneCurrentRNAInfo.setLayout(new java.awt.GridLayout(4, 1));
+        paneCurrentRNAInfo.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        JPanel paneRNAInfoLabels = new JPanel();
+        JPanel paneRNAInfoValues = new JPanel();
+        paneRNAInfoLabels.setLayout(new GridLayout(7, 2));
+        paneRNAInfoValues.setLayout(new GridLayout(7, 2));
+        paneRNAInfoLabels.add(new JLabel(" Name: "));
+        paneRNAInfoValues.add(uidValue);
+        paneRNAInfoLabels.add(new JLabel(" Organism: "));
+        paneRNAInfoValues.add(organismValue);
+        paneRNAInfoLabels.add(new JLabel(" Accession #: "));
+        paneRNAInfoValues.add(accNumValue);
+        paneRNAInfoLabels.add(new JLabel(" Length: "));
+        paneRNAInfoValues.add(lengthValue);
+        paneRNAInfoLabels.add(new JLabel(" Current Helices: "));
+        helixNumField.setMinimumSize(new Dimension(100, (int)helixNumField.getMinimumSize().getHeight()));
+        paneRNAInfoValues.add(helixNumField);
+        paneRNAInfoLabels.add(new JLabel(" Total Helices: "));
+        helixTotalField.setMinimumSize(new Dimension(100, (int)helixTotalField.getMinimumSize().getHeight()));
+        paneRNAInfoValues.add(helixTotalField);
+        paneRNAInfoLabels.add(new JLabel(" Actual Helices: "));
+        helixActualField.setMinimumSize(new Dimension(100, (int)helixActualField.getMinimumSize().getHeight()));
+        paneRNAInfoValues.add(helixActualField);
+        JPanel paneHelixCounts = new JPanel();
+        paneHelixCounts.setLayout(new BorderLayout());
+        paneHelixCounts.add(paneRNAInfoLabels, BorderLayout.WEST);
+        paneHelixCounts.add(paneRNAInfoValues, BorderLayout.CENTER);
+        Box paneFileInfo = new Box(BoxLayout.Y_AXIS);
+        paneFileInfo.setBorder(BorderFactory.createTitledBorder("RNA File Info"));
+        paneFileInfo.add(paneCurrentRNAInfo);
+        paneFileInfo.add(paneHelixCounts);
 
-        DisplayFrame.getContentPane().add(displayControlPanel, BorderLayout.NORTH);
-        DisplayFrame.getContentPane().add(DisplayScrollPane, BorderLayout.CENTER);
-
-        DisplayFrame.setBounds(270, 10, 500, 500);
-        DisplayFrame.addPropertyChangeListener(DisplayFrame.IS_MAXIMUM_PROPERTY, this);
-
-        currentRNAInfoFrame.getContentPane().setLayout(new java.awt.GridLayout(3, 0));
-
-        currentRNAInfoFrame.setIconifiable(true);
-        currentRNAInfoFrame.setTitle("RNA File Info");
-        currentRNAInfoFrame.setVisible(true);
-        jPanel1.setLayout(new java.awt.GridLayout(5, 0));
-
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        uidLabel.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.add(uidLabel);
-
-        jPanel1.add(orgLabel);
-
-        jPanel1.add(accNumLabel);
-
-        jPanel1.add(lengthLabel);
-
-        currentRNAInfoFrame.getContentPane().add(jPanel1);
-
-        jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-
-        currentRNAInfoFrame.getContentPane().add(jPanel3);
-
-        jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-
-        jLabel1.setText("Current Helices");
-        jLabel1.setPreferredSize(new java.awt.Dimension(120, 16));
-        jPanel2.add(jLabel1);
-
-        helixNumField.setColumns(7);
-        helixNumField.setEnabled(false);
-        jPanel2.add(helixNumField);
-
-        jLabel3.setText("Total Helices");
-        jLabel3.setPreferredSize(new java.awt.Dimension(120, 16));
-        jPanel2.add(jLabel3);
-
-        helixTotalField.setColumns(7);
-        helixTotalField.setEnabled(false);
-        jPanel2.add(helixTotalField);
-
-        jLabel2.setText("Actual Helices");
-        jLabel2.setPreferredSize(new java.awt.Dimension(120, 16));
-        jPanel2.add(jLabel2);
-
-        helixActualField.setColumns(7);
-        helixActualField.setEnabled(false);
-        jPanel2.add(helixActualField);
-
-        currentRNAInfoFrame.getContentPane().add(jPanel2);
-
-        currentRNAInfoFrame.setBounds(10, 10, 250, 330);
-
-        BorderLayout historyLayout = new BorderLayout();
-        HistoryFrame.getContentPane().setLayout(historyLayout);
-        HistoryFrame.setIconifiable(true);
-        HistoryFrame.setResizable(true);
-        HistoryFrame.setTitle("Constraint History");
-        HistoryFrame.setVisible(true);
-        jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        jScrollPane2.setPreferredSize(new java.awt.Dimension(420, 100));
+        JPanel paneHistory = new JPanel();
+        paneHistory.setLayout(new BorderLayout());
         jScrollPane2.setAutoscrolls(true);
+        historyList.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         historyList.setModel(new DefaultListModel<String>());
         historyList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         historyList.setPreferredSize(null);
@@ -730,7 +805,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         jPanel4.setLayout(new BorderLayout());
         jPanel4.add(jScrollPane2, BorderLayout.CENTER);
 
-        HistoryFrame.getContentPane().add(jPanel4, BorderLayout.CENTER);
+        paneHistory.add(jPanel4, BorderLayout.CENTER);
 
         undoConstraintBtn.setText("Undo Last");
         undoConstraintBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -741,26 +816,52 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         jPanel5.add(undoConstraintBtn);
 
-        HistoryFrame.getContentPane().add(jPanel5, BorderLayout.SOUTH);
+        paneHistory.add(jPanel5, BorderLayout.SOUTH);
 
-        HistoryFrame.setBounds(270, 520, 500, 190);
+        JPanel padPaneConstraintHistory = new JPanel();
+        padPaneConstraintHistory.setLayout(new BorderLayout());
+        padPaneConstraintHistory.setBorder(BorderFactory.createTitledBorder("Constraint History"));
+        padPaneConstraintHistory.add(paneHistory, BorderLayout.CENTER);
 
-        InfoFrame.getContentPane().setLayout(new java.awt.GridLayout(1, 0));
-
-        InfoFrame.setIconifiable(true);
-        InfoFrame.setResizable(true);
-        InfoFrame.setTitle("Helix Info");
-        InfoFrame.setVisible(true);
         helixInfoTextPane.setEditable(false);
         helixInfoTextPane.setFont(getMonospacedFont(helixInfoTextPane.getFont(), 12)); // monospaced font so pairs are easier to see
-        jScrollPane1.setViewportView(helixInfoTextPane);
-
-        InfoFrame.getContentPane().add(jScrollPane1);
-
-        InfoFrame.setBounds(10, 350, 250, 360);
+        JScrollPane scrollSelectedHelixInfo = new JScrollPane();
+        scrollSelectedHelixInfo.setViewportView(helixInfoTextPane);
+        scrollSelectedHelixInfo.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.white));
+        scrollSelectedHelixInfo.setMinimumSize(new Dimension(250, 100));
+        JPanel paneSelectedHelix = new JPanel();
+        paneSelectedHelix.setLayout(new BorderLayout());
+        paneSelectedHelix.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        paneSelectedHelix.add(scrollSelectedHelixInfo, BorderLayout.CENTER);
+        JPanel padPaneSelectedHelix = new JPanel();
+        padPaneSelectedHelix.setLayout(new BorderLayout());
+        padPaneSelectedHelix.setBorder(BorderFactory.createTitledBorder("Selected Helix"));
+        padPaneSelectedHelix.add(paneSelectedHelix, BorderLayout.CENTER);
 
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
         setExtendedState(MAXIMIZED_BOTH);
+
+        leftToolBar.add(paneFileInfo);
+        leftToolBar.add(Box.createVerticalStrut(10));
+        leftToolBar.add(padPaneSelectedHelix);
+        leftToolBar.add(Box.createVerticalStrut(10));
+        leftToolBar.add(padPaneConstraintHistory);
+
+        JPanel paneExperimentInfo = new JPanel();
+        JPanel paneExperiments = new JPanel();
+        paneExperiments.setLayout(new BorderLayout());
+        paneExperiments.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        paneExperiments.add(paneExperimentInfo, BorderLayout.CENTER);
+        JPanel padPaneExperiments = new JPanel();
+        padPaneExperiments.setLayout(new BorderLayout());
+        padPaneExperiments.setBorder(BorderFactory.createTitledBorder("Experiments"));
+        padPaneExperiments.add(paneExperiments, BorderLayout.CENTER);
+
+        rightToolBar.add(padPaneExperiments);
+        // TODO: one option for the right-hand side is an interface
+        // for managing the files in the experiment tree; for now,
+        // just hide this region of the window
+        rightToolBar.setVisible(false);
 
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
@@ -857,7 +958,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         exitMenuItem.setToolTipText("Ends the program.");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exitMenuItemActionPerformed(evt);
+                exitProgram();
             }
         });
 
@@ -1108,51 +1209,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         windowMenu.add(selectPreviousWindowMenuItem);
         windowMenu.addSeparator();
 
-        viewDisplayMenuItem.setMnemonic('D');
-        viewDisplayMenuItem.setText("Display Window");
-        viewDisplayMenuItem.setToolTipText("Brings Display Window to the front.");
-        viewDisplayMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                viewDisplayMenuItemActionPerformed(evt);
-            }
-        });
-
-        windowMenu.add(viewDisplayMenuItem);
-
-        viewHistoryMenuItem.setMnemonic('H');
-        viewHistoryMenuItem.setText("Constraint History");
-        viewHistoryMenuItem.setToolTipText("Brings Constraint History to the front.");
-        viewHistoryMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                viewHistoryMenuItemActionPerformed(evt);
-            }
-        });
-
-        windowMenu.add(viewHistoryMenuItem);
-
-        viewRNAInfoMenuItem.setMnemonic('R');
-        viewRNAInfoMenuItem.setText("RNA File Info");
-        viewRNAInfoMenuItem.setToolTipText("Brings RNA File Info to the front.");
-        viewRNAInfoMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                viewRNAInfoMenuItemActionPerformed(evt);
-            }
-        });
-
-        windowMenu.add(viewRNAInfoMenuItem);
-
-        viewHelixInfoMenuItem.setMnemonic('I');
-        setKey(viewHelixInfoMenuItem, KeyEvent.VK_I);
-        viewHelixInfoMenuItem.setText("Helix Info");
-        viewHelixInfoMenuItem.setToolTipText("Brings Helix Info to the front.");
-        viewHelixInfoMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                viewHelixInfoMenuItemActionPerformed(evt);
-            }
-        });
-
-        windowMenu.add(viewHelixInfoMenuItem);
-
         menuBar.add(windowMenu);
 
         helpMenu.setMnemonic('H');
@@ -1195,11 +1251,13 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
 
         setJMenuBar(menuBar);
 
-        addOrReuseComponent(currentRNAInfoFrame);
-        addOrReuseComponent(InfoFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
-        addOrReuseComponent(HistoryFrame);
-        addOrReuseComponent(DisplayFrame);
-        bringToFront(DisplayFrame);
+        addOrReuseComponent(mainWindowFrame);
+        try {
+            mainWindowFrame.setMaximum(true);
+        } catch (java.beans.PropertyVetoException e) {
+            e.printStackTrace();
+        }
+        bringToFront(mainWindowFrame);
 
         pack();
     }
@@ -1362,7 +1420,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         this.desktopPane.selectFrame(true/* forward */);
     }
 
-    private void saveAsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsMenuItemActionPerformed
+    private void saveAsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         File outputImage;
         fc = new JFileChooser(System.getProperty("user.dir"));
         fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -1383,11 +1441,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                 JOptionPane.showMessageDialog(this, "Image IO error", "Save Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }//GEN-LAST:event_saveAsMenuItemActionPerformed
-
-    private void viewHelixInfoMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHelixInfoMenuItemActionPerformed
-        this.bringToFront(this.InfoFrame);
-    }//GEN-LAST:event_viewHelixInfoMenuItemActionPerformed
+    }
 
     /**
      * Responds to a mouse click by updating the display (to
@@ -1396,7 +1450,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
      */
     private void displayPaneMouseClicked(java.awt.event.MouseEvent evt) {
         java.awt.Point p = evt.getPoint();
-        java.awt.Rectangle rect = this.DisplayScrollPane.getViewport().getViewRect();
+        java.awt.Rectangle rect = this.displayScrollPane.getViewport().getViewRect();
         double x = p.getX();
         double y = p.getY();
         helixImgGen.setPrimarySelectionLocation(x, y, rect.getSize());
@@ -1411,17 +1465,13 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         // used to respond slightly later, after an update
     }
 
-    private void viewHistoryMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHistoryMenuItemActionPerformed
-        bringToFront(this.HistoryFrame);
-    }//GEN-LAST:event_viewHistoryMenuItemActionPerformed
-
     private void displayHelp() {
-        addOrReuseComponent(helpFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
+        addOrReuseComponent(helpFrame);
         bringToFront(helpFrame);
     }
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
-        addOrReuseComponent(aboutFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
+        addOrReuseComponent(aboutFrame);
         bringToFront(aboutFrame);
     }
 
@@ -1526,6 +1576,7 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
                     appMain.openOverlayRNA(inputFile.getAbsolutePath(), openOverlayColorPanel.getBackground());
                 } else {
                     appMain.openRNA(inputFile.getAbsolutePath());
+                    zoomFit();
                     // automatically request a base-pair set, since
                     // otherwise the default display is not very useful
                     showBasePairConstraintDialog();
@@ -1607,23 +1658,10 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         }
     }
 
-    private void viewRNAInfoMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewRNAInfoMenuItemActionPerformed
-        bringToFront(this.currentRNAInfoFrame);
-    }//GEN-LAST:event_viewRNAInfoMenuItemActionPerformed
-
-    private void viewDisplayMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewDisplayMenuItemActionPerformed
-        bringToFront(this.DisplayFrame);
-    }//GEN-LAST:event_viewDisplayMenuItemActionPerformed
-
-    private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
-        System.exit(0);
-    }//GEN-LAST:event_exitMenuItemActionPerformed
-
-    /** Exit the Application */
-    private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
+    private void exitProgram() {
         closeRNA();
         System.exit(0);
-    }//GEN-LAST:event_exitForm
+    }
 
     /**
      * @param item the menu item to set a keyboard short-cut for
@@ -1642,55 +1680,42 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
         item.setAccelerator(KeyStroke.getKeyStroke(keyCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | java.awt.event.InputEvent.SHIFT_DOWN_MASK));
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JInternalFrame DisplayFrame;
+    private javax.swing.JInternalFrame mainWindowFrame;
     private javax.swing.JMenu windowMenu;
-    private javax.swing.JTextField helixNumField;
+    private javax.swing.JLabel helixNumField;
     private javax.swing.JMenu fileMenu;
-    private javax.swing.JMenuItem viewRNAInfoMenuItem;
     private javax.swing.JMenuItem contentMenuItem;
     private javax.swing.JButton undoConstraintBtn;
     private javax.swing.JMenuItem diagonalConstraintItem;
     private javax.swing.JMenuItem helixConstraintItem;
-    private javax.swing.JMenuItem viewHelixInfoMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
-    private javax.swing.JMenuItem viewHistoryMenuItem;
-    private javax.swing.JTextField helixTotalField;
+    private javax.swing.JLabel helixTotalField;
     private javax.swing.JMenuBar menuBar;
-    private javax.swing.JScrollPane DisplayScrollPane;
-    private javax.swing.JInternalFrame currentRNAInfoFrame;
+    private javax.swing.JScrollPane displayScrollPane;
     private javax.swing.JMenu editMenu;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JMenuItem viewDisplayMenuItem;
-    private javax.swing.JTextPane helixInfoTextPane;
-    private javax.swing.JInternalFrame InfoFrame;
+    private javax.swing.JTextArea helixInfoTextPane;
     private javax.swing.JMenuItem aa_agConstraintItem;
     private javax.swing.JMenuItem energyConstraintItem;
     private javax.swing.JMenuItem undoMenuItem;
     private javax.swing.JMenuItem preferencesMenuItem;
-    private javax.swing.JTextField helixActualField;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel helixActualField;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JMenuItem basepairConstraintItem;
     private javax.swing.JDesktopPane desktopPane;
     public HelpContentJFrame helpFrame;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenuItem eLoopConstraintItem;
-    private javax.swing.JInternalFrame HistoryFrame;
     private javax.swing.JMenuItem saveAsMenuItem;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JLabel uidLabel;
-    private javax.swing.JLabel accNumLabel;
+    private javax.swing.JLabel uidValue;
+    private javax.swing.JLabel organismValue;
+    private javax.swing.JLabel accNumValue;
+    private javax.swing.JLabel lengthValue;
     private javax.swing.JMenuItem openRNAMenuItem;
     private javax.swing.JMenuItem openDataMenuItem;
     private javax.swing.JMenuItem runScriptMenuItem;
     private javax.swing.JMenuItem runProgramMenuItem;
-    private javax.swing.JLabel lengthLabel;
     private javax.swing.JMenuItem goBackMenuItem;
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JMenuItem closeRNAMenuItem;
@@ -1700,7 +1725,6 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JMenuItem selectPreviousWindowMenuItem;
     private javax.swing.JMenuItem zoomWindowMenuItem;
     private javax.swing.JMenu helpMenu;
-    private javax.swing.JLabel orgLabel;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenuItem complexConstraintItem;
     private javax.swing.JMenu viewMenu;
@@ -1713,11 +1737,14 @@ public class RheatApp extends javax.swing.JFrame implements PropertyChangeListen
     private javax.swing.JButton zoomOutButton;
     private javax.swing.JButton zoomFitButton;
     private javax.swing.JList<String> historyList;
-    // End of variables declaration//GEN-END:variables
     private JPanel customOpenPane;
     private JCheckBox openOverlayCheckBox;
     private JPanel openOverlayColorPanel;
     private JButton openOverlayColorButton;
+    private JToolBar topToolBar;
+    private JToolBar bottomToolBar;
+    private JToolBar leftToolBar;
+    private JToolBar rightToolBar;
     private JPanel displayControlPanel;
     private JLabel zoomLabel;
     private JSlider zoomSlider;

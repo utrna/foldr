@@ -1,16 +1,40 @@
 <html>
 <head>
-<title>RNA HEAT: Windows</title>
+<title>RNA HEAT: Main Window Panels</title>
 <link rel="stylesheet" type="text/css" href="default.css" />
 </head>
 <body>
-  <h1>RNA HEAT: Windows</h1>
+  <h1>RNA HEAT: Main Window Panels</h1>
 
   <br /><br />
   <h2 id="Display">Display</h2>
-  <p>Shows the effects of any control settings and constraints.
-  The display may be clicked with the mouse to show coordinates and
-  select a helix.
+  <p>The display shows the helices of the current RNA, after applying
+  any constraints or control settings.  The display may be clicked
+  with the mouse to show coordinates and select a helix.  The zoom
+  controls may be used as short-cuts for commands in the View menu.
+
+  <br /><br />
+  <h2 id="ViewFrame">View Frame</h2>
+  <p>This miniature window appears only when some part of the display
+  is not visible due to zooming and/or scrolling.  Its white rectangle
+  shows which part of the entire RNA is currently visible.  The frame
+  may be moved to another location by dragging its title bar.
+
+  <br /><br />
+  <h2 id="RNAFileInfo">RNA File Info</h2>
+  <p>The top-left region shows a summary of the RNA file that is open.
+  The Current count depends on any applied Constraints, the Total count
+  reflects only the last Base-Pair Filter and the Actual count refers
+  to the helices from the original input file (the “correct” helices
+  shown in the top-right triangle of the display).
+
+  <br /><br />
+  <h2 id="SelectedHelix">Selected Helix</h2>
+  <p>When you click a helix line, this area shows more information
+  about the helix (such as its start and end points, base-pairs, and
+  energy).  Two helices that appear mirrored on the diagonal of the 2D
+  display often have similar or identical information when selected
+  (for example, the helix length may vary between the two).
 
   <br /><br />
   <h2 id="ConstraintHistory">Constraint History</h2>
@@ -21,14 +45,5 @@
   click “Undo Last” or use the Undo command, the last constraint
   command in the list is removed and the display rolls back to its
   previous state.
-
-  <br /><br />
-  <h2 id="RNAFileInfo">RNA File Info</h2>
-  <p>Shows a summary of the file that was opened and the available
-  helices.
-
-  <br /><br />
-  <h2 id="HelixInfo">Helix Info</h2>
-  <p>Information on any selected helix or clicked location.
 </body>
 </html>

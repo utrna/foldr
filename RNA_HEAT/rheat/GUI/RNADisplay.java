@@ -62,6 +62,9 @@ public class RNADisplay extends javax.swing.JComponent {
      * @return the size of the view
      */
     public Dimension getPreferredSize() {
+        if (helixImageGenerator != null) {
+            return helixImageGenerator.getSize();
+        }
         return getSize();
     }
 

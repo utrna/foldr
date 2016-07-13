@@ -67,7 +67,7 @@ public class HelpContentJFrame extends javax.swing.JInternalFrame {
           // specify title, and name of target HTML file (note that
           // the BookInfo class prefixes "help/" automatically)
           new BookInfo("Getting Started", "intro.html"),
-          new BookInfo("Windows", "windows.html"),
+          new BookInfo("Panels", "windows.html"),
           new BookInfo("Menus", "menus.html"),
           new BookInfo("Running Programs", "programs.html"),
           new BookInfo("Scripting", "scripting.html")
