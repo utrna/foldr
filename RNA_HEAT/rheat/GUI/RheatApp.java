@@ -291,6 +291,41 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Scrolls to a particular location (same X and Y).
+     * @param xy data-relative value (i.e. maximum is base-pair length of RNA)
+     */
+    private void scrollTo(int xy) {
+        if (appMain.rnaData == null) {
+            return;
+        }
+        this.scrollTo(xy, xy);
+    }
+
+    /**
+     * Scrolls to a particular location, attempting to center the
+     * display on that point.
+     * @param x data-relative value (i.e. maximum is base-pair length of RNA)
+     * @param y data-relative value (i.e. maximum is base-pair length of RNA)
+     */
+    private void scrollTo(int x, int y) {
+        if (appMain.rnaData == null) {
+            return;
+        }
+        // activate two scroll bars at once
+        final int maxBP = appMain.rnaData.getLength();
+        JScrollBar bar = displayScrollPane.getHorizontalScrollBar();
+        int maximum = bar.getMaximum();
+        int visible = bar.getVisibleAmount();
+        int scrollValue = (int)((double)maximum / (double)maxBP * (double)x - (visible / 2));
+        bar.setValue(scrollValue);
+        bar = displayScrollPane.getVerticalScrollBar();
+        maximum = bar.getMaximum();
+        visible = bar.getVisibleAmount();
+        scrollValue = (int)((double)maximum / (double)maxBP * (double)y - (visible / 2));
+        bar.setValue(scrollValue);
+    }
+
+    /**
      * Returns a fixed-width font, if one is available.
      * @param fallback a font to return if the monospaced lookup fails
      * @param size the desired point size of the font (like "12")
@@ -605,7 +640,9 @@ implements PropertyChangeListener {
         bottomToolBar.setFloatable(false);
         bottomToolBar.setOrientation(JToolBar.HORIZONTAL);
 
-        displayControlPanel = new javax.swing.JPanel();
+        displayControlPanel = new JPanel();
+        JPanel paneZoomControls = new JPanel();
+        paneZoomControls.setBorder(BorderFactory.createTitledBorder("Zoom"));
         zoomOutButton = new javax.swing.JButton();
         zoomOutButton.setText("-");
         zoomOutButton.setMnemonic(KeyEvent.VK_MINUS);
@@ -661,12 +698,39 @@ implements PropertyChangeListener {
             }
         });
         zoomLabel = new JLabel();
+        paneZoomControls.add(zoomOutButton);
+        paneZoomControls.add(zoomInButton);
+        paneZoomControls.add(zoomFitButton);
+        paneZoomControls.add(zoomSlider);
+        paneZoomControls.add(zoomLabel);
+        JPanel paneJump = new JPanel();
+        paneJump.setBorder(BorderFactory.createTitledBorder("Jump"));
+        jumpButton = new JButton("Go");
+        jumpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                try {
+                    int asInt = Integer.parseInt(jumpField.getText());
+                    scrollTo(asInt);
+                } catch (NumberFormatException e) {
+                    log(ERROR, "Expected a number.");
+                    //e.printStackTrace();
+                }
+            }
+        });
+        jumpField = new JTextField();
+        jumpField.setColumns(6);
+        jumpField.setToolTipText("Enter a number from 1 to the number of base-pairs to jump to that square position.");
+        jumpField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jumpButton.doClick();
+            }
+        });
+        paneJump.add(jumpField);
+        paneJump.add(jumpButton);
         displayControlPanel.setLayout(new FlowLayout(java.awt.FlowLayout.LEFT));
-        displayControlPanel.add(zoomOutButton);
-        displayControlPanel.add(zoomInButton);
-        displayControlPanel.add(zoomFitButton);
-        displayControlPanel.add(zoomSlider);
-        displayControlPanel.add(zoomLabel);
+        displayControlPanel.add(paneZoomControls);
+        displayControlPanel.add(new JSeparator(SwingConstants.VERTICAL));
+        displayControlPanel.add(paneJump);
         displayScrollPane = new javax.swing.JScrollPane();
         displayPane = new RNADisplay();
         displayPane.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -1787,8 +1851,10 @@ implements PropertyChangeListener {
     private JToolBar leftToolBar;
     private JToolBar rightToolBar;
     private JPanel displayControlPanel;
-    private JLabel zoomLabel;
     private JSlider zoomSlider;
+    private JLabel zoomLabel;
+    private JTextField jumpField;
+    private JButton jumpButton;
     private RNADisplay displayPane;
     private AboutFrame aboutFrame;
     private MiniFrame miniFrame;
