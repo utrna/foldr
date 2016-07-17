@@ -17,10 +17,12 @@ public class HelixStoreIterationDelegate implements IterationDelegate<ScriptHeli
 
     private int left = 0;
     private Iterator<Helix> iter = null;
+    private RNA sourceRNA = null;
 
-    public HelixStoreIterationDelegate(HelixStore helices) {
+    public HelixStoreIterationDelegate(HelixStore helices, RNA sourceRNA) {
         this.left = helices.getCount();
         this.iter = helices.iterator();
+        this.sourceRNA = sourceRNA;
     }
 
     @Override
@@ -34,7 +36,7 @@ public class HelixStoreIterationDelegate implements IterationDelegate<ScriptHeli
             return null;
         }
         --(this.left);
-        return new ScriptHelix(iter.next());
+        return new ScriptHelix(iter.next(), sourceRNA);
     }
 
 }

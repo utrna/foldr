@@ -385,12 +385,15 @@ public class AppMain {
      * Opens the specified helix data file, which must be in a
      * supported format such as ".bpseq".  If there is a GUI, it
      * will be refreshed automatically.
+     *
+     * Note that this does NOT create any helices; to do that, a
+     * base-pair filter must be applied.  The GUI prompts the user
+     * for base-pairs by default but this low-level call does not.
      */
     public void openRNA(String filePath) throws IOException {
         String realPath = beginOpenFile(filePath);
         try {
-            rheat.base.Reader reader = new rheat.base.Reader(realPath);
-            this.rnaData = reader.readBPSEQ();
+            this.rnaData = BPSeqReader.parse(realPath);
             this.overlayData.clear();
             this.overlayColors.clear();
             this.currentRNAFilePath = realPath;
@@ -411,8 +414,7 @@ public class AppMain {
     public void openOverlayRNA(String filePath, Color color) throws IOException {
         String realPath = beginOpenFile(filePath);
         try {
-            rheat.base.Reader reader = new rheat.base.Reader(realPath);
-            RNA newData = reader.readBPSEQ();
+            RNA newData = BPSeqReader.parse(realPath);
             // apply same transforms to overlay data
             for (Filter filter : this.filterList) {
                 if (filter instanceof BPFilter) {
@@ -424,6 +426,23 @@ public class AppMain {
             if (this.gui != null) {
                 this.gui.refreshForNewRNA();
             }
+        } finally {
+            endOpenFile(filePath);
+        }
+    }
+
+    /**
+     * Opens the specified file, which must be in a supported helix
+     * annotation format such as ".bpcolor".  If there is a GUI, it
+     * will be refreshed automatically.
+     */
+    public void openTags(String filePath) throws IOException {
+        String realPath = beginOpenFile(filePath);
+        try {
+            BPColorReader.parse(realPath, this.rnaData);
+            //if (this.gui != null) {
+            //    this.gui.refreshForNewRNA();
+            //}
         } finally {
             endOpenFile(filePath);
         }

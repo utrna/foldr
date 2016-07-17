@@ -53,7 +53,11 @@ for (i = 0; i < helices.length(); ++i) {
 }
 
 // look at actual helices (would appear top-right of diagonal)
-expected_lengths = [4, 3, 6, 2, 8, 7, 10]
+expected_lengths =   [ 4,  3,  6,  2,  8,   7,  10]
+expected_5p_starts = [30, 27, 17, 15, 78,  69,   0]
+expected_5p_ends   = [33, 29, 22, 16, 85,  75,   9]
+expected_3p_starts = [50, 55, 64, 67, 96, 105, 118]
+expected_3p_ends   = [47, 53, 59, 66, 89,  99, 109]
 helices = rheat.eachActualHelix()
 println("number of actual helices: " + helices.length())
 if (helices.length() != expected_lengths.length) {
@@ -64,5 +68,17 @@ for (i = 0; i < helices.length(); ++i) {
     rheat.log(rheat.INFO, "actual helix #" + i + ": len=" + helix.length())
     if (expected_lengths[i] != helix.length()) {
         throw "TEST FAILED: wrong helix length returned (#" + i + " exp. " + expected_lengths[i] + " but saw " + helix.length() + ")"
+    }
+    if (expected_5p_starts[i] != helix.fivePrimeStart()) {
+        throw "TEST FAILED: wrong helix 5' start returned (#" + i + " exp. " + expected_5p_starts[i] + " but saw " + helix.fivePrimeStart() + ")"
+    }
+    if (expected_5p_ends[i] != helix.fivePrimeEnd()) {
+        throw "TEST FAILED: wrong helix 5' end returned (#" + i + " exp. " + expected_5p_ends[i] + " but saw " + helix.fivePrimeEnd() + ")"
+    }
+    if (expected_3p_starts[i] != helix.threePrimeStart()) {
+        throw "TEST FAILED: wrong helix 3' start returned (#" + i + " exp. " + expected_3p_starts[i] + " but saw " + helix.threePrimeStart() + ")"
+    }
+    if (expected_3p_ends[i] != helix.threePrimeEnd()) {
+        throw "TEST FAILED: wrong helix 3' end returned (#" + i + " exp. " + expected_3p_ends[i] + " but saw " + helix.threePrimeEnd() + ")"
     }
 }

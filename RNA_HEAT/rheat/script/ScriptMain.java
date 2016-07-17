@@ -225,8 +225,9 @@ public class ScriptMain {
     public ScriptIteration<ScriptHelix> eachActualHelix() throws ScriptException {
         ScriptIteration<ScriptHelix> result = null;
         try {
-            final HelixStore actualHelices = appMain.rnaData.getActual();
-            result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(actualHelices));
+            final RNA sourceRNA = appMain.rnaData;
+            final HelixStore actualHelices = sourceRNA.getActual();
+            result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(actualHelices, sourceRNA));
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -242,8 +243,9 @@ public class ScriptMain {
     public ScriptIteration<ScriptHelix> eachPredictedHelix() throws ScriptException {
         ScriptIteration<ScriptHelix> result = null;
         try {
-            HelixStore predictedHelices = appMain.rnaData.getHelices(); // FIXME: bad name
-            result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(predictedHelices));
+            final RNA sourceRNA = appMain.rnaData;
+            HelixStore predictedHelices = sourceRNA.getHelices(); // FIXME: bad name
+            result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(predictedHelices, sourceRNA));
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -259,7 +261,8 @@ public class ScriptMain {
         ScriptHelix result = null;
         try {
             Helix rawHelix = appMain.getSelectedHelix();
-            result = new ScriptHelix(rawHelix);
+            // TODO: maybe return RNA as well, in case it can be different?
+            result = new ScriptHelix(rawHelix, appMain.rnaData);
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -322,6 +325,31 @@ public class ScriptMain {
     public void openRNA(String filePath) throws ScriptException {
         try {
             appMain.openRNA(filePath);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.openOverlayRNA().
+     */
+    public void openOverlayRNA(String filePath, String color) throws ScriptException {
+        try {
+            // the color string can be in a format supported by decoding,
+            // such as a triplet of RGB hexadecimal values
+            java.awt.Color asColorObject = java.awt.Color.decode(color);
+            appMain.openOverlayRNA(filePath, asColorObject);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.openTags().
+     */
+    public void openTags(String filePath) throws ScriptException {
+        try {
+            appMain.openTags(filePath);
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
