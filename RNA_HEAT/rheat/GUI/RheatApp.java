@@ -704,28 +704,46 @@ implements PropertyChangeListener {
         paneZoomControls.add(zoomSlider);
         paneZoomControls.add(zoomLabel);
         JPanel paneJump = new JPanel();
-        paneJump.setBorder(BorderFactory.createTitledBorder("Jump"));
+        paneJump.setBorder(BorderFactory.createTitledBorder("Jump to X and Y"));
         jumpButton = new JButton("Go");
         jumpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 try {
-                    int asInt = Integer.parseInt(jumpField.getText());
-                    scrollTo(asInt);
+                    if (jumpFieldY.getText().isEmpty()) {
+                        int xInt = Integer.parseInt(jumpFieldX.getText());
+                        scrollTo(xInt, xInt);
+                    } else if (jumpFieldX.getText().isEmpty()) {
+                        int yInt = Integer.parseInt(jumpFieldY.getText());
+                        scrollTo(yInt, yInt);
+                    } else {
+                        int xInt = Integer.parseInt(jumpFieldX.getText());
+                        int yInt = Integer.parseInt(jumpFieldY.getText());
+                        scrollTo(xInt, yInt);
+                    }
                 } catch (NumberFormatException e) {
                     log(ERROR, "Expected a number.");
                     //e.printStackTrace();
                 }
             }
         });
-        jumpField = new JTextField();
-        jumpField.setColumns(6);
-        jumpField.setToolTipText("Enter a number from 1 to the number of base-pairs to jump to that square position.");
-        jumpField.addActionListener(new java.awt.event.ActionListener() {
+        jumpFieldX = new JTextField();
+        jumpFieldX.setColumns(6);
+        jumpFieldX.setToolTipText("Enter a number from 1 to the number of base-pairs to jump to that X position.");
+        jumpFieldX.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jumpButton.doClick();
             }
         });
-        paneJump.add(jumpField);
+        jumpFieldY = new JTextField();
+        jumpFieldY.setColumns(6);
+        jumpFieldY.setToolTipText("Enter a number from 1 to the number of base-pairs to jump to that Y position.  Or, leave blank to copy the X value.");
+        jumpFieldY.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jumpButton.doClick();
+            }
+        });
+        paneJump.add(jumpFieldX);
+        paneJump.add(jumpFieldY);
         paneJump.add(jumpButton);
         displayControlPanel.setLayout(new FlowLayout(java.awt.FlowLayout.LEFT));
         displayControlPanel.add(paneZoomControls);
@@ -1853,7 +1871,8 @@ implements PropertyChangeListener {
     private JPanel displayControlPanel;
     private JSlider zoomSlider;
     private JLabel zoomLabel;
-    private JTextField jumpField;
+    private JTextField jumpFieldX;
+    private JTextField jumpFieldY;
     private JButton jumpButton;
     private RNADisplay displayPane;
     private AboutFrame aboutFrame;
