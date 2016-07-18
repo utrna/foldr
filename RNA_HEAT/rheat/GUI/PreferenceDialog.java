@@ -11,12 +11,12 @@ import rheat.base.AppMain;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 
 /**
  * Allows the user to customize certain properties.
  *
  * @author  jyzhang
+ * @author  Kevin Grant
  */
 public class PreferenceDialog
 extends RheatApp.RheatActionPanel {
@@ -32,6 +32,7 @@ extends RheatApp.RheatActionPanel {
         this.inputDirTextField.setText(appMain.getPrefHelixDataDir());
         this.runDirTextField.setText(appMain.getPrefRunRootDir());
         this.gridSizeField.setText(String.format("%.2f", appMain.getPrefGridFraction()));
+        this.defaultHelixColorEditor.setColorString(appMain.getPrefDefaultHelixColor());
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     }
 
@@ -59,35 +60,30 @@ extends RheatApp.RheatActionPanel {
         itemsPane = new javax.swing.JPanel();
 
         jPanel0 = new javax.swing.JPanel();
-        jLabel0 = new javax.swing.JLabel();
         programsDirTextField = new javax.swing.JTextField();
         browse0Btn = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
         inputDirTextField = new javax.swing.JTextField();
         browse1Btn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
         runDirTextField = new javax.swing.JTextField();
         browse2Btn = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
         gridSizeField = new javax.swing.JTextField();
+        defaultHelixColorEditor = new rheat.GUI.ColorEditor();
 
         contentPane.setLayout(new BorderLayout());
-        labelsPane.setLayout(new GridLayout(4, 0));
-        itemsPane.setLayout(new GridLayout(4, 0));
+        labelsPane.setLayout(new GridLayout(5, 0));
+        itemsPane.setLayout(new GridLayout(5, 0));
 
         jPanel0.setLayout(new BorderLayout());
-        jPanel0.setBorder(new EmptyBorder(2, 2, 2, 2));
-
-        jLabel0.setText("Programs Directory: ");
+        jPanel0.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         programsDirTextField.setColumns(40);
         programsDirTextField.setToolTipText("The first place that is searched for external programs, before any system path.");
         jPanel0.add(programsDirTextField, BorderLayout.CENTER);
 
-        browse0Btn.setText("...");
+        browse0Btn.setText("…");
         browse0Btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 browse0BtnActionPerformed(evt);
@@ -96,19 +92,17 @@ extends RheatApp.RheatActionPanel {
 
         jPanel0.add(browse0Btn, BorderLayout.EAST);
 
-        labelsPane.add(jLabel0);
+        labelsPane.add(new JLabel("Programs Directory: "));
         itemsPane.add(jPanel0);
 
         jPanel1.setLayout(new BorderLayout());
-        jPanel1.setBorder(new EmptyBorder(2, 2, 2, 2));
-
-        jLabel1.setText("Input Directory: ");
+        jPanel1.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         inputDirTextField.setColumns(40);
         inputDirTextField.setToolTipText("The default location when browsing for input RNA files.");
         jPanel1.add(inputDirTextField, BorderLayout.CENTER);
 
-        browse1Btn.setText("...");
+        browse1Btn.setText("…");
         browse1Btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 browse1BtnActionPerformed(evt);
@@ -117,19 +111,17 @@ extends RheatApp.RheatActionPanel {
 
         jPanel1.add(browse1Btn, BorderLayout.EAST);
 
-        labelsPane.add(jLabel1);
+        labelsPane.add(new JLabel("Input Directory: "));
         itemsPane.add(jPanel1);
 
         jPanel2.setLayout(new BorderLayout());
-        jPanel2.setBorder(new EmptyBorder(2, 2, 2, 2));
-
-        jLabel2.setText("Output Tree Root: ");
+        jPanel2.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         runDirTextField.setColumns(40);
         runDirTextField.setToolTipText("The directory in which to create experiment subdirectories (organized by date).");
         jPanel2.add(runDirTextField, BorderLayout.CENTER);
 
-        browse2Btn.setText("...");
+        browse2Btn.setText("…");
         browse2Btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 browse2BtnActionPerformed(evt);
@@ -138,21 +130,25 @@ extends RheatApp.RheatActionPanel {
 
         jPanel2.add(browse2Btn, BorderLayout.EAST);
 
-        labelsPane.add(jLabel2);
+        labelsPane.add(new JLabel("Output Tree Root: "));
         itemsPane.add(jPanel2);
 
         jPanel3.setLayout(new BorderLayout());
-        jPanel3.setBorder(new EmptyBorder(2, 2, 2, 2));
-
-        jLabel3.setText("Default Grid Size: ");
+        jPanel3.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         gridSizeField.setColumns(6); // arbitrary
         gridSizeField.setToolTipText("Grid spacing as fraction of total width (e.g. 0.125 is 8 squares across).  Since grid is centered, should be less than 0.5.  Very small values may also be ignored.");
         jPanel3.add(gridSizeField, BorderLayout.WEST);
         jPanel3.add(new JLabel(" (fraction of total width)"), BorderLayout.CENTER);
 
-        labelsPane.add(jLabel3);
+        labelsPane.add(new JLabel("Default Grid Size: "));
         itemsPane.add(jPanel3);
+
+        defaultHelixColorEditor.setTitle("Default Helix Color");
+        defaultHelixColorEditor.setToolTipText("The color to use by default for helices.");
+
+        labelsPane.add(new JLabel("Default Helix Color: "));
+        itemsPane.add(defaultHelixColorEditor);
 
         contentPane.add(labelsPane, BorderLayout.WEST);
         contentPane.add(itemsPane, BorderLayout.CENTER);
@@ -189,6 +185,7 @@ extends RheatApp.RheatActionPanel {
             appMain.setPreference("BPSEQ", this.inputDirTextField.getText());
             appMain.setPreference("RunRootDir", this.runDirTextField.getText());
             appMain.setPreference("GridFraction", this.gridSizeField.getText());
+            appMain.setPreference("DefaultHelixColor", this.defaultHelixColorEditor.getColorString());
             appMain.savePreferences();
         } catch (Exception e) {
             e.printStackTrace();
@@ -199,6 +196,7 @@ extends RheatApp.RheatActionPanel {
     private javax.swing.JTextField inputDirTextField;
     private javax.swing.JTextField runDirTextField;
     private javax.swing.JTextField gridSizeField;
+    private rheat.GUI.ColorEditor defaultHelixColorEditor;
     private javax.swing.JPanel labelsPane;
     private javax.swing.JPanel itemsPane;
     private javax.swing.JPanel jPanel0;
@@ -208,9 +206,5 @@ extends RheatApp.RheatActionPanel {
     private javax.swing.JButton browse0Btn;
     private javax.swing.JButton browse1Btn;
     private javax.swing.JButton browse2Btn;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel0;
 
 }

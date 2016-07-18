@@ -548,6 +548,7 @@ public class HelixImageGenerator {
         helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         HelixStore hstore = rna.getHelices();
+        // FIXME: make colors customizable
         helixGraphics.setColor(Color.red);
         if (hstore != null) {
             Iterator itr = hstore.iterator();
@@ -559,6 +560,7 @@ public class HelixImageGenerator {
                 hi = (h.getStartX() - h.getStartY());
                 x0 = h.getStartX();
                 y = (int)(this.baseHeight) - hi;
+                // FIXME: make colors customizable
                 helixGraphics.setColor(Color.red);
                 helixGraphics.drawLine(x0, y - 1, x0, (int)(this.baseHeight));
                 x1 = h.getStartY();

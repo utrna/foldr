@@ -6,7 +6,9 @@
 
 package rheat.GUI;
 
+import rheat.base.AppMain;
 import rheat.base.RNA;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -23,8 +25,23 @@ public class RNADisplay extends javax.swing.JComponent {
     private RNA rnaData = null;
     private ArrayList<RNA> overlayData = null;
     private ArrayList<Color> overlayColors = null;
+    private Color defaultHelixColor = Color.red; // may change
 
     public RNADisplay() {
+    }
+
+    /**
+     * Specifies 
+     *
+     * The new value is not used until the next paint.
+     */
+    public void setDefaultHelixColor(String colorEncodedName) {
+        try {
+            Color newColor = Color.decode(colorEncodedName);
+            this.defaultHelixColor = newColor;
+        } catch (NumberFormatException e) {
+            AppMain.log(AppMain.ERROR, "Color name '" + colorEncodedName + "' is not valid; ignoring.");
+        }
     }
 
     /**
@@ -82,8 +99,7 @@ public class RNADisplay extends javax.swing.JComponent {
             try {
                 helixImageGenerator.beginRender();
                 helixImageGenerator.paintBackground(g2D, getSize());
-                // FIXME: make base helix color customizable
-                helixImageGenerator.paintRNA(rnaData, Color.red, g2D, getSize(), HelixImageGenerator.RenderingType.NORMAL);
+                helixImageGenerator.paintRNA(rnaData, this.defaultHelixColor, g2D, getSize(), HelixImageGenerator.RenderingType.NORMAL);
                 if (overlayData != null) {
                     // color and data lists must be the same size
                     for (int i = 0; i < overlayData.size(); ++i) {

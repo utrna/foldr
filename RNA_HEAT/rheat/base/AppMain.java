@@ -64,6 +64,7 @@ public class AppMain {
         validPrefKeys.add("ProgramsDir");
         validPrefKeys.add("RunRootDir");
         validPrefKeys.add("GridFraction");
+        validPrefKeys.add("DefaultHelixColor");
         try {
             initScriptingEngine();
         } catch (ScriptException e) {
@@ -167,6 +168,11 @@ public class AppMain {
         // NOTE: perhaps this should be handled indirectly by
         // firing property-changed events, etc. but for now
         // this will suffice
+        if (key.equals("DefaultHelixColor")) {
+            if (this.gui != null) {
+                this.gui.updateDefaultHelixColor();
+            }
+        }
         if (key.equals("GridFraction")) {
             if (this.gui != null) {
                 this.gui.updateGrid();
@@ -209,6 +215,14 @@ public class AppMain {
             result = tmpPrefsMap.get(key);
         }
         return result;
+    }
+
+    /**
+     * Returns user-specified color to use by default for helices.
+     * The string should be valid for decode() in the Color class.
+     */
+    public String getPrefDefaultHelixColor() {
+        return getPreference("DefaultHelixColor");
     }
 
     /**
@@ -783,6 +797,7 @@ public class AppMain {
         setDefaultPreference("BPSEQ", currentDir);
         setDefaultPreference("RunRootDir", makePath(currentDir, "Experiments"));
         setDefaultPreference("GridFraction", "0.125");
+        setDefaultPreference("DefaultHelixColor", "#cccccc");
         try {
             savePreferences();
         } catch (IOException e) {

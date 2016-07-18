@@ -156,7 +156,8 @@ implements PropertyChangeListener {
     public RheatApp(AppMain appMain) {
         this.appMain = appMain;
         initComponents();
-        this.helixImgGen.setGridFraction(appMain.getPrefGridFraction());
+        this.displayPane.setDefaultHelixColor(appMain.getPrefDefaultHelixColor()); // see also updateDefaultHelixColor()
+        this.helixImgGen.setGridFraction(appMain.getPrefGridFraction()); // see also updateGrid()
         this.helixImgGen.addPropertyChangeListener(HelixImageGenerator.PROPERTY_SELECTED_HELIX, this); // updates info pane for selected helix
         this.setBounds(0, 0 , 700, 700);
     }
@@ -231,9 +232,19 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Notify that helix color has changed externally.
+     */
+    public void updateDefaultHelixColor() {
+        // NOTE: similar action taken in constructor (without the update)
+        displayPane.setDefaultHelixColor(appMain.getPrefDefaultHelixColor());
+        displayPane.repaint();
+    }
+
+    /**
      * Notify that grid setting has changed externally.
      */
     public void updateGrid() {
+        // NOTE: similar action taken in constructor (without the update)
         helixImgGen.setGridFraction(appMain.getPrefGridFraction());
         updateImage();
     }

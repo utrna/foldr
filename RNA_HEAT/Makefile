@@ -33,6 +33,7 @@ CLASS_PREFIXES += rheat/GUI/AAandAGFilterDialog
 CLASS_PREFIXES += rheat/GUI/AboutFrame
 CLASS_PREFIXES += rheat/GUI/BasepairFilterDialog
 CLASS_PREFIXES += rheat/GUI/BusyWaitDialog
+CLASS_PREFIXES += rheat/GUI/ColorEditor
 CLASS_PREFIXES += rheat/GUI/ComplexFilterDialog
 CLASS_PREFIXES += rheat/GUI/DiagonalFilterDialog
 CLASS_PREFIXES += rheat/GUI/ELoopFilterDialog
