@@ -18,8 +18,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Iterator;
-import javax.swing.ImageIcon;
+import java.util.*;
 
 /**
  *
@@ -69,6 +68,7 @@ public class HelixImageGenerator {
     // single point completely invisible so the length-1 case uses a shape
     private Stroke strokeLength1Helix = new BasicStroke(0.25f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
     private Stroke strokeNormalHelix = new BasicStroke(0.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private Stroke strokeAnnotatedHelix = new BasicStroke(0.4f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeSelectedHelix = new BasicStroke(0.75f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeLength1SelectedHelix = new BasicStroke(0.75f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
     private Stroke strokeHelixHandle = new BasicStroke(0.1f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
@@ -79,6 +79,8 @@ public class HelixImageGenerator {
     private Color helixColorActual = Color.blue;
     private Color helixColorSelected = Color.blue;
     private Color colorGridLine = new Color(200, 240, 255);
+    private ArrayList<String> helixTagPriorityOrder = new ArrayList<String>();
+    private Map<String, Color> helixTagColorMap = new HashMap<String, Color>();
     private Helix selectedHelix = null;
     private Helix originalSelection = null; // preserved by beginRender()/endRender()
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -97,6 +99,21 @@ public class HelixImageGenerator {
      */
     public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(property, listener);
+    }
+
+    /**
+     * Sets a special rendering rule for any helix whose tags include
+     * the given tag name.  Since a helix can have multiple tags, the
+     * rendering may not actually use the given color; it depends on
+     * what the user has prioritized (e.g. by showing/hiding layers).
+     * @param tagName string to find in the getTags() set of a Helix
+     * @param color the color to use when rendering matching helices
+     */
+    public void addColorForHelicesWithTag(String tagName, Color color) {
+        if (!this.helixTagPriorityOrder.contains(tagName)) {
+            this.helixTagPriorityOrder.add(tagName);
+        }
+        this.helixTagColorMap.put(tagName, color);
     }
 
     /**
@@ -275,8 +292,8 @@ public class HelixImageGenerator {
         BufferedImage result = getImage();
         Graphics2D g = result.createGraphics();
         paintBackground(g, getSize());
-        // FIXME: make base helix color customizable
-        paintRNA(rna, Color.red, g, getSize(), RenderingType.NORMAL);
+        // FIXME: use helix color customizations here as well
+        paintRNA(rna, Color.red, Color.green, g, getSize(), RenderingType.NORMAL);
         return result;
     }
 
@@ -391,8 +408,8 @@ public class HelixImageGenerator {
      * @param targetSize the size of the container in which the image will be centered
      * @param renderingType whether or not to render an overlay
      */
-    public void paintRNA(RNA rna, Color predictedHelixColor, Graphics2D g, Dimension targetSize,
-                         RenderingType renderingType) {
+    public void paintRNA(RNA rna, Color predictedHelixColor, Color defaultHelixTagColor,
+                         Graphics2D g, Dimension targetSize, RenderingType renderingType) {
         assert renderInProgress;
         AffineTransform oldTransform = g.getTransform();
         try {
@@ -400,7 +417,7 @@ public class HelixImageGenerator {
             if (this.imageType == this.VIEW_FLAT) {
                 paintFlatImage(rna, renderingType, g);
             } else {
-                paint2DImage(rna, predictedHelixColor, renderingType, g);
+                paint2DImage(rna, predictedHelixColor, defaultHelixTagColor, renderingType, g);
             }
         } finally {
             g.setTransform(oldTransform);
@@ -414,12 +431,29 @@ public class HelixImageGenerator {
      * This must be called within a beginRender()/endRender() pair.
      */
     private void paintHelix2D(Helix h, HelixType helixType, RenderingType renderingType,
-                              Color primaryColor, Graphics2D helixGraphics) {
+                              Color primaryColor, Color defaultAnnotationColor,
+                              Graphics2D helixGraphics) {
         assert renderInProgress;
         final double helixLength = h.getLength();
         final double clickX = clickPoint.getX();
         final double clickY = clickPoint.getY();
-        helixGraphics.setColor(primaryColor);
+        boolean becameSelected = false;
+        boolean isAnnotated = false;
+        Set<String> helixTags = h.getTags();
+        if (helixTags != null) {
+            isAnnotated = true;
+            Color annotationColor = defaultAnnotationColor;
+            for (String tag : this.helixTagPriorityOrder) {
+                Color color = this.helixTagColorMap.get(tag);
+                if (color != null) {
+                    annotationColor = color;
+                }
+                break;
+            }
+            helixGraphics.setColor(annotationColor);
+        } else {
+            helixGraphics.setColor(primaryColor);
+        }
         /*
         if (h.getEnergy() < -6) {
             helixGraphics.setColor(Color.orange);
@@ -446,7 +480,6 @@ public class HelixImageGenerator {
             y1 = y0 - (helixLength - 1);
         }
         this.tmpLine.setLine(x0, y0, x1, y1);
-        boolean becameSelected = false;
         if (this.selectedHelix == null) {
             // no helix has been selected in this iteration yet;
             // scan for clicks slightly outside the target line
@@ -484,7 +517,11 @@ public class HelixImageGenerator {
             if (helixLength == 1) {
                 helixGraphics.setStroke(strokeLength1Helix);
             } else {
-                helixGraphics.setStroke(strokeNormalHelix);
+                if (isAnnotated) {
+                    helixGraphics.setStroke(strokeAnnotatedHelix);
+                } else {
+                    helixGraphics.setStroke(strokeNormalHelix);
+                }
             }
             helixGraphics.draw(this.tmpLine);
         }
@@ -495,8 +532,8 @@ public class HelixImageGenerator {
      *
      * This must be called within a beginRender()/endRender() pair.
      */
-    private void paint2DImage(RNA rna, Color predictedHelixColor, RenderingType renderingType,
-                              Graphics2D helixGraphics) {
+    private void paint2DImage(RNA rna, Color predictedHelixColor, Color defaultHelixTagColor,
+                              RenderingType renderingType, Graphics2D helixGraphics) {
         assert renderInProgress;
         if (rna == null) {
             // nothing to do
@@ -510,7 +547,7 @@ public class HelixImageGenerator {
             Iterator itr = hstore.iterator();
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                paintHelix2D(h, HelixType.PREDICTED, renderingType, predictedHelixColor, helixGraphics);
+                paintHelix2D(h, HelixType.PREDICTED, renderingType, predictedHelixColor, defaultHelixTagColor, helixGraphics);
             }
             if (false) {
                 // debug: show click region
@@ -529,7 +566,7 @@ public class HelixImageGenerator {
             Iterator itr = actual.iterator();
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                paintHelix2D(h, HelixType.ACTUAL, renderingType, this.helixColorActual, helixGraphics);
+                paintHelix2D(h, HelixType.ACTUAL, renderingType, this.helixColorActual, defaultHelixTagColor, helixGraphics);
             }
         }
     }

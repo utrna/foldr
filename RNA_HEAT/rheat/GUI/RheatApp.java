@@ -157,6 +157,7 @@ implements PropertyChangeListener {
         this.appMain = appMain;
         initComponents();
         this.displayPane.setDefaultHelixColor(appMain.getPrefDefaultHelixColor()); // see also updateDefaultHelixColor()
+        this.displayPane.setDefaultAnnotatedHelixColor(appMain.getPrefDefaultHelixAnnotationColor()); // see also updateDefaultHelixColor()
         this.helixImgGen.setGridFraction(appMain.getPrefGridFraction()); // see also updateGrid()
         this.helixImgGen.addPropertyChangeListener(HelixImageGenerator.PROPERTY_SELECTED_HELIX, this); // updates info pane for selected helix
         this.setBounds(0, 0 , 700, 700);
@@ -237,6 +238,7 @@ implements PropertyChangeListener {
     public void updateDefaultHelixColor() {
         // NOTE: similar action taken in constructor (without the update)
         displayPane.setDefaultHelixColor(appMain.getPrefDefaultHelixColor());
+        displayPane.setDefaultAnnotatedHelixColor(appMain.getPrefDefaultHelixAnnotationColor());
         displayPane.repaint();
     }
 
@@ -821,6 +823,7 @@ implements PropertyChangeListener {
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openRNAMenuItem = new javax.swing.JMenuItem();
+        openTagsMenuItem = new javax.swing.JMenuItem();
         openDataMenuItem = new javax.swing.JMenuItem();
         runScriptMenuItem = new javax.swing.JMenuItem();
         runProgramMenuItem = new javax.swing.JMenuItem();
@@ -1009,6 +1012,18 @@ implements PropertyChangeListener {
         });
 
         fileMenu.add(openRNAMenuItem);
+
+        openTagsMenuItem.setMnemonic('A');
+        //setKey(openTagsMenuItem, KeyEvent.VK_O);
+        openTagsMenuItem.setText("Open Annotation File…");
+        openTagsMenuItem.setToolTipText("Updates the display using a source of helix annotations (such as a '.bpcolor' file).");
+        openTagsMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openTagsMenuItemActionPerformed(evt);
+            }
+        });
+
+        fileMenu.add(openTagsMenuItem);
 
         openDataMenuItem.setMnemonic('o');
         //setKey(openDataMenuItem, KeyEvent.VK_O);
@@ -1720,6 +1735,25 @@ implements PropertyChangeListener {
         }
     }
 
+    private void openTagsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
+        fc = new JFileChooser(appMain.getPrefHelixDataDir());
+        fc.setMultiSelectionEnabled(true);
+        fc.setAcceptAllFileFilterUsed(true);
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Annotation Files", "bpcolor", "txt"));
+        int returnVal = fc.showOpenDialog(this);
+        if (returnVal == fc.APPROVE_OPTION) {
+            for (File inputFile : fc.getSelectedFiles()) {
+                try {
+                    // openTags() will call refreshForNewRNA()
+                    appMain.openTags(inputFile.getAbsolutePath());
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            updateImage();
+        }
+    }
+
     private void openDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         fc = new JFileChooser(appMain.getPrefHelixDataDir());
         fc.setMultiSelectionEnabled(true);
@@ -1847,6 +1881,7 @@ implements PropertyChangeListener {
     private javax.swing.JLabel accNumValue;
     private javax.swing.JLabel lengthValue;
     private javax.swing.JMenuItem openRNAMenuItem;
+    private javax.swing.JMenuItem openTagsMenuItem;
     private javax.swing.JMenuItem openDataMenuItem;
     private javax.swing.JMenuItem runScriptMenuItem;
     private javax.swing.JMenuItem runProgramMenuItem;

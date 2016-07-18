@@ -33,6 +33,7 @@ extends RheatApp.RheatActionPanel {
         this.runDirTextField.setText(appMain.getPrefRunRootDir());
         this.gridSizeField.setText(String.format("%.2f", appMain.getPrefGridFraction()));
         this.defaultHelixColorEditor.setColorString(appMain.getPrefDefaultHelixColor());
+        this.defaultTagColorEditor.setColorString(appMain.getPrefDefaultHelixAnnotationColor());
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     }
 
@@ -71,10 +72,17 @@ extends RheatApp.RheatActionPanel {
         jPanel3 = new javax.swing.JPanel();
         gridSizeField = new javax.swing.JTextField();
         defaultHelixColorEditor = new rheat.GUI.ColorEditor();
+        defaultTagColorEditor = new rheat.GUI.ColorEditor();
 
         contentPane.setLayout(new BorderLayout());
-        labelsPane.setLayout(new GridLayout(5, 0));
-        itemsPane.setLayout(new GridLayout(5, 0));
+        // HOW TO ADD NEW ROWS:
+        // - increment "numRows" below
+        // - add a JLabel for the new row to "labelsPane"
+        // - put the new setting’s controls in a new container (like a JPanel)
+        // - add that container to "itemsPane"
+        final int numRows = 6;
+        labelsPane.setLayout(new GridLayout(numRows, 0));
+        itemsPane.setLayout(new GridLayout(numRows, 0));
 
         jPanel0.setLayout(new BorderLayout());
         jPanel0.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
@@ -144,11 +152,19 @@ extends RheatApp.RheatActionPanel {
         labelsPane.add(new JLabel("Default Grid Size: "));
         itemsPane.add(jPanel3);
 
+        defaultHelixColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         defaultHelixColorEditor.setTitle("Default Helix Color");
         defaultHelixColorEditor.setToolTipText("The color to use by default for helices.");
 
         labelsPane.add(new JLabel("Default Helix Color: "));
         itemsPane.add(defaultHelixColorEditor);
+
+        defaultTagColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        defaultTagColorEditor.setTitle("Default Annotation Color");
+        defaultTagColorEditor.setToolTipText("The color to use by default for helices that have been annotated.  (Specific tag colors may override this.)");
+
+        labelsPane.add(new JLabel("Default Annotation Color: "));
+        itemsPane.add(defaultTagColorEditor);
 
         contentPane.add(labelsPane, BorderLayout.WEST);
         contentPane.add(itemsPane, BorderLayout.CENTER);
@@ -186,6 +202,7 @@ extends RheatApp.RheatActionPanel {
             appMain.setPreference("RunRootDir", this.runDirTextField.getText());
             appMain.setPreference("GridFraction", this.gridSizeField.getText());
             appMain.setPreference("DefaultHelixColor", this.defaultHelixColorEditor.getColorString());
+            appMain.setPreference("DefaultHelixAnnotationColor", this.defaultTagColorEditor.getColorString());
             appMain.savePreferences();
         } catch (Exception e) {
             e.printStackTrace();
@@ -197,6 +214,7 @@ extends RheatApp.RheatActionPanel {
     private javax.swing.JTextField runDirTextField;
     private javax.swing.JTextField gridSizeField;
     private rheat.GUI.ColorEditor defaultHelixColorEditor;
+    private rheat.GUI.ColorEditor defaultTagColorEditor;
     private javax.swing.JPanel labelsPane;
     private javax.swing.JPanel itemsPane;
     private javax.swing.JPanel jPanel0;

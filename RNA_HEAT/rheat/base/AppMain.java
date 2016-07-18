@@ -65,6 +65,7 @@ public class AppMain {
         validPrefKeys.add("RunRootDir");
         validPrefKeys.add("GridFraction");
         validPrefKeys.add("DefaultHelixColor");
+        validPrefKeys.add("DefaultHelixAnnotationColor");
         try {
             initScriptingEngine();
         } catch (ScriptException e) {
@@ -168,7 +169,7 @@ public class AppMain {
         // NOTE: perhaps this should be handled indirectly by
         // firing property-changed events, etc. but for now
         // this will suffice
-        if (key.equals("DefaultHelixColor")) {
+        if (key.equals("DefaultHelixColor") || key.equals("DefaultHelixAnnotationColor")) {
             if (this.gui != null) {
                 this.gui.updateDefaultHelixColor();
             }
@@ -215,6 +216,16 @@ public class AppMain {
             result = tmpPrefsMap.get(key);
         }
         return result;
+    }
+
+    /**
+     * Returns user-specified color to use by default for helices
+     * that have been tagged in some way (and not with a tag that
+     * has its own color preference assigned).  The string can
+     * have the same values as getPrefDefaultHelixColor().
+     */
+    public String getPrefDefaultHelixAnnotationColor() {
+        return getPreference("DefaultHelixAnnotationColor");
     }
 
     /**
@@ -798,6 +809,7 @@ public class AppMain {
         setDefaultPreference("RunRootDir", makePath(currentDir, "Experiments"));
         setDefaultPreference("GridFraction", "0.125");
         setDefaultPreference("DefaultHelixColor", "#cccccc");
+        setDefaultPreference("DefaultHelixAnnotationColor", "#006600");
         try {
             savePreferences();
         } catch (IOException e) {

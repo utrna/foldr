@@ -26,12 +26,14 @@ public class RNADisplay extends javax.swing.JComponent {
     private ArrayList<RNA> overlayData = null;
     private ArrayList<Color> overlayColors = null;
     private Color defaultHelixColor = Color.red; // may change
+    private Color defaultAnnotatedHelixColor = Color.green; // may change
 
     public RNADisplay() {
     }
 
     /**
-     * Specifies 
+     * Specifies a new color to use for painting helices that have
+     * no other associated color (such as an annotation).
      *
      * The new value is not used until the next paint.
      */
@@ -39,6 +41,22 @@ public class RNADisplay extends javax.swing.JComponent {
         try {
             Color newColor = Color.decode(colorEncodedName);
             this.defaultHelixColor = newColor;
+        } catch (NumberFormatException e) {
+            AppMain.log(AppMain.ERROR, "Color name '" + colorEncodedName + "' is not valid; ignoring.");
+        }
+    }
+
+    /**
+     * Specifies a new color to use for painting any annotated helix
+     * whose annotation(s) do not have any associated colors.  (This
+     * ensures that annotated helices will always look different.)
+     *
+     * The new value is not used until the next paint.
+     */
+    public void setDefaultAnnotatedHelixColor(String colorEncodedName) {
+        try {
+            Color newColor = Color.decode(colorEncodedName);
+            this.defaultAnnotatedHelixColor = newColor;
         } catch (NumberFormatException e) {
             AppMain.log(AppMain.ERROR, "Color name '" + colorEncodedName + "' is not valid; ignoring.");
         }
@@ -99,13 +117,15 @@ public class RNADisplay extends javax.swing.JComponent {
             try {
                 helixImageGenerator.beginRender();
                 helixImageGenerator.paintBackground(g2D, getSize());
-                helixImageGenerator.paintRNA(rnaData, this.defaultHelixColor, g2D, getSize(), HelixImageGenerator.RenderingType.NORMAL);
+                helixImageGenerator.paintRNA(rnaData, this.defaultHelixColor, this.defaultAnnotatedHelixColor,
+                                             g2D, getSize(), HelixImageGenerator.RenderingType.NORMAL);
                 if (overlayData != null) {
                     // color and data lists must be the same size
                     for (int i = 0; i < overlayData.size(); ++i) {
                         RNA otherRNA = overlayData.get(i);
                         Color color = overlayColors.get(i);
-                        helixImageGenerator.paintRNA(otherRNA, color, g2D, getSize(), HelixImageGenerator.RenderingType.OVERLAY);
+                        helixImageGenerator.paintRNA(otherRNA, color, this.defaultAnnotatedHelixColor,
+                                                     g2D, getSize(), HelixImageGenerator.RenderingType.OVERLAY);
                     }
                 }
             } finally {
