@@ -9,6 +9,7 @@ package rheat.base;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.TreeSet;
 import java.io.PrintStream;
 
 /** This is an RNA class, representing an RNA to be studied.  This RNA class
@@ -88,6 +89,7 @@ public class RNA implements java.io.Serializable {
         if (tagValues != null) {
             HelixStore targetHelices = getHelices();
             Iterator<Helix> iter = targetHelices.iterator();
+            Set<Integer> tagIndicesUsed = new TreeSet<Integer>();
             // FIXME: the helix storage is not optimized for quickly locating
             // a helix based on any property (part of the reason this method
             // exists at all); this is essentially linear in the number of
@@ -102,7 +104,7 @@ public class RNA implements java.io.Serializable {
                     SortedPair p1 = tag5Ps.get(i);
                     SortedPair p2 = tag3Ps.get(i);
                     String tag = tagValues.get(i);
-                    AppMain.log(0, "found annotation: " + p1 + "/" + p2 + "/" + tag);
+                    AppMain.log(AppMain.INFO, "found annotation: " + p1 + "/" + p2 + "/" + tag);
                 }
             }
             while (iter.hasNext()) {
@@ -114,9 +116,22 @@ public class RNA implements java.io.Serializable {
                     String tag = tagValues.get(i);
                     if (h.intersects(p1, p2)) {
                         if (debug) {
-                            AppMain.log(0, "found helix for annotation: " + p1 + "/" + p2 + "/" + tag); // debug
+                            AppMain.log(AppMain.INFO, "found helix for annotation: " + p1 + "/" + p2 + "/" + tag); // debug
                         }
                         h.addTag(tag);
+                        tagIndicesUsed.add(i);
+                    }
+                }
+            }
+            // display warning messages about any annotations that were
+            // never used (could indicate an improperly-constructed file)
+            if (tagIndicesUsed.size() != tagValues.size()) {
+                for (int i = 0; i < tagValues.size(); ++i) {
+                    if (!tagIndicesUsed.contains(i)) {
+                        SortedPair p1 = tag5Ps.get(i);
+                        SortedPair p2 = tag3Ps.get(i);
+                        String tag = tagValues.get(i);
+                        AppMain.log(AppMain.WARN, "Helix annotation ignored (did not match any known helix): " + p1 + "/" + p2 + "/" + tag);
                     }
                 }
             }
@@ -127,7 +142,7 @@ public class RNA implements java.io.Serializable {
                     Helix h = iter.next();
                     Set<String> tags = h.getTags();
                     if (tags != null) {
-                        AppMain.log(0, "helix <" + h + "> has tags: " + tags);
+                        AppMain.log(AppMain.INFO, "helix <" + h + "> has tags: " + tags);
                     }
                 }
             }
