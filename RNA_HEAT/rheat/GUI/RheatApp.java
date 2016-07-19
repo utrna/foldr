@@ -208,6 +208,14 @@ implements PropertyChangeListener {
                     sb.append("5' End: " + (info.get5PrimeEnd() + 1) + "\n");
                     sb.append("3' Start: " + (info.get3PrimeStart() + 1) + "\n");
                     sb.append("3' End: " + (info.get3PrimeEnd() + 1) + "\n");
+                    Set<String> helixTags = selectedHelix.getTags();
+                    if (helixTags != null) {
+                        sb.append("Annotations:");
+                        for (String tag : helixTags) {
+                            sb.append(" ");
+                            sb.append(tag);
+                        }
+                    }
                 }
                 textArea.setText(sb.toString());
             }
