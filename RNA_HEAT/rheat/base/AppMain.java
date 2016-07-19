@@ -555,6 +555,13 @@ public class AppMain {
     }
 
     /**
+     * Returns the list of history command strings.
+     */
+    public ArrayList<String> getHistoryCommands() {
+        return historyCommands;
+    }
+
+    /**
      * Creates another snapshot of "rnaData".
      */
     public void snapshotRNAData() throws IOException {
@@ -587,6 +594,7 @@ public class AppMain {
         RNA old = (RNA)ois.readObject();
         this.rnaData = old;
         this.filterList.remove(this.filterList.size() - 1);
+        this.historyCommands.remove(this.historyCommands.size() - 1);
         this.currentUndo = undoIndex;
     }
 

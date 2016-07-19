@@ -14,6 +14,12 @@
   any previously-opened file is closed.  If an overlay is requested
   then the new RNA appears on top of the previous one, in a
   different color.
+  <p><b>Open Annotation File</b>:
+  Updates the display using a source of helix annotations (such as
+  a '.bpcolor' file).  The annotations should refer to the same
+  nucleotide numbers as the currently-loaded RNA, or the matching
+  helices will not be highlighted.  Note that Preferences can be
+  used to customize annotation colors.
   <p><b>Open Text or Image File</b>:
   Opens a data file in a separate display, keeping the RNA display
   untouched.  For example, this can be used to display results from
@@ -48,10 +54,19 @@
   Reverses the effects of the most recent action, if possible.  A
   series of Undo commands is possible, as each previous state is
   saved as a separate file (see Preferences).
+  <p><b>Cut</b>:
+  Clears any selection, if possible, and copies it to the Clipboard.
+  The Paste command may then be used.
+  <p><b>Copy</b>:
+  Copies any selection to the Clipboard, if possible.  The Paste
+  command may then be used.
+  <p><b>Paste</b>:
+  Inserts anything that has been put on the Clipboard with a Copy
+  command.
   <p><b>Preferences</b>:
   Allows customization of behavior, such as the directory to start
   from when opening files.  These settings are saved as scripting
-  commands in your home folder, under ".rheat/prefs.js".
+  commands in your home folder, under '.rheat/prefs.js'.
 
   <br /><br />
   <h2 id="Constraints">Constraints</h2>

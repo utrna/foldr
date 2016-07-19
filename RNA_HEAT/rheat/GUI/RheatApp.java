@@ -19,6 +19,7 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.metal.MetalSliderUI;
+import javax.swing.text.DefaultEditorKit;
 
 /**
  * Main window of RNA HEAT application.
@@ -234,10 +235,18 @@ implements PropertyChangeListener {
     }
 
     private void addHistoryCommand(String scriptCommandLines) {
-        @SuppressWarnings({"unchecked"}) DefaultListModel<String> dlm =
-                                         (DefaultListModel<String>)this.historyList.getModel();
-        dlm.addElement(scriptCommandLines);
         this.appMain.addHistoryCommand(scriptCommandLines);
+        refreshHistoryTextPane();
+    }
+
+    private void refreshHistoryTextPane() {
+        ArrayList<String> commands = this.appMain.getHistoryCommands();
+        StringBuilder sb = new StringBuilder();
+        for (String s : commands) {
+            sb.append(s);
+            sb.append("\n");
+        }
+        historyTextPane.setText(sb.toString());
     }
 
     /**
@@ -260,8 +269,8 @@ implements PropertyChangeListener {
     }
 
     public void clearHistory() {
-        this.historyList.setModel(new DefaultListModel<String>());
         this.appMain.clearHistoryCommands();
+        historyTextPane.setText("");
     }
 
     private double getZoomLevel() {
@@ -822,10 +831,7 @@ implements PropertyChangeListener {
         helixTotalField = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         helixActualField = new javax.swing.JLabel();
-        jPanel4 = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        historyList = new javax.swing.JList<String>();
-        jPanel5 = new javax.swing.JPanel();
+        historyTextPane = new javax.swing.JTextArea();
         undoConstraintBtn = new javax.swing.JButton();
         helixInfoTextPane = new javax.swing.JTextArea();
         menuBar = new javax.swing.JMenuBar();
@@ -845,6 +851,9 @@ implements PropertyChangeListener {
         exitMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
         undoMenuItem = new javax.swing.JMenuItem();
+        cutMenuItem = new javax.swing.JMenuItem();
+        copyMenuItem = new javax.swing.JMenuItem();
+        pasteMenuItem = new javax.swing.JMenuItem();
         preferencesMenuItem = new javax.swing.JMenuItem();
         filterMenu = new javax.swing.JMenu();
         basepairConstraintItem = new javax.swing.JMenuItem();
@@ -935,37 +944,33 @@ implements PropertyChangeListener {
         paneFileInfo.add(paneCurrentRNAInfo);
         paneFileInfo.add(paneHelixCounts);
 
-        JPanel paneHistory = new JPanel();
-        paneHistory.setLayout(new BorderLayout());
-        jScrollPane2.setAutoscrolls(true);
-        historyList.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-        historyList.setModel(new DefaultListModel<String>());
-        historyList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        historyList.setPreferredSize(null);
-        historyList.setFont(getMonospacedFont(historyList.getFont(), 12)); // monospaced font so pairs are easier to see
-        jScrollPane2.setViewportView(historyList);
-
-        jPanel4.setLayout(new BorderLayout());
-        jPanel4.add(jScrollPane2, BorderLayout.CENTER);
-
-        paneHistory.add(jPanel4, BorderLayout.CENTER);
-
+        historyTextPane.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        historyTextPane.setEditable(false);
+        historyTextPane.setFont(getMonospacedFont(historyTextPane.getFont(), 12)); // monospaced font so pairs are easier to see
+        JScrollPane scrollConstraintHistory = new JScrollPane();
+        scrollConstraintHistory.setViewportView(historyTextPane);
+        scrollConstraintHistory.setAutoscrolls(true);
+        scrollConstraintHistory.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.white));
+        scrollConstraintHistory.setMinimumSize(new Dimension(250, 100));
         undoConstraintBtn.setText("Undo Last");
         undoConstraintBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 performUndo();
             }
         });
-
-        jPanel5.add(undoConstraintBtn);
-
-        paneHistory.add(jPanel5, BorderLayout.SOUTH);
-
+        JPanel historyButtonPanel = new JPanel();
+        historyButtonPanel.add(undoConstraintBtn);
+        JPanel paneHistory = new JPanel();
+        paneHistory.setLayout(new BorderLayout());
+        paneHistory.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        paneHistory.add(scrollConstraintHistory, BorderLayout.CENTER);
+        paneHistory.add(historyButtonPanel, BorderLayout.SOUTH);
         JPanel padPaneConstraintHistory = new JPanel();
         padPaneConstraintHistory.setLayout(new BorderLayout());
         padPaneConstraintHistory.setBorder(BorderFactory.createTitledBorder("Constraint History"));
         padPaneConstraintHistory.add(paneHistory, BorderLayout.CENTER);
 
+        helixInfoTextPane.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         helixInfoTextPane.setEditable(false);
         helixInfoTextPane.setFont(getMonospacedFont(helixInfoTextPane.getFont(), 12)); // monospaced font so pairs are easier to see
         JScrollPane scrollSelectedHelixInfo = new JScrollPane();
@@ -1009,7 +1014,7 @@ implements PropertyChangeListener {
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
 
-        openRNAMenuItem.setMnemonic('o');
+        openRNAMenuItem.setMnemonic('O');
         setKey(openRNAMenuItem, KeyEvent.VK_O);
         openRNAMenuItem.setText("Open RNA File…");
         openRNAMenuItem.setToolTipText("Updates the display with the contents of an RNA data source (such as a '.bpseq' file).");
@@ -1033,7 +1038,7 @@ implements PropertyChangeListener {
 
         fileMenu.add(openTagsMenuItem);
 
-        openDataMenuItem.setMnemonic('o');
+        openDataMenuItem.setMnemonic('T');
         //setKey(openDataMenuItem, KeyEvent.VK_O);
         openDataMenuItem.setText("Open Text or Image File…");
         openDataMenuItem.setToolTipText("Opens a data file in a separate display, keeping the RNA display untouched.");
@@ -1045,7 +1050,7 @@ implements PropertyChangeListener {
 
         fileMenu.add(openDataMenuItem);
 
-        runScriptMenuItem.setMnemonic('r');
+        runScriptMenuItem.setMnemonic('R');
         setKey(runScriptMenuItem, KeyEvent.VK_R);
         runScriptMenuItem.setText("Run Script…");
         runScriptMenuItem.setToolTipText("Runs commands from a JavaScript ('.js') file, such as a series of filters.");
@@ -1057,7 +1062,7 @@ implements PropertyChangeListener {
 
         fileMenu.add(runScriptMenuItem);
 
-        runProgramMenuItem.setMnemonic('p');
+        runProgramMenuItem.setMnemonic('P');
         //setKey(runProgramMenuItem, KeyEvent.VK_...);
         runProgramMenuItem.setText("Run Program…");
         runProgramMenuItem.setToolTipText("Runs external programs, sending output to the current experiment tree.");
@@ -1070,7 +1075,7 @@ implements PropertyChangeListener {
         fileMenu.add(runProgramMenuItem);
         fileMenu.addSeparator();
 
-        //closeWindowMenuItem.setMnemonic('C');
+        closeWindowMenuItem.setMnemonic('W');
         setKey(closeWindowMenuItem, KeyEvent.VK_W);
         closeWindowMenuItem.setText("Close Window");
         closeWindowMenuItem.setToolTipText("Hides the frontmost window that has a close box.");
@@ -1094,7 +1099,7 @@ implements PropertyChangeListener {
 
         fileMenu.add(closeRNAMenuItem);
 
-        saveAsMenuItem.setMnemonic('A');
+        saveAsMenuItem.setMnemonic('S');
         setKey(saveAsMenuItem, KeyEvent.VK_S);
         saveAsMenuItem.setText("Save As…");
         saveAsMenuItem.setToolTipText("Exports a picture of the current display as an image file (such as '.png').");
@@ -1107,7 +1112,7 @@ implements PropertyChangeListener {
         fileMenu.add(saveAsMenuItem);
         fileMenu.addSeparator();
 
-        exitMenuItem.setMnemonic('x');
+        exitMenuItem.setMnemonic((appMain.isMac()) ? 'Q' : 'E');
         setKey(exitMenuItem, KeyEvent.VK_Q);
         exitMenuItem.setText((appMain.isMac()) ? "Quit" : "Exit");
         exitMenuItem.setToolTipText("Ends the program.");
@@ -1137,7 +1142,32 @@ implements PropertyChangeListener {
         editMenu.add(undoMenuItem);
         editMenu.addSeparator();
 
-        //preferencesMenuItem.setMnemonic('p');
+        cutMenuItem.setAction(new DefaultEditorKit.CutAction()); // do this first, as it may change other things
+        cutMenuItem.setMnemonic('t');
+        setKey(cutMenuItem, KeyEvent.VK_X);
+        cutMenuItem.setText("Cut");
+        cutMenuItem.setToolTipText("Clears any selection, if possible, and copies it to the Clipboard.");
+
+        editMenu.add(cutMenuItem);
+
+        copyMenuItem.setAction(new DefaultEditorKit.CopyAction()); // do this first, as it may change other things
+        copyMenuItem.setMnemonic('C');
+        setKey(copyMenuItem, KeyEvent.VK_C);
+        copyMenuItem.setText("Copy");
+        copyMenuItem.setToolTipText("Copies any selection to the Clipboard, if possible.");
+
+        editMenu.add(copyMenuItem);
+
+        pasteMenuItem.setAction(new DefaultEditorKit.PasteAction()); // do this first, as it may change other things
+        pasteMenuItem.setMnemonic('P');
+        setKey(pasteMenuItem, KeyEvent.VK_V);
+        pasteMenuItem.setText("Paste");
+        pasteMenuItem.setToolTipText("Inserts anything that has been put on the Clipboard with a Copy command.");
+
+        editMenu.add(pasteMenuItem);
+        editMenu.addSeparator();
+
+        preferencesMenuItem.setMnemonic('r');
         setKey(preferencesMenuItem, KeyEvent.VK_SEMICOLON);
         preferencesMenuItem.setText("Preferences…");
         preferencesMenuItem.setToolTipText("Allows customization of behavior, such as the directory to start from when opening files.");
@@ -1151,7 +1181,7 @@ implements PropertyChangeListener {
 
         menuBar.add(editMenu);
 
-        filterMenu.setMnemonic('t');
+        filterMenu.setMnemonic('C');
         filterMenu.setText("Constraints");
 
         basepairConstraintItem.setMnemonic('B');
@@ -1516,16 +1546,28 @@ implements PropertyChangeListener {
             int index = appMain.getUndoIndex() - 1;
             appMain.revertToPreviousRNA(index);
             updateImage();
-            DefaultListModel<String> dlm = new DefaultListModel<String>();
-            for (int i = 0; i < index; i++) {
-                dlm.addElement(historyList.getModel().getElementAt(i));
-            }
-            historyList.setModel(dlm);
+            refreshHistoryTextPane();
             log(INFO, "Reverted to snapshot #" + index + ".");
         } catch (Exception e) {
             e.printStackTrace();
             log(WARN, "Unable to undo (see trace above).");
         }
+    }
+
+    private void performCutSelection() {
+        log(ERROR, "not implemented: Cut"); // FIXME
+    }
+
+    private void performCopySelection() {
+        log(ERROR, "not implemented: Copy"); // FIXME
+    }
+
+    private void performPaste() {
+        log(ERROR, "not implemented: Paste"); // FIXME
+    }
+
+    private void performDeleteSelection() {
+        log(ERROR, "not implemented: Delete"); // FIXME
     }
 
     private void preferencesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
@@ -1873,17 +1915,17 @@ implements PropertyChangeListener {
     private javax.swing.JMenuItem aa_agConstraintItem;
     private javax.swing.JMenuItem energyConstraintItem;
     private javax.swing.JMenuItem undoMenuItem;
+    private javax.swing.JMenuItem cutMenuItem;
+    private javax.swing.JMenuItem copyMenuItem;
+    private javax.swing.JMenuItem pasteMenuItem;
     private javax.swing.JMenuItem preferencesMenuItem;
     private javax.swing.JLabel helixActualField;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JMenuItem basepairConstraintItem;
     private javax.swing.JDesktopPane desktopPane;
     public HelpContentJFrame helpFrame;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenuItem eLoopConstraintItem;
     private javax.swing.JMenuItem saveAsMenuItem;
-    private javax.swing.JPanel jPanel5;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel uidValue;
     private javax.swing.JLabel organismValue;
     private javax.swing.JLabel accNumValue;
@@ -1913,7 +1955,7 @@ implements PropertyChangeListener {
     private javax.swing.JButton zoomInButton;
     private javax.swing.JButton zoomOutButton;
     private javax.swing.JButton zoomFitButton;
-    private javax.swing.JList<String> historyList;
+    private javax.swing.JTextArea historyTextPane;
     private JPanel customOpenPane;
     private JCheckBox openOverlayCheckBox;
     private JPanel openOverlayColorPanel;

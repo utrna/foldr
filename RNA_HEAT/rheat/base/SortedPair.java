@@ -10,7 +10,11 @@ import java.util.*;
 /**
  * Construct pairing with canonical ordering.
  */
-class SortedPair {
+class SortedPair implements Serializable {
+
+    public SortedPair() {
+        setValues(0, 0);
+    }
 
     public SortedPair(int i, int j) {
         setValues(i, j);
