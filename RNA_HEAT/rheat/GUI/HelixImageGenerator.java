@@ -21,8 +21,16 @@ import java.beans.PropertyChangeSupport;
 import java.util.*;
 
 /**
+ * This is used by RNADisplay to render 2D or flat representations
+ * of helices, either to render a component or create an image (to
+ * save in a file).
+ *
+ * This also handles click detection by translating given mouse
+ * coordinates and ensuring that any currently-selected helix has
+ * the appropriate appearance.
  *
  * @author  jyzhang
+ * @author  Kevin Grant
  */
 public class HelixImageGenerator {
 
@@ -270,11 +278,22 @@ public class HelixImageGenerator {
         double xOffset = (this.baseZoomedWidth - targetSize.getWidth()) / 2.0;
         double yOffset = (this.baseZoomedHeight - targetSize.getHeight()) / 2.0;
         if (xOffset < 0) {
-            // mouse origin does not match image origin
-            this.clickPoint.setLocation((x + xOffset) / zoomFactor, (y + yOffset) / zoomFactor);
+            // mouse X origin does not match image origin
+            if (yOffset < 0) {
+                // mouse Y origin also does not match image origin
+                this.clickPoint.setLocation((x + xOffset) / zoomFactor, (y + yOffset) / zoomFactor);
+            } else {
+                this.clickPoint.setLocation((x + xOffset) / zoomFactor, y / zoomFactor);
+            }
         } else {
-            // entire image is displayed without padding
-            this.clickPoint.setLocation(x / zoomFactor, y / zoomFactor);
+            // mouse X origin matches image origin
+            if (yOffset < 0) {
+                // mouse Y origin does not match image origin
+                this.clickPoint.setLocation(x / zoomFactor, (y + yOffset) / zoomFactor);
+            } else {
+                // entire image is displayed without padding
+                this.clickPoint.setLocation(x / zoomFactor, y / zoomFactor);
+            }
         }
     }
 
