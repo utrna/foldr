@@ -1690,17 +1690,19 @@ implements PropertyChangeListener {
     private void setViewTypeFlat() {
         viewType2DMenuItem.setState(false);
         viewTypeFlatMenuItem.setState(true);
-        if (helixImgGen.setImageType(HelixImageGenerator.VIEW_FLAT)) {
+        if (helixImgGen.setImageType(HelixImageGenerator.ViewType.VIEW_FLAT)) {
             this.updateImage();
         }
+        miniFrame.setViewType(HelixImageGenerator.ViewType.VIEW_FLAT);
     }
     
     private void setViewType2D() {
         viewType2DMenuItem.setState(true);
         viewTypeFlatMenuItem.setState(false);
-        if (helixImgGen.setImageType(HelixImageGenerator.VIEW_2D)) {
+        if (helixImgGen.setImageType(HelixImageGenerator.ViewType.VIEW_2D)) {
             this.updateImage();
         }
+        miniFrame.setViewType(HelixImageGenerator.ViewType.VIEW_2D);
     }
 
     /**

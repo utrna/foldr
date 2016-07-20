@@ -37,15 +37,17 @@ public class HelixImageGenerator {
     public enum HelixType {
         ACTUAL,
         PREDICTED
-    };
+    }
 
     public enum RenderingType {
         NORMAL,
         OVERLAY
-    };
+    }
 
-    public static int VIEW_2D = 0;
-    public static int VIEW_FLAT = 1;
+    public enum ViewType {
+        VIEW_2D,
+        VIEW_FLAT
+    }
 
     /**
      * Sent to PropertyChangeListener registered with addPropertyChangeListener().
@@ -54,7 +56,7 @@ public class HelixImageGenerator {
 
     private double zoomFactor;
     private final double effectiveZoomFactor = 4.0; // a single point occupies this many square pixels at zoom level 1
-    private int imageType = this.VIEW_2D;
+    private ViewType imageType = ViewType.VIEW_2D;
     private boolean gridHidden = false;
     private boolean renderInProgress = false; // see beginRender()/endRender()
     private double baseWidth = 1.0; // pre-zoom pixels of image width
@@ -100,10 +102,10 @@ public class HelixImageGenerator {
 
     /**
      * Arranges to notify the given listener (via propertyChange())
-     * when the currently-selected helix changes.  This is especially
+     * when the specified property changes.  This is especially
      * useful when responding to events, to make sure that the value
      * returned by getSelectedHelix() is consistent with the reaction
-     * to the event.
+     * to a helix-click event.
      */
     public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(property, listener);
@@ -213,8 +215,9 @@ public class HelixImageGenerator {
     /**
      * Specifies how to render the RNA data.
      * @param imgType set to VIEW_2D or VIEW_FLAT
+     * @return true only if the type actually changed
      */
-    public boolean setImageType(int imgType) {
+    public boolean setImageType(ViewType imgType) {
         if (imageType != imgType) {
             imageType = imgType;
             return true;
@@ -230,7 +233,7 @@ public class HelixImageGenerator {
     private BufferedImage getImage() {
         final int zoomW = (int)(this.baseZoomedWidth);
         final int zoomH = (int)(this.baseZoomedHeight);
-        if (imageType == this.VIEW_2D) {
+        if (imageType == ViewType.VIEW_2D) {
             if ((this.helix2D == null) ||
                 (this.helix2D.getWidth() != zoomW) ||
                 (this.helix2D.getHeight() != zoomH)) {
@@ -238,7 +241,7 @@ public class HelixImageGenerator {
             }
             return this.helix2D;
         }
-        if (imageType == this.VIEW_FLAT) {
+        if (imageType == ViewType.VIEW_FLAT) {
             if ((this.helixFlat == null) ||
                 (this.helixFlat.getWidth() != zoomW) ||
                 (this.helixFlat.getHeight() != zoomH)) {
@@ -363,7 +366,7 @@ public class HelixImageGenerator {
             // be an extra +1 in each direction
             g.setColor(Color.white);
             g.fillRect(0, 0, (int)this.baseWidth, (int)this.baseHeight);
-            if (this.imageType == this.VIEW_FLAT) {
+            if (this.imageType == ViewType.VIEW_FLAT) {
                 //g.setColor(Color.black);
                 //g.setStroke(strokeAxisLine);
                 //g.drawLine(0, this.baseHeight / 2, this.baseWidth - 1, this.baseHeight / 2);
@@ -433,7 +436,7 @@ public class HelixImageGenerator {
         AffineTransform oldTransform = g.getTransform();
         try {
             transformGraphics(g, targetSize);
-            if (this.imageType == this.VIEW_FLAT) {
+            if (this.imageType == ViewType.VIEW_FLAT) {
                 paintFlatImage(rna, renderingType, g);
             } else {
                 paint2DImage(rna, predictedHelixColor, defaultHelixTagColor, renderingType, g);

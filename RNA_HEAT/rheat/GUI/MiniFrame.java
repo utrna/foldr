@@ -34,6 +34,14 @@ public class MiniFrame extends javax.swing.JInternalFrame {
         }
 
         /**
+         * Specifies how the image should be drawn.
+         * @param imgType set to VIEW_2D or VIEW_FLAT
+         */
+        public void setViewType(HelixImageGenerator.ViewType viewType) {
+            this.viewType = viewType;
+        }
+
+        /**
          * Called by the Java runtime to draw the component.
          */
         @Override
@@ -44,11 +52,16 @@ public class MiniFrame extends javax.swing.JInternalFrame {
             Graphics2D g2D = (Graphics2D)g;
             g2D.setColor(Color.lightGray);
             g2D.fill(getBounds());
+            if (this.viewType == HelixImageGenerator.ViewType.VIEW_2D) {
+                g2D.setColor(Color.black);
+                this.tmpLine.setLine(0, 0, getWidth(), getHeight());
+                g2D.draw(this.tmpLine);
+            }
             Rectangle2D viewRect = new Rectangle2D.Double(getWidth() * this.normalizedViewLocationX,
                                                           getHeight() * this.normalizedViewLocationY,
                                                           getWidth() * this.normalizedViewSizeWidth,
                                                           getHeight() * this.normalizedViewSizeHeight);
-            g2D.setColor(Color.white);
+            g2D.setColor(this.colorViewRect);
             g2D.fill(viewRect);
             g2D.setColor(Color.black);
             g2D.setStroke(strokeViewRectBounds);
@@ -60,7 +73,15 @@ public class MiniFrame extends javax.swing.JInternalFrame {
         private double normalizedViewLocationY = 0.0;
         private double normalizedViewSizeWidth = 1.0;
         private double normalizedViewSizeHeight = 1.0;
+        private HelixImageGenerator.ViewType viewType = HelixImageGenerator.ViewType.VIEW_2D;
+        private Line2D.Double tmpLine = new Line2D.Double(); // used for various reasons (saves heap allocations)
+        private Color colorViewRect = new Color(1.0f, 1.0f, 1.0f, 0.65f/* alpha */); // semi-transparent so that diagonal line shows through
     }
+
+    /**
+     * Sent to PropertyChangeListener registered with addPropertyChangeListener().
+     */
+    public static String PROPERTY_DRAGGED_VIEW_FRAME = "PROPERTY_DRAGGED_VIEW_FRAME";
 
     MiniFrame() {
         initComponents();
@@ -85,6 +106,15 @@ public class MiniFrame extends javax.swing.JInternalFrame {
      */
     public void setNormalizedViewRect(double nx, double ny, double nw, double nh) {
         drawingPane.setNormalizedViewRect(nx, ny, nw, nh);
+        drawingPane.repaint();
+    }
+
+    /**
+     * Specifies how the image should be drawn.
+     * @param imgType set to VIEW_2D or VIEW_FLAT
+     */
+    public void setViewType(HelixImageGenerator.ViewType viewType) {
+        drawingPane.setViewType(viewType);
         drawingPane.repaint();
     }
 
