@@ -10,7 +10,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Reads a file in ".bpcolor" format and annotates helices in an
+ * Reads a file in ".helixcolor" format and annotates helices in an
  * RNA object accordingly.
  * @author Kevin Grant
  */
@@ -27,7 +27,7 @@ public class BPColorReader {
     /**
      * Convenience method to create a file-reader and then
      * call the other parse() method with that reader.
-     * @param absPath the ".bpcolor" file to open
+     * @param absPath the ".helixcolor" file to open
      * @param toAnnotate the RNA in which to update helix tags
      */
     static public void parse(String absPath, RNA toAnnotate) throws IOException {
@@ -35,10 +35,10 @@ public class BPColorReader {
     }
 
     /**
-     * Annotates RNA data from the given ".bpcolor" file.  Note that
+     * Annotates RNA data from the given ".helixcolor" file.  Note,
      * since this depends on the presence of helices, a base-pair
      * filter must have been applied to the loaded RNA beforehand.
-     * @param dataSource the source of data in ".bpcolor" format
+     * @param dataSource the source of data in ".helixcolor" format
      * @param toAnnotate the RNA in which to update helix tags
      */
     static public void parse(BufferedReader dataSource, RNA toAnnotate) {
@@ -55,8 +55,14 @@ public class BPColorReader {
                             if (lineString == null) {
                                 break;
                             }
-                            if (lineString.startsWith("#")) {
-                                AppMain.log(AppMain.INFO, "Ignoring comment: " + lineString);
+                            int commentIndex = lineString.indexOf("#");
+                            if (commentIndex >= 0) {
+                                String commentString = lineString.substring(commentIndex);
+                                lineString = lineString.substring(0, commentIndex);
+                                //AppMain.log(AppMain.INFO, "Ignoring comment: " + commentString); // debug
+                            }
+                            lineString = lineString.trim();
+                            if (lineString.isEmpty()) {
                                 continue;
                             }
                             lineType = LineType.TAG_LIST;

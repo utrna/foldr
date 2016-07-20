@@ -3,5 +3,6 @@
 # - the remaining space-separated parts of a line are all the tags that apply to the helix
 # - all helices that share the same tag may appear the same in the graphical interface
 16-17 68-67 1
-18-23 65-60 2 1
-79-86 97-90 3 2
+# comments can be on any line
+18-23 65-60 2 1 # end-of-line comments are also OK
+  79-86 97-90 3 2

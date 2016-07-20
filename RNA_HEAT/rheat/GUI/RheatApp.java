@@ -1029,7 +1029,7 @@ implements PropertyChangeListener {
         openTagsMenuItem.setMnemonic('A');
         //setKey(openTagsMenuItem, KeyEvent.VK_O);
         openTagsMenuItem.setText("Open Annotation File…");
-        openTagsMenuItem.setToolTipText("Updates the display using a source of helix annotations (such as a '.bpcolor' file).");
+        openTagsMenuItem.setToolTipText("Updates the display using a source of helix annotations (such as a '.helixcolor' file).");
         openTagsMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 openTagsMenuItemActionPerformed(evt);
@@ -1791,7 +1791,7 @@ implements PropertyChangeListener {
         fc = new JFileChooser(appMain.getPrefHelixDataDir());
         fc.setMultiSelectionEnabled(true);
         fc.setAcceptAllFileFilterUsed(true);
-        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Annotation Files", "bpcolor", "txt"));
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Annotation Files", "helixcolor", "bpcolor"/* legacy name */, "txt"));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == fc.APPROVE_OPTION) {
             for (File inputFile : fc.getSelectedFiles()) {

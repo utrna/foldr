@@ -458,8 +458,8 @@ public class AppMain {
 
     /**
      * Opens the specified file, which must be in a supported helix
-     * annotation format such as ".bpcolor".  If there is a GUI, it
-     * will be refreshed automatically.
+     * annotation format such as ".helixcolor".  If there is a GUI,
+     * it will be refreshed automatically.
      */
     public void openTags(String filePath) throws IOException {
         String realPath = beginOpenFile(filePath);
