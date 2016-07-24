@@ -51,18 +51,10 @@ public class HelixGrid implements HelixStore {
         int y = h.getStartY();
         int length = h.getLength();
         helices.add(h);
-        if (h.getOrientation() == Helix.ANTIPARALLEL){
-            do {
-                _store[x][y] = h;
-                x++; y--; length--;
-            } while (length > 0);
-        }
-        else {
-            do {
-                _store[x][y] = h;
-                x++; y++; length--;
-            }while (length > 0);
-        }
+        do {
+            _store[x][y] = h;
+            x++; y--; length--;
+        } while (length > 0);
         numHelix++;
     }
     

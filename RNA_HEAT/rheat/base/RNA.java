@@ -87,9 +87,6 @@ public class RNA implements java.io.Serializable {
      */
     public void processHelixAnnotations() {
         if (tagValues != null) {
-            HelixStore targetHelices = getHelices();
-            Iterator<Helix> iter = targetHelices.iterator();
-            Set<Integer> tagIndicesUsed = new TreeSet<Integer>();
             // FIXME: the helix storage is not optimized for quickly locating
             // a helix based on any property (part of the reason this method
             // exists at all); this is essentially linear in the number of
@@ -107,9 +104,12 @@ public class RNA implements java.io.Serializable {
                     AppMain.log(AppMain.INFO, "found annotation: " + p1 + "/" + p2 + "/" + tag);
                 }
             }
+            HelixStore targetHelices = getHelices();
+            Iterator<Helix> iter = targetHelices.iterator();
+            Set<Integer> tagIndicesUsed = new TreeSet<Integer>();
             while (iter.hasNext()) {
                 Helix h = iter.next();
-                // IMPORTANT: all lists must be the same length
+                // IMPORTANT: all lests must be the same length
                 for (int i = 0; i < tagValues.size(); ++i) {
                     SortedPair p1 = tag5Ps.get(i);
                     SortedPair p2 = tag3Ps.get(i);
@@ -123,17 +123,40 @@ public class RNA implements java.io.Serializable {
                     }
                 }
             }
-            // display warning messages about any annotations that were
-            // never used (could indicate an improperly-constructed file)
+            // if any annotations were never used, automatically create
+            // new helices to represent the requested ranges
             if (tagIndicesUsed.size() != tagValues.size()) {
+                AppMain.log(AppMain.INFO, "BEGIN");
+                Set<Helix> newHelices = new TreeSet<Helix>(new Helix.CompareExtents()); // MUST compare only helix location/length, not other properties
                 for (int i = 0; i < tagValues.size(); ++i) {
                     if (!tagIndicesUsed.contains(i)) {
+                        // since more than one tag may apply to a helix in
+                        // the same range, initially just collect the new
+                        // helices and ensure that at most one is created
+                        // per unique range
                         SortedPair p1 = tag5Ps.get(i);
                         SortedPair p2 = tag3Ps.get(i);
                         String tag = tagValues.get(i);
-                        AppMain.log(AppMain.WARN, "Helix annotation ignored (did not match any known helix): " + p1 + "/" + p2 + "/" + tag);
+                        try {
+                            Helix h = new Helix(p1, p2);
+                            if (newHelices.contains(h)) {
+                                // helix was already created for this range; no need to create a new helix
+                                //AppMain.log(AppMain.INFO, "Found existing helix for range " + p1 + "/" + p2 + "; adding tag " + tag); // debug
+                            } else {
+                                //AppMain.log(AppMain.INFO, "Creating new helix from annotation that did not match any known helix: " + p1 + "/" + p2 + "/" + tag); // debug
+                                newHelices.add(h);
+                                this.predictedHelices.addHelix(h);
+                            }
+                            h.addTag(tag);
+                        } catch (IllegalArgumentException e) {
+                            // helix will fail to construct if the pair values
+                            // are inconsistent (Forming different lengths)
+                            //e.printStackTrace();
+                            AppMain.log(AppMain.ERROR, e.getMessage());
+                        }
                     }
                 }
+                AppMain.log(AppMain.INFO, "END");
             }
             if (debug) {
                 // show that helices now have tags
