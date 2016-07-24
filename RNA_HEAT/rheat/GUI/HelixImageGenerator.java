@@ -85,10 +85,12 @@ public class HelixImageGenerator {
     private Stroke strokeFlatNormalHelix = new BasicStroke(0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
     private Stroke strokeAxisLine = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeGridLine = new BasicStroke(0.2f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0/* miter limit */, new float[]{ 1.5f, 0.5f }, 0/* dash phase */);
+    private Stroke strokeClickGuide = new BasicStroke(0.15f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0/* miter limit */, new float[]{ 0.5f, 0.5f }, 0/* dash phase */);
     private Stroke strokeClickLocation = new BasicStroke(0.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-    private Color helixColorActual = Color.blue;
-    private Color helixColorSelected = Color.blue;
-    private Color colorGridLine = new Color(200, 240, 255);
+    private Color colorActualHelix = Color.blue; // FIXME: make customizable
+    private Color colorSelectedHelix = Color.blue; // FIXME: make customizable
+    private Color colorGridLine = new Color(200, 240, 255); // FIXME: make customizable
+    private Color colorGuideLine = new Color(100, 0, 40); // FIXME: make customizable
     private ArrayList<String> helixTagPriorityOrder = new ArrayList<String>();
     private Map<String, Color> helixTagColorMap = new HashMap<String, Color>();
     private Helix selectedHelix = null;
@@ -518,7 +520,7 @@ public class HelixImageGenerator {
         // helices in a certain area and not necessarily everything
         if (becameSelected) {
             this.selectedHelix = h;
-            helixGraphics.setColor(this.helixColorSelected);
+            helixGraphics.setColor(colorSelectedHelix);
             if (helixLength == 1) {
                 // IMPORTANT: cannot use a cap-butt stroke type for a
                 // single-pixel line (it will be invisible); need to
@@ -534,6 +536,20 @@ public class HelixImageGenerator {
             this.tmpLine.setLine(x0 - 1, y0 - 1, x0 + 1, y0 + 1);
             helixGraphics.draw(this.tmpLine);
             this.tmpLine.setLine(x1 - 1, y1 - 1, x1 + 1, y1 + 1);
+            helixGraphics.draw(this.tmpLine);
+            // draw guide lines to show how the helix end points may
+            // line up with what is on the other side of the diagonal
+            helixGraphics.setStroke(strokeClickGuide);
+            helixGraphics.setColor(colorGuideLine);
+            this.tmpLine.setLine(x0, y0, x0, x0/* diagonal match for this X */);
+            helixGraphics.draw(this.tmpLine);
+            this.tmpLine.setLine(x1, y1, x1, x1/* diagonal match for this X */);
+            helixGraphics.draw(this.tmpLine);
+            this.tmpLine.setLine(x0, x0, y0/* diagonal match for this Y */, x0);
+            helixGraphics.draw(this.tmpLine);
+            this.tmpLine.setLine(x1, x1, y1/* diagonal match for this Y */, x1);
+            helixGraphics.draw(this.tmpLine);
+            this.tmpLine.setLine(x0, y0, y0, x0);
             helixGraphics.draw(this.tmpLine);
         } else {
             if (helixLength == 1) {
@@ -588,7 +604,7 @@ public class HelixImageGenerator {
             Iterator itr = actual.iterator();
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
-                paintHelix2D(h, HelixType.ACTUAL, renderingType, this.helixColorActual, defaultHelixTagColor, helixGraphics);
+                paintHelix2D(h, HelixType.ACTUAL, renderingType, colorActualHelix, defaultHelixTagColor, helixGraphics);
             }
         }
     }
