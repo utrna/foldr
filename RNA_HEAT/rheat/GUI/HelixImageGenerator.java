@@ -93,6 +93,7 @@ public class HelixImageGenerator {
     private Color colorGuideLine = new Color(100, 0, 40); // FIXME: make customizable
     private ArrayList<String> helixTagPriorityOrder = new ArrayList<String>();
     private Map<String, Color> helixTagColorMap = new HashMap<String, Color>();
+    private Set<String> hiddenTags = new HashSet<String>();
     private Helix selectedHelix = null;
     private Helix originalSelection = null; // preserved by beginRender()/endRender()
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -126,6 +127,23 @@ public class HelixImageGenerator {
             this.helixTagPriorityOrder.add(tagName);
         }
         this.helixTagColorMap.put(tagName, color);
+    }
+
+    /**
+     * If a tag is hidden, it is not rendered for any helix; and, if
+     * every tag on a helix is hidden, the helix appears normal (as
+     * if it has no annotations at all).  Showing a tag does not
+     * guarantee its use, as helices can have multiple tags and the
+     * tags have a priority order.
+     * @param tagName string to find in the getTags() set of a Helix
+     * @param isVisible true if the annotation should be visible
+     */
+    public void setTagVisibility(String tagName, boolean isVisible) {
+        if (isVisible) {
+            this.hiddenTags.remove(tagName);
+        } else {
+            this.hiddenTags.add(tagName);
+        }
     }
 
     /**
@@ -462,21 +480,32 @@ public class HelixImageGenerator {
         final double clickX = clickPoint.getX();
         final double clickY = clickPoint.getY();
         boolean becameSelected = false;
-        boolean isAnnotated = false;
+        boolean showAnnotations = false;
         Set<String> helixTags = h.getTags();
+        Color annotationColor = null;
         if (helixTags != null) {
-            isAnnotated = true;
-            Color annotationColor = defaultAnnotationColor;
-            for (String tag : this.helixTagPriorityOrder) {
-                Color color = this.helixTagColorMap.get(tag);
-                if (color != null) {
-                    annotationColor = color;
+            // determine if any of the tags on this helix are visible
+            int usedTagCount = helixTags.size();
+            for (String tag : helixTags) {
+                if (hiddenTags.contains(tag)) {
+                    --usedTagCount;
                 }
-                break;
             }
-            helixGraphics.setColor(annotationColor);
-        } else {
-            helixGraphics.setColor(primaryColor);
+            if (usedTagCount > 0) {
+                // determine the right color for this annotated helix
+                showAnnotations = true;
+                annotationColor = defaultAnnotationColor; // initially...
+                for (String tag : this.helixTagPriorityOrder) {
+                    if ((!hiddenTags.contains(tag)) && (helixTags.contains(tag))) {
+                        // see if this tag has a custom color
+                        Color color = this.helixTagColorMap.get(tag);
+                        if (color != null) {
+                            annotationColor = color;
+                            break;
+                        }
+                    }
+                }
+            }
         }
         /*
         if (h.getEnergy() < -6) {
@@ -555,9 +584,11 @@ public class HelixImageGenerator {
             if (helixLength == 1) {
                 helixGraphics.setStroke(strokeLength1Helix);
             } else {
-                if (isAnnotated) {
+                if (showAnnotations) {
+                    helixGraphics.setColor(annotationColor);
                     helixGraphics.setStroke(strokeAnnotatedHelix);
                 } else {
+                    helixGraphics.setColor(primaryColor);
                     helixGraphics.setStroke(strokeNormalHelix);
                 }
             }

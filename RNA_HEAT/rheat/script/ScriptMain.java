@@ -294,6 +294,17 @@ public class ScriptMain {
     }
 
     /**
+     * Script interface for AppMain.msDelay().
+     */
+    public void msDelay(int millisecondCount) throws ScriptException {
+        try {
+            appMain.msDelay(millisecondCount);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
      * Script interface for AppMain.getWorkingDir().
      */
     public String getWorkingDir() throws ScriptException {
@@ -350,6 +361,59 @@ public class ScriptMain {
     public void openTags(String filePath) throws ScriptException {
         try {
             appMain.openTags(filePath);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.setHelixTagColor().
+     */
+    public void setHelixTagColor(String tag, String color) throws ScriptException {
+        try {
+            // the color string can be in a format supported by decoding,
+            // such as a triplet of RGB hexadecimal values
+            java.awt.Color asColorObject = java.awt.Color.decode(color);
+            appMain.setHelixTagColor(tag, asColorObject);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.setHelixTagsVisible().
+     */
+    public void showHelixTag(String tag) throws ScriptException {
+        showHelixTags(tag); // alias
+    }
+    public void showHelixTags(String... tags) throws ScriptException {
+        try {
+            appMain.setHelixTagsVisible(true, tags);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.setHelixTagsVisible().
+     */
+    public void hideHelixTag(String tag) throws ScriptException {
+        hideHelixTags(tag); // alias
+    }
+    public void hideHelixTags(String... tags) throws ScriptException {
+        try {
+            appMain.setHelixTagsVisible(false, tags);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.scrollTo().
+     */
+    public void scrollTo(int x, int y) throws ScriptException {
+        try {
+            appMain.scrollTo(x, y);
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }

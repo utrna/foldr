@@ -227,6 +227,34 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Requests that helices with the given tag be rendered using the
+     * given color.  Since a helix can have more than one tag, and
+     * tags may be hidden by the user, the exact rendering varies.
+     * If the specified tag is in the hidden set or a higher-priority
+     * tag is also on a helix, the given color may not be used even
+     * when a helix has the tag.
+     */
+    public void setHelixTagColor(String tag, Color color) {
+        this.helixImgGen.addColorForHelicesWithTag(tag, color);
+        this.updateImage();
+    }
+
+    /**
+     * Shows or hides the specified annotations.  Since a helix may
+     * have multiple annotations and the list of tags is prioritized,
+     * enabling or disabling a particular tag is not guaranteed to
+     * change the appearance of a helix.  If all of the tags for a
+     * helix are marked as hidden, its appearance may revert to use
+     * a normal color (as if it had no tags at all).
+     */
+    public void setHelixTagsVisible(boolean isVisible, String... tags) {
+        for (String tag : tags) {
+            this.helixImgGen.setTagVisibility(tag, isVisible);
+        }
+        this.updateImage();
+    }
+
+    /**
      * Returns the selected helix, or null.
      * @return a Helix object
      */
@@ -324,7 +352,7 @@ implements PropertyChangeListener {
      * Scrolls to a particular location (same X and Y).
      * @param xy data-relative value (i.e. maximum is base-pair length of RNA)
      */
-    private void scrollTo(int xy) {
+    public void scrollTo(int xy) {
         if (appMain.rnaData == null) {
             return;
         }
@@ -337,7 +365,7 @@ implements PropertyChangeListener {
      * @param x data-relative value (i.e. maximum is base-pair length of RNA)
      * @param y data-relative value (i.e. maximum is base-pair length of RNA)
      */
-    private void scrollTo(int x, int y) {
+    public void scrollTo(int x, int y) {
         if (appMain.rnaData == null) {
             return;
         }
@@ -1753,6 +1781,7 @@ implements PropertyChangeListener {
         setControlLabels();
         basepairConstraintItem.setEnabled(true);
         this.updateImage(); // erases to blank if "appMain.rnaData" is null
+        this.displayPane.repaint();
     }
 
     private void openRNAMenuItemActionPerformed(java.awt.event.ActionEvent evt) {

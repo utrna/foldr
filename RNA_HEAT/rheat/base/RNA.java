@@ -126,7 +126,6 @@ public class RNA implements java.io.Serializable {
             // if any annotations were never used, automatically create
             // new helices to represent the requested ranges
             if (tagIndicesUsed.size() != tagValues.size()) {
-                AppMain.log(AppMain.INFO, "BEGIN");
                 Set<Helix> newHelices = new TreeSet<Helix>(new Helix.CompareExtents()); // MUST compare only helix location/length, not other properties
                 for (int i = 0; i < tagValues.size(); ++i) {
                     if (!tagIndicesUsed.contains(i)) {
@@ -156,7 +155,6 @@ public class RNA implements java.io.Serializable {
                         }
                     }
                 }
-                AppMain.log(AppMain.INFO, "END");
             }
             if (debug) {
                 // show that helices now have tags

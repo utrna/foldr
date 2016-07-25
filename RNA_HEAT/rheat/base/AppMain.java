@@ -142,6 +142,51 @@ public class AppMain {
     }
 
     /**
+     * Forces the program to wait for the specified number of
+     * milliseconds before continuing.  Useful for animations.
+     */
+    public void msDelay(int millisecondCount) throws ScriptException {
+        try {
+            Thread.sleep(millisecondCount);
+        } catch (InterruptedException e) {
+            log(WARN, "Request for delay was interrupted.");
+        }
+    }
+
+    /**
+     * Passes this request to the GUI, if possible.
+     */
+    public void setHelixTagColor(String tag, Color color) {
+        if (this.gui == null) {
+           log(WARN, "There is no graphical interface; ignoring color setting for '" + tag + "'.");
+        } else {
+            this.gui.setHelixTagColor(tag, color);
+        }
+    }
+
+    /**
+     * Passes this request to the GUI, if possible.
+     */
+    public void setHelixTagsVisible(boolean isVisible, String... tags) {
+        if (this.gui == null) {
+           log(WARN, "There is no graphical interface; ignoring visibility setting for tags: " + tags + ".");
+        } else {
+            this.gui.setHelixTagsVisible(isVisible, tags);
+        }
+    }
+
+    /**
+     * Passes this request to the GUI, if possible.
+     */
+    public void scrollTo(int x, int y) {
+        if (this.gui == null) {
+           log(WARN, "There is no graphical interface; ignoring scroll request.");
+        } else {
+            this.gui.scrollTo(x, y);
+        }
+    }
+
+    /**
      * Sets a value only if it has no value for the key.
      */
     public void setDefaultPreference(String key, String defaultValue) {
