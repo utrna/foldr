@@ -90,6 +90,7 @@ public class HelixImageGenerator {
     private Color colorActualHelix = Color.blue; // FIXME: make customizable
     private Color colorSelectedHelix = Color.blue; // FIXME: make customizable
     private Color colorGridLine = new Color(200, 240, 255); // FIXME: make customizable
+    private Color colorAxisLabels = colorGridLine; // FIXME: make customizable
     private Color colorGuideLine = new Color(100, 0, 40); // FIXME: make customizable
     private ArrayList<String> helixTagPriorityOrder = new ArrayList<String>();
     private Map<String, Color> helixTagColorMap = new HashMap<String, Color>();
@@ -420,7 +421,20 @@ public class HelixImageGenerator {
                         this.tmpLine.setLine(0, y, this.baseWidth, y);
                         g.draw(this.tmpLine);
                     }
-
+                    // also show label on the diagonal (meant to be near the
+                    // grid lines drawn above, at the same spacing)
+                    final int textOffsetX = 3; // arbitrary
+                    final int textOffsetY = -3; // arbitrary
+                    g.setFont(RheatApp.getMonospacedFont(g.getFont(), 9));
+                    g.setColor(colorAxisLabels);
+                    for (double x = this.baseHalfWidth;
+                         x < this.baseWidth; x += deltaX) {
+                        g.drawString("" + (int)x, (float)(x + textOffsetX), (float)(x + textOffsetY));
+                    }
+                    for (double x = this.baseHalfWidth - deltaX;
+                         x >= 0; x -= deltaX) {
+                        g.drawString("" + (int)x, (float)(x + textOffsetX), (float)(x + textOffsetY));
+                    }
                 }
                 // draw a diagonal line to separate predicted/actual helices
                 // (covers background rectangle range above)

@@ -72,7 +72,7 @@ implements PropertyChangeListener {
             });
             JInternalFrame internalFrame = new JInternalFrame();
             internalFrame.setResizable(isResizable());
-            parent.addOrReuseComponent(internalFrame);
+            parent.addOrReuseComponent(internalFrame, javax.swing.JLayeredPane.MODAL_LAYER);
             Dimension desktopSize = parent.desktopPane.getSize();
             Dimension frameSize = internalFrame.getSize();
             internalFrame.setLocation((desktopSize.width - frameSize.width) / 2,
@@ -430,12 +430,12 @@ implements PropertyChangeListener {
             filePath.endsWith(".png")) {
             ImageFileFrame imageFrame = new ImageFileFrame();
             imageFrame.openFile(filePath);
-            addOrReuseComponent(imageFrame);
+            addOrReuseComponent(imageFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
             bringToFront(imageFrame);
         } else {
             TextFileFrame textFrame = new TextFileFrame();
             textFrame.openFile(filePath);
-            addOrReuseComponent(textFrame);
+            addOrReuseComponent(textFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
             bringToFront(textFrame);
         }
     }
@@ -785,7 +785,7 @@ implements PropertyChangeListener {
             }
         });
         jumpFieldX = new JTextField();
-        jumpFieldX.setColumns(6);
+        jumpFieldX.setColumns(4);
         jumpFieldX.setToolTipText("Enter a number from 1 to the number of base-pairs to jump to that X position.");
         jumpFieldX.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -793,7 +793,7 @@ implements PropertyChangeListener {
             }
         });
         jumpFieldY = new JTextField();
-        jumpFieldY.setColumns(6);
+        jumpFieldY.setColumns(4);
         jumpFieldY.setToolTipText("Enter a number from 1 to the number of base-pairs to jump to that Y position.  Or, leave blank to copy the X value.");
         jumpFieldY.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -823,8 +823,10 @@ implements PropertyChangeListener {
         });
         displayScrollPane.setMinimumSize(new Dimension(420, 200));
         displayScrollPane.setPreferredSize(new Dimension(700, 500));
-        displayScrollPane.getHorizontalScrollBar().setUnitIncrement(10); // arbitrary
-        displayScrollPane.getVerticalScrollBar().setUnitIncrement(10); // arbitrary
+        displayScrollPane.getHorizontalScrollBar().setBlockIncrement(150); // arbitrary
+        displayScrollPane.getHorizontalScrollBar().setUnitIncrement(50); // arbitrary
+        displayScrollPane.getVerticalScrollBar().setBlockIncrement(150); // arbitrary
+        displayScrollPane.getVerticalScrollBar().setUnitIncrement(50); // arbitrary
         JPanel paneDiagonalScroll = new JPanel();
         paneDiagonalScroll.setLayout(new GridLayout(2, 2));
         scrollUpLeftBtn = new JButton();
@@ -1691,12 +1693,12 @@ implements PropertyChangeListener {
     }
 
     private void displayHelp() {
-        addOrReuseComponent(helpFrame);
+        addOrReuseComponent(helpFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
         bringToFront(helpFrame);
     }
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
-        addOrReuseComponent(aboutFrame);
+        addOrReuseComponent(aboutFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
         bringToFront(aboutFrame);
     }
 
