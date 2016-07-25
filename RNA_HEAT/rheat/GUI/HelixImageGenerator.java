@@ -581,14 +581,13 @@ public class HelixImageGenerator {
             this.tmpLine.setLine(x0, y0, y0, x0);
             helixGraphics.draw(this.tmpLine);
         } else {
+            helixGraphics.setColor((showAnnotations) ? annotationColor : primaryColor);
             if (helixLength == 1) {
                 helixGraphics.setStroke(strokeLength1Helix);
             } else {
                 if (showAnnotations) {
-                    helixGraphics.setColor(annotationColor);
                     helixGraphics.setStroke(strokeAnnotatedHelix);
                 } else {
-                    helixGraphics.setColor(primaryColor);
                     helixGraphics.setStroke(strokeNormalHelix);
                 }
             }
