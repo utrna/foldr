@@ -18,18 +18,72 @@
 
   <br /><br />
   <h3>Opening Files</h3>
-  <p>The current target file can be set using openRNA(); and, any
-  number of additional scripts can be invoked using runScript().
-  The search path is temporarily changed to the same location as
-  the script so you only need to specify file names (or relative
-  paths) if the target input file is near the script itself.
   <pre>
   rheat.openRNA('test.bpseq')
-  rheat.runScript('script.js')
-  </pre>
+  rheat.openOverlayRNA('other.bpseq', '#ff0000')
+  rheat.openTags('test.helixcolor')</pre>
+  <p>The current target file can be set using openRNA().  If the
+  current RNA should <i>not</i> be replaced by opening a file, you
+  can decide to add results on top.  With openOverlayRNA(), you
+  can read additional RNA files (such as a ".bpseq"), displaying
+  new helices in the given color.  The new helices are found by
+  automatically applying the same series of constraints as the
+  1st RNA.  Alternatively, openTags() can be used to read the
+  simpler ".helixcolor" annotation format; see below.
+
+  <br /><br />
+  <h3>Annotating the Display</h3>
+  <pre>
+  rheat.setHelixTagColor('PI', '#ff0000')
+  rheat.setHelixTagColor('PE', '#222222')
+  rheat.openTags('test.helixcolor')</pre>
+  <p>If openTags() is used (above) to read helix annotations, any
+  number of new tags may be created and assigned to helices.  To
+  control the presentation of tagged helices, colors may be set for
+  specific tags.  In addition, a priority order is implicitly set
+  based on which tags are first used with setHelixTagColor(): the
+  earlier assignments have higher precedence in case of conflict.
+  <p>It is also possible to show or hide arbitrary tags.  Helices
+  that have no visible tags will appear like normal helices.
+  Otherwise, a helix will appear in the color of one of its tags
+  (the highest-priority tag that is not hidden).  Helices will
+  change color as soon as a tag is hidden or shown.
+
+  <br /><br />
+  <h3>Display Controls and Animation</h3>
+  <pre>
+  var delay = 160
+  rheat.scrollTo(270, 270)
+  rheat.hideHelixTags('PE', 'PI', 'PET')
+  rheat.showHelixTag('PI')
+  rheat.msDelay(delay)
+  rheat.showHelixTag('PET')</pre>
+  <p>The scrollTo() method can be used to move the display to a
+  particular X and Y location, where X and Y are bounded by the
+  number of base-pairs in the current RNA sequence.  This can be
+  used before animation to ensure the desired region is showing.
+  <p>The msDelay() routine can be used to force a script to wait for
+  the specified number of milliseconds.  If this is done in between
+  steps that affect the display, animations can be created.
+
+  <br /><br />
+  <h3>Running Other Scripts</h3>
+  <pre>
+  rheat.runScript('script.js')</pre>
+  <p>A script can itself run scripts, which is useful when you want
+  common steps to be written once and used in multiple places.  The
+  search path is temporarily changed to the same location as the
+  specified script so you only need to give file names (or relative
+  paths) if the target input file is near the script itself.
 
   <br /><br />
   <h3>Experiments</h3>
+  <pre>
+  rheat.openRNA('test.bpseq')
+  status = rheat.runProgram('prog1.py', 'arg1', 'arg2')
+  status = rheat.runProgram('prog2.py', 'argument')
+  rheat.newExperiment()
+  status = rheat.runProgram('prog3.py')</pre>
   <p>Preferences can be used to set the location of the experiment
   tree and the first search location for programs.  Programs run in
   the current experiment, via runProgram().  If a file has been
@@ -40,60 +94,74 @@
   subdirectory is automatically chosen by date and time for the
   first experiment of a session; if you want to put results in a
   new subdirectory, call newExperiment().
-  <pre>
-  rheat.openRNA('test.bpseq')
-  status = rheat.runProgram('program1.py', 'argument1', 'argument2')
-  status = rheat.runProgram('program2.py', 'argument')
-  rheat.newExperiment()
-  status = rheat.runProgram('program3.py')
-  </pre>
 
   <br /><br />
   <h3>Logging</h3>
-  <p>Although it is technically possible to have JavaScript import
-  various Java libraries for printing, RNA HEAT has a few simple
-  methods available for basic logging of text, as shown below.
   <pre>
   rheat.log(rheat.INFO, 'This is information.')
   rheat.log(rheat.WARN, 'This is a warning.')
-  rheat.log(rheat.ERROR, 'This is an error.')
-  </pre>
+  rheat.log(rheat.ERROR, 'This is an error.')</pre>
+  <p>Although it is technically possible to have JavaScript import
+  various Java libraries for printing, RNA HEAT has a few simple
+  methods available for basic logging of text, as shown below.
 
   <br /><br />
   <h3>Constraints</h3>
+  <pre></pre>
   <p>A good way to write constraints in scripts is to start from
   the GUI: load a file, apply some constraints and then inspect
-  the Constraint History window to see the scripting commands. 
+  the Constraint History panel to see the scripting commands. 
   Once you have the commands, you can combine them with others to
   perform full automation (for instance, using "rheat.openRNA()"
   to open a particular file, and then run constraint commands).
+
+  <br /><br />
+  <h3>Iteration</h3>
   <pre>
-  </pre>
+  for (i = 0; i &lt; actual_helices.length(); ++i) {
+    helix = actual_helices.next()
+    ...
+  }</pre>
+  <p>Some functions return objects that can iterate over more than
+  one other value.  This iteration can be performed as in the above
+  example, by looping up to the length() and calling next().  An
+  iteration object also has a left() method if you want to see how
+  many items remain.
+  <p>This approach is taken for efficiency so that memory is not
+  allocated unnecessarily.
 
   <br /><br />
   <h3>Helices</h3>
-  <p>The call "rheat.eachActualHelix()" returns an iterator over
-  all helices that would be rendered in the top-right part of the
-  diagonal line in the display.  The helices in the lower-left
-  corner can be found with "rheat.eachPredictedHelix()", and this
-  list will change depending on any applied constraints.
-  <p>The iteration object supports three methods: length(), left()
-  and next().  Each helix also has methods to request properties,
-  such as length().  If an energy constraint has been applied, you
-  can invoke energy() on a helix to find the value.
   <pre>
   actual_helices = rheat.eachActualHelix()
-  for (i = 0; i &lt; actual_helices.length(); ++i) {                                                                                        
-    helix = actual_helices.next() 
-    rheat.log(rheat.INFO, "actual helix #" + i + ": len=" + helix.length())
+  for (i = 0; i &lt; actual_helices.length(); ++i) {
+    helix = actual_helices.next()
+    rheat.log(rheat.INFO, "actual helix #" + i +
+              ": len=" + helix.length())
   }
 
   pred_helices = rheat.eachPredictedHelix()
-  for (i = 0; i &lt; pred_helices.length(); ++i) {                                                                                        
-    helix = pred_helices.next() 
-    rheat.log(rheat.INFO, "predicted helix #" + i + ": len=" + helix.length())
+  for (i = 0; i &lt; pred_helices.length(); ++i) {
+    helix = pred_helices.next()
+    rheat.log(rheat.INFO, "predicted helix #" + i +
+              ": len=" + helix.length())
   }
-  </pre>
+
+  var selected = rheat.getSelectedHelix()</pre>
+  <p>The call "rheat.eachActualHelix()" returns an iterator (see
+  “Iteration” above), over all helices that would be rendered in the
+  top-right part of the diagonal line in the display.  The helices in
+  the lower-left corner can be found with "rheat.eachPredictedHelix()",
+  and this list will change depending on any applied constraints.  And
+  finally, any clicked helix can be found with getSelectedHelix().
+  <p>In each of these cases, a helix can be further queried.  The
+  methods threePrimeStart(), threePrimeEnd() and threePrimeSequence()
+  return information about the 3' side; similarly, there are the methods
+  fivePrimeStart(), fivePrimeEnd() and fivePrimeSequence() for the 5'
+  side.  Annotations can be inspected using eachTag() to perform an
+  iteration (see “Iteration” above) or tagsInclude() for simple tests.  
+  You can also query length(), and energy() if an energy constraint has
+  been applied.
 
   <br /><br />
   <h2>Linux/Mac and Unix-like Systems</h2>
@@ -105,8 +173,7 @@
   #!/usr/bin/env rna_heat
   // now write your script:
   rheat.openRNA('test.bpseq')
-  ...
-  </pre>
+  ...</pre>
   <p>The special "rna_heat" script must be in the search path (the
   Unix "PATH" environment variable); it is currently in the top of
   the source tree ("RNA_HEAT" relative to the "git" top-level).
@@ -117,6 +184,9 @@
   <br /><br />
   <h2>Notes for Maintainers</h2>
   <p>All scripting interfaces supported by the "rheat" variable are
-  defined in the source tree under "rheat/script/ScriptMain.java".
+  defined in the source tree under "rheat/script/ScriptMain.java".  
+  Interfaces on helices are in "rheat/script/ScriptHelix.java", and
+  similarly other source files under "rheat/script/" may implement
+  different parts of the interface.
 </body>
 </html>

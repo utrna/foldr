@@ -30,8 +30,8 @@ public class HelpContentJFrame extends javax.swing.JInternalFrame {
         setResizable(true);
         setTitle("Help");
         setMinimumSize(new java.awt.Dimension(600, 400));
-        setNormalBounds(new java.awt.Rectangle(14, 36, 600, 400));
-        setBounds(new java.awt.Rectangle(14, 36, 600, 400));
+        setNormalBounds(new java.awt.Rectangle(14, 36, 720, 650));
+        setBounds(new java.awt.Rectangle(14, 36, 720, 650));
     }
 
     private class BookInfo {
