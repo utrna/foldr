@@ -66,6 +66,9 @@ public class AppMain {
         validPrefKeys.add("GridFraction");
         validPrefKeys.add("DefaultHelixColor");
         validPrefKeys.add("DefaultHelixAnnotationColor");
+        validPrefKeys.add("SpectrumStartColor");
+        validPrefKeys.add("Spectrum50PercentColor");
+        validPrefKeys.add("SpectrumEndColor");
         try {
             initScriptingEngine();
         } catch (ScriptException e) {
@@ -196,10 +199,8 @@ public class AppMain {
     }
 
     /**
-     * Sets a particular preference key and value.  Currently the
-     * recognized keys are: "BPSEQ" to set the location for the
-     * helix data and scripts, and "RunRootDir" to set the
-     * location for experiments (running external programs).
+     * Sets a particular preference key and value.  The valid keys
+     * are set in the source code for this class ("validPrefKeys").
      */
     public void setPreference(String key, String value) {
         if (key.equals("Undo")) {
@@ -217,6 +218,13 @@ public class AppMain {
         if (key.equals("DefaultHelixColor") || key.equals("DefaultHelixAnnotationColor")) {
             if (this.gui != null) {
                 this.gui.updateDefaultHelixColor();
+            }
+        }
+        if (key.equals("SpectrumStartColor") ||
+            key.equals("Spectrum50PercentColor") ||
+            key.equals("SpectrumEndColor")) {
+            if (this.gui != null) {
+                this.gui.updateSpectrumColors();
             }
         }
         if (key.equals("GridFraction")) {
@@ -327,6 +335,39 @@ public class AppMain {
      */
     public String getPrefScriptDir() {
         return getPreference("BPSEQ"); // for now, assume same location for scripts/inputs
+    }
+
+    /**
+     * Returns user-specified color to use for the start of a
+     * color spectrum.  Intermediate colors in the gradient
+     * are automatically determined.  The string can have the
+     * same values as getPrefDefaultHelixColor().  See also
+     * getPrefSpectrumEndColor().
+     */
+    public String getPrefSpectrumStartColor() {
+        return getPreference("SpectrumStartColor");
+    }
+
+    /**
+     * Returns user-specified color to use for the middle of a
+     * color spectrum.  Intermediate colors in the gradient
+     * are automatically determined.  The string can have the
+     * same values as getPrefDefaultHelixColor().  See also
+     * getPrefSpectrumStartColor() and getPrefSpectrumEndColor().
+     */
+    public String getPrefSpectrum50PercentColor() {
+        return getPreference("Spectrum50PercentColor");
+    }
+
+    /**
+     * Returns user-specified color to use for the end of a
+     * color spectrum.  Intermediate colors in the gradient
+     * are automatically determined.  The string can have the
+     * same values as getPrefDefaultHelixColor().  See also
+     * getPrefSpectrumStartColor().
+     */
+    public String getPrefSpectrumEndColor() {
+        return getPreference("SpectrumEndColor");
     }
 
     /**
@@ -510,9 +551,9 @@ public class AppMain {
         String realPath = beginOpenFile(filePath);
         try {
             BPColorReader.parse(realPath, this.rnaData);
-            //if (this.gui != null) {
-            //    this.gui.refreshForNewRNA();
-            //}
+            if (this.gui != null) {
+                this.gui.refreshCurrentRNA();
+            }
         } finally {
             endOpenFile(filePath);
         }
@@ -575,6 +616,41 @@ public class AppMain {
             result = this.gui.getSelectedHelix();
         }
         return result;
+    }
+
+    /**
+     * Given the number of available bins in a spectrum, returns the
+     * index of the bin that should be used for the given value or
+     * -1 if the value should not be binned at all (outside range).
+     * @param value the value to map
+     * @param spectrumSize the available bins (should not be 0)
+     * @param min the smallest value in the range
+     * @param max the largest value in the range; together with
+     * "min", this determines the size of the space, and together
+     * with "spectrumSize" determines the size of each bin
+     * @return an index from 0 to (spectrumSize - 1)
+     */
+    static public int selectBin(double value, int spectrumSize,
+                                double min, double max) {
+      if ((value < min) || (value > max)) {
+          return -1;
+      }
+      final double rangeWidth = (max - min) / ((double)spectrumSize);
+      double testValue = min;
+      int result = 0;
+      while ((testValue < value) && (result < (spectrumSize - 1))) {
+          ++result;
+          testValue += rangeWidth;
+      }
+      return result;
+    }
+
+    /**
+     * Convenience method for binning when the spectrum is centered on
+     * zero and bounded by the same positive and negative magnitude.
+     */
+    static public int selectBin(double value, int spectrumSize, double maxMagnitude) {
+        return selectBin(value, spectrumSize, -maxMagnitude, maxMagnitude);
     }
 
     /**
@@ -863,6 +939,9 @@ public class AppMain {
         setDefaultPreference("GridFraction", "0.125");
         setDefaultPreference("DefaultHelixColor", "#cccccc");
         setDefaultPreference("DefaultHelixAnnotationColor", "#006600");
+        setDefaultPreference("SpectrumStartColor", "#28a000");
+        setDefaultPreference("Spectrum50PercentColor", "#c8c800");
+        setDefaultPreference("SpectrumEndColor", "#ff0000");
         try {
             savePreferences();
         } catch (IOException e) {

@@ -77,8 +77,11 @@ extends rheat.filter.Filter {
             Helix h = (Helix)i.next();
             double HelixEnergy = findEnergy(h, rna);
             h.setEnergy(HelixEnergy);
-            if ((HelixEnergy >= minEnergy) && (HelixEnergy <= maxEnergy)){
+            final int numBins = 30; // arbitrary (FIXME: make customizable)
+            int binNumber = AppMain.selectBin(HelixEnergy, numBins, minEnergy, maxEnergy);
+            if (binNumber != -1) {
                 NewStore.addHelix(h);
+                h.setBinNumber(binNumber); // may be -1 (no bin)
             }
         }
         rna.setHelices(NewStore);

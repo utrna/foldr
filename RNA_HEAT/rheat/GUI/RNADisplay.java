@@ -47,6 +47,48 @@ public class RNADisplay extends javax.swing.JComponent {
     }
 
     /**
+     * Specifies the anchor colors for the spectrum (gradient).
+     * Since this is stored only in the helix image generator,
+     * the generator must be defined for this to work.
+     *
+     * The new values are not used until the next paint.
+     */
+    public void setSpectrumColors(String colorEncodedNameStart,
+                                  String colorEncodedName50Percent,
+                                  String colorEncodedNameEnd) {
+        try {
+            Color startColor = Color.decode(colorEncodedNameStart);
+            Color middleColor = Color.decode(colorEncodedName50Percent);
+            Color endColor = Color.decode(colorEncodedNameEnd);
+            this.helixImageGenerator.setSpectrumColors(startColor, middleColor, endColor);
+        } catch (NumberFormatException e) {
+            AppMain.log(AppMain.ERROR, "Color name(s) given for spectrum settings are not valid; ignoring.");
+        }
+    }
+
+    /**
+     * Returns true only if the given display element is showing.
+     * See the HelixImageGenerator class.
+     */
+    public boolean isVisible(HelixImageGenerator.OptionalElement element) {
+        if (helixImageGenerator == null) {
+            return true;
+        }
+        return helixImageGenerator.isVisible(element);
+    }
+
+    /**
+     * Specifies whether or not the given display element is showing.
+     * The new value is not used until the next paint.  See the
+     * HelixImageGenerator class.
+     */
+    public void setVisible(HelixImageGenerator.OptionalElement element, boolean isVisible) {
+        if (helixImageGenerator != null) {
+            helixImageGenerator.setElementVisibility(element, isVisible);
+        }
+    }
+
+    /**
      * Specifies a new color to use for painting any annotated helix
      * whose annotation(s) do not have any associated colors.  (This
      * ensures that annotated helices will always look different.)

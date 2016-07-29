@@ -34,6 +34,12 @@ import java.util.*;
  */
 public class HelixImageGenerator {
 
+    public enum OptionalElement {
+        GRID,
+        HELIX_ANNOTATIONS,
+        HELIX_COLOR_SPECTRUM
+    }
+
     public enum HelixType {
         ACTUAL,
         PREDICTED
@@ -57,7 +63,6 @@ public class HelixImageGenerator {
     private double zoomFactor;
     private final double effectiveZoomFactor = 4.0; // a single point occupies this many square pixels at zoom level 1
     private ViewType imageType = ViewType.VIEW_2D;
-    private boolean gridHidden = false;
     private boolean renderInProgress = false; // see beginRender()/endRender()
     private double baseWidth = 1.0; // pre-zoom pixels of image width
     private double baseHalfWidth = 0.5; // pre-calculated optimization (see methods below)
@@ -76,13 +81,11 @@ public class HelixImageGenerator {
     // (the line is cut off at the end points instead of being extended
     // with a round or square shape); unfortunately this would make a
     // single point completely invisible so the length-1 case uses a shape
-    private Stroke strokeLength1Helix = new BasicStroke(0.25f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
     private Stroke strokeNormalHelix = new BasicStroke(0.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-    private Stroke strokeAnnotatedHelix = new BasicStroke(0.4f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-    private Stroke strokeSelectedHelix = new BasicStroke(0.75f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-    private Stroke strokeLength1SelectedHelix = new BasicStroke(0.75f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
+    private Stroke strokeAnnotatedHelix = new BasicStroke(0.9f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private Stroke strokeSelectedHelix = new BasicStroke(0.65f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeHelixHandle = new BasicStroke(0.1f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
-    private Stroke strokeFlatNormalHelix = new BasicStroke(0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
+    private Stroke strokeFlatHelix = new BasicStroke(0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
     private Stroke strokeAxisLine = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeGridLine = new BasicStroke(0.2f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0/* miter limit */, new float[]{ 1.5f, 0.5f }, 0/* dash phase */);
     private Stroke strokeClickGuide = new BasicStroke(0.15f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0/* miter limit */, new float[]{ 0.5f, 0.5f }, 0/* dash phase */);
@@ -92,16 +95,51 @@ public class HelixImageGenerator {
     private Color colorGridLine = new Color(200, 240, 255); // FIXME: make customizable
     private Color colorAxisLabels = colorGridLine; // FIXME: make customizable
     private Color colorGuideLine = new Color(100, 0, 40); // FIXME: make customizable
+    private ArrayList<Color> helixSpectrum = new ArrayList<Color>();
     private ArrayList<String> helixTagPriorityOrder = new ArrayList<String>();
     private Map<String, Color> helixTagColorMap = new HashMap<String, Color>();
     private Set<String> hiddenTags = new HashSet<String>();
+    private Set<OptionalElement> hiddenElements = new HashSet<OptionalElement>();
     private Helix selectedHelix = null;
     private Helix originalSelection = null; // preserved by beginRender()/endRender()
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-    /** Creates a new instance of HelixImageGenerator */
     public HelixImageGenerator() {
         setZoomLevel(1);
+    }
+
+    /**
+     * Utility for constructing a range of colors in a gradient.
+     * @param fraction from 0.05 to 0.5, how much of the total color range should
+     * be devoted to each element (determines the total number of colors returned)
+     * @param start the left end of the gradient
+     * @param end the right end of the gradient
+     * @param outList the list to append new colors onto (NOT CLEARED; this allows
+     * you to call the method multiple times to create varied gradients)
+     */
+    static public void generateGradient(double fraction, Color start, Color end, ArrayList<Color> outList) {
+        assert(fraction >= 0.05);
+        assert(fraction <= 0.5);
+        int red = start.getRed();
+        int green = start.getGreen();
+        int blue = start.getBlue();
+        int deltaRed = (int)(((double)end.getRed() - (double)red) * fraction);
+        int deltaGreen = (int)(((double)end.getGreen() - (double)green) * fraction);
+        int deltaBlue = (int)(((double)end.getBlue() - (double)blue) * fraction);
+        outList.add(start);
+        for (double i = 0.0; i < 1.0; i += fraction) {
+            if ((red < 0) || (green < 0) || (blue < 0)) {
+                break;
+            }
+            if ((red > 255) || (green > 255) || (blue > 255)) {
+                break;
+            }
+            outList.add(new Color(red, green, blue));
+            red += deltaRed;
+            green += deltaGreen;
+            blue += deltaBlue;
+        }
+        outList.add(end);
     }
 
     /**
@@ -113,6 +151,25 @@ public class HelixImageGenerator {
      */
     public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(property, listener);
+    }
+
+    /**
+     * Returns true only if the given display element is showing.
+     */
+    public boolean isVisible(OptionalElement element) {
+        return (!hiddenElements.contains(element));
+    }
+
+    /**
+     * Specifies whether or not the given display element is showing.
+     * The new value is not used until the next rendering.
+     */
+    public void setElementVisibility(OptionalElement element, boolean isVisible) {
+        if (isVisible) {
+            hiddenElements.remove(element);
+        } else {
+            hiddenElements.add(element);
+        }
     }
 
     /**
@@ -213,6 +270,19 @@ public class HelixImageGenerator {
         zoomFactor = z * effectiveZoomFactor;
         baseZoomedWidth = zoomFactor * baseWidth; // see also setBaseWidth()
         baseZoomedHeight = zoomFactor * baseHeight; // see also setBaseHeight()
+    }
+
+    /**
+     * Specifies the anchor colors to use for gradient displays, and
+     * regenerates a (currently arbitrary) number of intermediate
+     * colors to fill the spectrum.
+     *
+     * The new values are not used until the next rendering.
+     */
+    public void setSpectrumColors(Color start, Color middle, Color end) {
+        helixSpectrum.clear();
+        generateGradient(0.05, start, middle, helixSpectrum);
+        generateGradient(0.05, middle, end, helixSpectrum);
     }
 
     /**
@@ -392,7 +462,7 @@ public class HelixImageGenerator {
                 //g.setStroke(strokeAxisLine);
                 //g.drawLine(0, this.baseHeight / 2, this.baseWidth - 1, this.baseHeight / 2);
             } else {
-                if (!gridHidden) {
+                if (isVisible(OptionalElement.GRID)) {
                     // draw some grid lines; the grid is always centered
                     // (line spacing grows outward from middle)
                     final double deltaX = (this.baseWidth * gridSpacingX);
@@ -400,13 +470,14 @@ public class HelixImageGenerator {
                     g.setColor(colorGridLine);
                     g.setStroke(strokeGridLine);
                     // vertical lines
+                    int i = 0;
                     for (double x = this.baseHalfWidth;
-                         x < this.baseWidth; x += deltaX) {
+                         x < this.baseWidth; x += deltaX, ++i) {
                         this.tmpLine.setLine(x, 0, x, this.baseHeight);
                         g.draw(this.tmpLine);
                     }
                     for (double x = this.baseHalfWidth - deltaX;
-                         x >= 0; x -= deltaX) {
+                         x >= 0; x -= deltaX, ++i) {
                         this.tmpLine.setLine(x, 0, x, this.baseHeight);
                         g.draw(this.tmpLine);
                     }
@@ -495,9 +566,10 @@ public class HelixImageGenerator {
         final double clickY = clickPoint.getY();
         boolean becameSelected = false;
         boolean showAnnotations = false;
+        boolean allowAnnotations = isVisible(OptionalElement.HELIX_ANNOTATIONS);
         Set<String> helixTags = h.getTags();
         Color annotationColor = null;
-        if (helixTags != null) {
+        if ((helixTags != null) && (allowAnnotations)) {
             // determine if any of the tags on this helix are visible
             int usedTagCount = helixTags.size();
             for (String tag : helixTags) {
@@ -521,16 +593,17 @@ public class HelixImageGenerator {
                 }
             }
         }
-        /*
-        if (h.getEnergy() < -6) {
-            helixGraphics.setColor(Color.orange);
+        final double energyBinSize = 0.1;
+        final double helixEnergy = h.getEnergy();
+        boolean showEnergyBins = ((!showAnnotations) &&
+                                  isVisible(OptionalElement.HELIX_COLOR_SPECTRUM));
+        if (showEnergyBins) {
+            int colorIndex = h.getBinNumber();
+            if ((colorIndex >= 0) && (colorIndex < helixSpectrum.size())) {
+                showAnnotations = true;
+                annotationColor = helixSpectrum.get(colorIndex);
+            }
         }
-        if (h.getEnergy() < -10) {
-            helixGraphics.setColor(Color.yellow);
-        }
-        if (h.getEnergy() < -18) {
-            helixGraphics.setColor(Color.green);
-        }*/
         // baseline: place helix in lower-left section, not mirrored
         double x0 = h.getStartY() + 1;
         double y0 = h.getStartX() + 1;
@@ -546,7 +619,15 @@ public class HelixImageGenerator {
             x1 = x0 + (helixLength - 1); // grow line in opposite direction from point (away from diagonal)
             y1 = y0 - (helixLength - 1);
         }
-        this.tmpLine.setLine(x0, y0, x1, y1);
+        // IMPORTANT: if the stroke is cap-butt, length-1 helices
+        // will be INVISIBLE because the start and end points are
+        // the same; either force a different stroke (like cap-square)
+        // or force a nonzero distance between points
+        if (helixLength == 1) {
+            this.tmpLine.setLine(x0, y0, x1 - 0.25, y1 + 0.25);
+        } else {
+            this.tmpLine.setLine(x0, y0, x1, y1);
+        }
         if (this.selectedHelix == null) {
             // no helix has been selected in this iteration yet;
             // scan for clicks slightly outside the target line
@@ -555,6 +636,14 @@ public class HelixImageGenerator {
                 becameSelected = true;
             }
         }
+        // first draw normal helix
+        helixGraphics.setColor((showAnnotations) ? annotationColor : primaryColor);
+        if (showAnnotations) {
+            helixGraphics.setStroke(strokeAnnotatedHelix);
+        } else {
+            helixGraphics.setStroke(strokeNormalHelix);
+        }
+        helixGraphics.draw(this.tmpLine);
         // TODO: repeatedly testing for intersection is not efficient
         // if it involves ALL helices; if the data can be rearranged
         // into a geometric form (such as an R-tree), the start point
@@ -564,14 +653,7 @@ public class HelixImageGenerator {
         if (becameSelected) {
             this.selectedHelix = h;
             helixGraphics.setColor(colorSelectedHelix);
-            if (helixLength == 1) {
-                // IMPORTANT: cannot use a cap-butt stroke type for a
-                // single-pixel line (it will be invisible); need to
-                // force a stroke that caps with a visible shape
-                helixGraphics.setStroke(strokeLength1SelectedHelix);
-            } else {
-                helixGraphics.setStroke(strokeSelectedHelix);
-            }
+            helixGraphics.setStroke(strokeSelectedHelix);
             helixGraphics.draw(this.tmpLine);
             // draw "handles" (blobs on each end) so that the
             // selection is more distinct
@@ -593,18 +675,6 @@ public class HelixImageGenerator {
             this.tmpLine.setLine(x1, x1, y1/* diagonal match for this Y */, x1);
             helixGraphics.draw(this.tmpLine);
             this.tmpLine.setLine(x0, y0, y0, x0);
-            helixGraphics.draw(this.tmpLine);
-        } else {
-            helixGraphics.setColor((showAnnotations) ? annotationColor : primaryColor);
-            if (helixLength == 1) {
-                helixGraphics.setStroke(strokeLength1Helix);
-            } else {
-                if (showAnnotations) {
-                    helixGraphics.setStroke(strokeAnnotatedHelix);
-                } else {
-                    helixGraphics.setStroke(strokeNormalHelix);
-                }
-            }
             helixGraphics.draw(this.tmpLine);
         }
     }
@@ -671,7 +741,7 @@ public class HelixImageGenerator {
         helixGraphics.setColor(Color.red);
         if (hstore != null) {
             Iterator itr = hstore.iterator();
-            helixGraphics.setStroke(strokeFlatNormalHelix);
+            helixGraphics.setStroke(strokeFlatHelix);
             while (itr.hasNext()) {
                 Helix h = (Helix)itr.next();
                 int x0, x1, y, hi, wi;

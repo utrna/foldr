@@ -1,5 +1,4 @@
 /*
- *
  * Helix.java
  *
  * Created on February 27, 2003, 2:21 PM
@@ -30,6 +29,8 @@ import java.util.Set;
  */
 public class Helix
 implements Comparable<Helix>, java.io.Serializable {
+
+    public static int NO_BIN = -1; // see setBinNumber()
 
     /**
      * In some cases it is useful to be able to compare helices using
@@ -111,6 +112,7 @@ implements Comparable<Helix>, java.io.Serializable {
         yPosition = posy;
         helixLength = hlen;
         tags = null;
+        binNumber = -1;
     }
 
     /**
@@ -121,6 +123,22 @@ implements Comparable<Helix>, java.io.Serializable {
             tags = new HashSet<String>();
         }
         tags.add(tag);
+    }
+
+    public int getBinNumber() {
+        return binNumber; // may be -1
+    }
+
+    /**
+     * If the helix is being binned (grouped with other helices
+     * according to some criteria), set this value to a zero-based
+     * index; otherwise, set to NO_BIN.  The renderer may use this
+     * to pick a color or other annotation from a list.  If the bin
+     * number is outside the range of available annotations, it may
+     * cause no special annotation at all.
+     */
+    public void setBinNumber(int binNumber) {
+        this.binNumber = binNumber;
     }
 
     public Set<String> getTags() {
@@ -251,6 +269,7 @@ implements Comparable<Helix>, java.io.Serializable {
     private int xPosition;
     private int yPosition;
     private int helixLength;
+    private int binNumber;
     private double helixEnergy;
     private HashSet<String> tags; // created on demand
 }

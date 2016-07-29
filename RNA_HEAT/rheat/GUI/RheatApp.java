@@ -161,6 +161,10 @@ implements PropertyChangeListener {
         this.displayPane.setDefaultAnnotatedHelixColor(appMain.getPrefDefaultHelixAnnotationColor()); // see also updateDefaultHelixColor()
         this.helixImgGen.setGridFraction(appMain.getPrefGridFraction()); // see also updateGrid()
         this.helixImgGen.addPropertyChangeListener(HelixImageGenerator.PROPERTY_SELECTED_HELIX, this); // updates info pane for selected helix
+        // initialize checkboxes
+        this.showGridCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.GRID));
+        this.showBinsCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.HELIX_COLOR_SPECTRUM));
+        this.showTagsCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.HELIX_ANNOTATIONS));
         this.setBounds(0, 0 , 700, 700);
     }
 
@@ -284,6 +288,17 @@ implements PropertyChangeListener {
         // NOTE: similar action taken in constructor (without the update)
         displayPane.setDefaultHelixColor(appMain.getPrefDefaultHelixColor());
         displayPane.setDefaultAnnotatedHelixColor(appMain.getPrefDefaultHelixAnnotationColor());
+        displayPane.repaint();
+    }
+
+    /**
+     * Notify that spectrum colors have changed externally.
+     */
+    public void updateSpectrumColors() {
+        // NOTE: similar action taken in constructor (without the update)
+        displayPane.setSpectrumColors(appMain.getPrefSpectrumStartColor(),
+                                      appMain.getPrefSpectrum50PercentColor(),
+                                      appMain.getPrefSpectrumEndColor());
         displayPane.repaint();
     }
 
@@ -446,6 +461,7 @@ implements PropertyChangeListener {
             displayPane.addOverlayRNA(appMain.overlayData.get(i), appMain.overlayColors.get(i));
         }
         displayPane.setHelixImageGenerator(this.helixImgGen);
+        updateSpectrumColors(); // read initial preferences, now that helix image generator exists
         if (this.helixImgGen != null) {
             setStatus("Updating image…", 0);
             try {
@@ -698,6 +714,9 @@ implements PropertyChangeListener {
         bottomToolBar.setFloatable(false);
         bottomToolBar.setOrientation(JToolBar.HORIZONTAL);
 
+        JPanel paneDisplay = new JPanel();
+        paneDisplay.setLayout(new BorderLayout());
+        paneDisplay.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         displayControlPanel = new JPanel();
         JPanel paneZoomControls = new JPanel();
         paneZoomControls.setBorder(BorderFactory.createTitledBorder("Zoom"));
@@ -848,10 +867,13 @@ implements PropertyChangeListener {
         paneDiagonalScroll.add(Box.createRigidArea(new Dimension(10, 10)));
         paneDiagonalScroll.add(scrollDownRightBtn);
         displayScrollPane.setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, paneDiagonalScroll);
-        JPanel paneDisplay = new JPanel();
-        paneDisplay.setLayout(new BorderLayout());
         paneDisplay.add(displayControlPanel, BorderLayout.NORTH);
         paneDisplay.add(displayScrollPane, BorderLayout.CENTER);
+        JPanel padPaneDisplay = new JPanel();
+        padPaneDisplay.setLayout(new BorderLayout());
+        //padPaneDisplay.setBorder(BorderFactory.createTitledBorder("Main Display"));
+        padPaneDisplay.setMinimumSize(new Dimension(200, 500)); // arbitrary
+        padPaneDisplay.add(paneDisplay, BorderLayout.CENTER);
 
         uidValue = new javax.swing.JLabel();
         organismValue = new javax.swing.JLabel();
@@ -920,7 +942,11 @@ implements PropertyChangeListener {
         // other panels and only ONE non-CENTER element is a toolbar in
         // each case
         final boolean LIVE_REPAINT = true; // see JSplitPane constructor
-        JSplitPane joinDisplayRightToolBar = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, LIVE_REPAINT, paneDisplay, rightToolBar);
+        //JSplitPane joinDisplayRightToolBar = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, LIVE_REPAINT, padPaneDisplay, rightToolBar);
+        JPanel joinDisplayRightToolBar = new JPanel();
+        joinDisplayRightToolBar.setLayout(new BorderLayout());
+        joinDisplayRightToolBar.add(padPaneDisplay, BorderLayout.CENTER);
+        joinDisplayRightToolBar.add(rightToolBar, BorderLayout.EAST);
         JSplitPane joinDisplayLeftRightToolBars = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, LIVE_REPAINT, leftToolBar, joinDisplayRightToolBar);
         JPanel joinDisplayLeftRightBottomToolBars = new JPanel();
         joinDisplayLeftRightBottomToolBars.setLayout(new BorderLayout());
@@ -956,7 +982,7 @@ implements PropertyChangeListener {
         paneRNAInfoValues.add(accNumValue);
         paneRNAInfoLabels.add(new JLabel(" Length: "));
         paneRNAInfoValues.add(lengthValue);
-        paneRNAInfoLabels.add(new JLabel(" Current Helices: "));
+        paneRNAInfoLabels.add(new JLabel(" Current Helices:   "));
         helixNumField.setMinimumSize(new Dimension(100, (int)helixNumField.getMinimumSize().getHeight()));
         paneRNAInfoValues.add(helixNumField);
         paneRNAInfoLabels.add(new JLabel(" Total Helices: "));
@@ -981,7 +1007,7 @@ implements PropertyChangeListener {
         scrollConstraintHistory.setViewportView(historyTextPane);
         scrollConstraintHistory.setAutoscrolls(true);
         scrollConstraintHistory.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.white));
-        scrollConstraintHistory.setMinimumSize(new Dimension(250, 100));
+        scrollConstraintHistory.setMinimumSize(new Dimension(200, 100));
         undoConstraintBtn.setText("Undo Last");
         undoConstraintBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1006,7 +1032,7 @@ implements PropertyChangeListener {
         JScrollPane scrollSelectedHelixInfo = new JScrollPane();
         scrollSelectedHelixInfo.setViewportView(helixInfoTextPane);
         scrollSelectedHelixInfo.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.white));
-        scrollSelectedHelixInfo.setMinimumSize(new Dimension(250, 100));
+        scrollSelectedHelixInfo.setMinimumSize(new Dimension(200, 100));
         JPanel paneSelectedHelix = new JPanel();
         paneSelectedHelix.setLayout(new BorderLayout());
         paneSelectedHelix.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
@@ -1025,21 +1051,50 @@ implements PropertyChangeListener {
         leftToolBar.add(Box.createVerticalStrut(10));
         leftToolBar.add(padPaneConstraintHistory);
 
-        JPanel paneExperimentInfo = new JPanel();
-        JPanel paneExperiments = new JPanel();
-        paneExperiments.setLayout(new BorderLayout());
-        paneExperiments.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-        paneExperiments.add(paneExperimentInfo, BorderLayout.CENTER);
-        JPanel padPaneExperiments = new JPanel();
-        padPaneExperiments.setLayout(new BorderLayout());
-        padPaneExperiments.setBorder(BorderFactory.createTitledBorder("Experiments"));
-        padPaneExperiments.add(paneExperiments, BorderLayout.CENTER);
+        JPanel paneShowHide = new JPanel();
+        paneShowHide.setLayout(new GridLayout(20, 1)); // FIXME: adjust if there are more controls than this number (otherwise they may wrap)
+        paneShowHide.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        final HelixImageGenerator.OptionalElement gridElement =
+              HelixImageGenerator.OptionalElement.GRID;
+        showGridCheckBox = new JCheckBox("Grid");
+        showGridCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                displayPane.setVisible(gridElement,
+                                       (!displayPane.isVisible(gridElement)));
+                displayPane.repaint();
+            }
+        });
+        paneShowHide.add(showGridCheckBox);
+        final HelixImageGenerator.OptionalElement helixSpectrumElement =
+              HelixImageGenerator.OptionalElement.HELIX_COLOR_SPECTRUM;
+        showBinsCheckBox = new JCheckBox("Spectrum");
+        showBinsCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                displayPane.setVisible(helixSpectrumElement,
+                                       (!displayPane.isVisible(helixSpectrumElement)));
+                displayPane.repaint();
+            }
+        });
+        paneShowHide.add(showBinsCheckBox);
+        final HelixImageGenerator.OptionalElement annotationsElement =
+              HelixImageGenerator.OptionalElement.HELIX_ANNOTATIONS;
+        showTagsCheckBox = new JCheckBox("Annotations");
+        showTagsCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                displayPane.setVisible(annotationsElement,
+                                       (!displayPane.isVisible(annotationsElement)));
+                displayPane.repaint();
+            }
+        });
+        paneShowHide.add(showTagsCheckBox);
+        JPanel padPaneShowHide = new JPanel();
+        padPaneShowHide.setLayout(new BorderLayout());
+        padPaneShowHide.setBorder(BorderFactory.createTitledBorder("Show"));
+        padPaneShowHide.setMinimumSize(new Dimension(200, 500)); // arbitrary
+        padPaneShowHide.add(paneShowHide, BorderLayout.NORTH);
+        padPaneShowHide.add(new JPanel(), BorderLayout.CENTER);
 
-        rightToolBar.add(padPaneExperiments);
-        // TODO: one option for the right-hand side is an interface
-        // for managing the files in the experiment tree; for now,
-        // just hide this region of the window
-        rightToolBar.setVisible(false);
+        rightToolBar.add(padPaneShowHide);
 
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
@@ -1749,6 +1804,14 @@ implements PropertyChangeListener {
     /**
      * Convenience version of this method that resets everything.
      */
+    public void refreshCurrentRNA() {
+        this.updateImage();
+        displayPane.repaint();
+    }
+
+    /**
+     * Convenience version of this method that resets everything.
+     */
     public void refreshForNewRNA() {
         refreshForNewRNA(EnumSet.noneOf(RNADisplayFeature.class));
     }
@@ -1783,7 +1846,7 @@ implements PropertyChangeListener {
         setControlLabels();
         basepairConstraintItem.setEnabled(true);
         this.updateImage(); // erases to blank if "appMain.rnaData" is null
-        this.displayPane.repaint();
+        displayPane.repaint();
     }
 
     private void openRNAMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
@@ -1814,7 +1877,6 @@ implements PropertyChangeListener {
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
             }
-            updateImage();
         }
     }
 
@@ -1833,7 +1895,6 @@ implements PropertyChangeListener {
                     JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
                 }
             }
-            updateImage();
         }
     }
 
@@ -2003,6 +2064,9 @@ implements PropertyChangeListener {
     private JTextField jumpFieldX;
     private JTextField jumpFieldY;
     private JButton jumpButton;
+    private JCheckBox showGridCheckBox;
+    private JCheckBox showBinsCheckBox;
+    private JCheckBox showTagsCheckBox;
     private RNADisplay displayPane;
     private AboutFrame aboutFrame;
     private MiniFrame miniFrame;

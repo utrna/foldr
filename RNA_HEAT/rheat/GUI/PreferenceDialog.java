@@ -34,6 +34,9 @@ extends RheatApp.RheatActionPanel {
         this.gridSizeField.setText(String.format("%.2f", appMain.getPrefGridFraction()));
         this.defaultHelixColorEditor.setColorString(appMain.getPrefDefaultHelixColor());
         this.defaultTagColorEditor.setColorString(appMain.getPrefDefaultHelixAnnotationColor());
+        this.spectrumStartColorEditor.setColorString(appMain.getPrefSpectrumStartColor());
+        this.spectrum50PercentColorEditor.setColorString(appMain.getPrefSpectrum50PercentColor());
+        this.spectrumEndColorEditor.setColorString(appMain.getPrefSpectrumEndColor());
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     }
 
@@ -73,6 +76,9 @@ extends RheatApp.RheatActionPanel {
         gridSizeField = new javax.swing.JTextField();
         defaultHelixColorEditor = new rheat.GUI.ColorEditor();
         defaultTagColorEditor = new rheat.GUI.ColorEditor();
+        spectrumStartColorEditor = new rheat.GUI.ColorEditor();
+        spectrum50PercentColorEditor = new rheat.GUI.ColorEditor();
+        spectrumEndColorEditor = new rheat.GUI.ColorEditor();
 
         contentPane.setLayout(new BorderLayout());
         // HOW TO ADD NEW ROWS:
@@ -80,7 +86,8 @@ extends RheatApp.RheatActionPanel {
         // - add a JLabel for the new row to "labelsPane"
         // - put the new setting’s controls in a new container (like a JPanel)
         // - add that container to "itemsPane"
-        final int numRows = 6;
+        // (see examples below!)
+        final int numRows = 9;
         labelsPane.setLayout(new GridLayout(numRows, 0));
         itemsPane.setLayout(new GridLayout(numRows, 0));
 
@@ -166,6 +173,27 @@ extends RheatApp.RheatActionPanel {
         labelsPane.add(new JLabel("Default Annotation Color: "));
         itemsPane.add(defaultTagColorEditor);
 
+        spectrumStartColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        spectrumStartColorEditor.setTitle("Spectrum Start Color");
+        spectrumStartColorEditor.setToolTipText("For helices colored using a gradient, this determines the beginning of the spectrum of colors.");
+
+        labelsPane.add(new JLabel("Spectrum Start Color: "));
+        itemsPane.add(spectrumStartColorEditor);
+
+        spectrum50PercentColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        spectrum50PercentColorEditor.setTitle("Spectrum 50% Color");
+        spectrum50PercentColorEditor.setToolTipText("For helices colored using a gradient, this determines the middle of the spectrum of colors.");
+
+        labelsPane.add(new JLabel("Spectrum 50% Color: "));
+        itemsPane.add(spectrum50PercentColorEditor);
+
+        spectrumEndColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        spectrumEndColorEditor.setTitle("Spectrum End Color");
+        spectrumEndColorEditor.setToolTipText("For helices colored using a gradient, this determines the end of the spectrum of colors.");
+
+        labelsPane.add(new JLabel("Spectrum End Color: "));
+        itemsPane.add(spectrumEndColorEditor);
+
         contentPane.add(labelsPane, BorderLayout.WEST);
         contentPane.add(itemsPane, BorderLayout.CENTER);
     }
@@ -203,6 +231,9 @@ extends RheatApp.RheatActionPanel {
             appMain.setPreference("GridFraction", this.gridSizeField.getText());
             appMain.setPreference("DefaultHelixColor", this.defaultHelixColorEditor.getColorString());
             appMain.setPreference("DefaultHelixAnnotationColor", this.defaultTagColorEditor.getColorString());
+            appMain.setPreference("SpectrumStartColor", this.spectrumStartColorEditor.getColorString());
+            appMain.setPreference("Spectrum50PercentColor", this.spectrum50PercentColorEditor.getColorString());
+            appMain.setPreference("SpectrumEndColor", this.spectrumEndColorEditor.getColorString());
             appMain.savePreferences();
         } catch (Exception e) {
             e.printStackTrace();
@@ -215,6 +246,9 @@ extends RheatApp.RheatActionPanel {
     private javax.swing.JTextField gridSizeField;
     private rheat.GUI.ColorEditor defaultHelixColorEditor;
     private rheat.GUI.ColorEditor defaultTagColorEditor;
+    private rheat.GUI.ColorEditor spectrumStartColorEditor;
+    private rheat.GUI.ColorEditor spectrum50PercentColorEditor;
+    private rheat.GUI.ColorEditor spectrumEndColorEditor;
     private javax.swing.JPanel labelsPane;
     private javax.swing.JPanel itemsPane;
     private javax.swing.JPanel jPanel0;
