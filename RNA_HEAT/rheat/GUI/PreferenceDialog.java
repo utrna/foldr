@@ -9,7 +9,12 @@ package rheat.GUI;
 import rheat.base.AppMain;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import javax.swing.*;
 
 /**
@@ -19,7 +24,43 @@ import javax.swing.*;
  * @author  Kevin Grant
  */
 public class PreferenceDialog
-extends RheatApp.RheatActionPanel {
+extends RheatApp.RheatActionPanel
+implements ColorEditor.ChangeHandler {
+
+    class SpectrumSampleView extends JComponent {
+
+        private ArrayList<Color> colors = new ArrayList<Color>();
+        private Rectangle2D.Double tmpRect = new Rectangle2D.Double(); // reused below
+
+        /**
+         * Specifies the color components.  Each color will occupy the
+         * same proportional of the total range, as a filled rectangle
+         * that spans one dimension of the view.
+         *
+         * The new values will be used on the next repaint.
+         */
+        void setColors(ArrayList<Color> colors) {
+            this.colors = colors;
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            // object is actually Graphics2D type
+            assert(g instanceof Graphics2D);
+            Graphics2D g2D = (Graphics2D)g;
+            // for now, always rendered horizontally (could be configurable)
+            final double elementWidth = (getSize().getWidth() / (this.colors.size() - 1));
+            double offset = 0;
+            for (int i = 0; i < colors.size(); ++i) {
+                g2D.setColor(this.colors.get(i));
+                this.tmpRect.setRect(offset, 0, elementWidth, getSize().getHeight());
+                g2D.fill(this.tmpRect);
+                offset += elementWidth;
+            }
+        }
+
+    }
 
     private AppMain appMain = null;
     private JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
@@ -41,6 +82,35 @@ extends RheatApp.RheatActionPanel {
     }
 
     protected boolean isResizable() { return true; }
+
+    /**
+     * Called by ColorEditor when the color is changed; responds
+     * by synchronizing the spectrum sample display.
+     */
+    @Override
+    public void colorEditorDidChange(ColorEditor editor) {
+        // NOTE: the "editor" is not checked because it currently
+        // doesn’t matter (it is assumed that the update must be
+        // referring to the spectrum edits); if that changes, an
+        // "if" may need to be added to verify which editor changed
+        ArrayList<Color> colors = new ArrayList<Color>();
+        Color start = spectrumStartColorEditor.getColor();
+        Color middle = spectrum50PercentColorEditor.getColor();
+        Color end = spectrumEndColorEditor.getColor();
+        // current color edit may not be valid (e.g. blank field)
+        if (start == null) {
+            return;
+        }
+        if (middle == null) {
+            return;
+        }
+        if (end == null) {
+            return;
+        }
+        HelixImageGenerator.generateGradient(start, middle, end, colors);
+        this.spectrumSampleView.setColors(colors);
+        this.spectrumSampleView.repaint();
+    }
 
     private String askUserForDirectory() {
         int val = fc.showOpenDialog(this);
@@ -79,6 +149,7 @@ extends RheatApp.RheatActionPanel {
         spectrumStartColorEditor = new rheat.GUI.ColorEditor();
         spectrum50PercentColorEditor = new rheat.GUI.ColorEditor();
         spectrumEndColorEditor = new rheat.GUI.ColorEditor();
+        spectrumSampleView = new SpectrumSampleView();
 
         contentPane.setLayout(new BorderLayout());
         // HOW TO ADD NEW ROWS:
@@ -87,7 +158,7 @@ extends RheatApp.RheatActionPanel {
         // - put the new setting’s controls in a new container (like a JPanel)
         // - add that container to "itemsPane"
         // (see examples below!)
-        final int numRows = 9;
+        final int numRows = 10;
         labelsPane.setLayout(new GridLayout(numRows, 0));
         itemsPane.setLayout(new GridLayout(numRows, 0));
 
@@ -159,6 +230,7 @@ extends RheatApp.RheatActionPanel {
         labelsPane.add(new JLabel("Default Grid Size: "));
         itemsPane.add(jPanel3);
 
+        //defaultHelixColorEditor.setChangeHandler(this);
         defaultHelixColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         defaultHelixColorEditor.setTitle("Default Helix Color");
         defaultHelixColorEditor.setToolTipText("The color to use by default for helices.");
@@ -166,6 +238,7 @@ extends RheatApp.RheatActionPanel {
         labelsPane.add(new JLabel("Default Helix Color: "));
         itemsPane.add(defaultHelixColorEditor);
 
+        //defaultTagColorEditor.setChangeHandler(this);
         defaultTagColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         defaultTagColorEditor.setTitle("Default Annotation Color");
         defaultTagColorEditor.setToolTipText("The color to use by default for helices that have been annotated.  (Specific tag colors may override this.)");
@@ -173,6 +246,7 @@ extends RheatApp.RheatActionPanel {
         labelsPane.add(new JLabel("Default Annotation Color: "));
         itemsPane.add(defaultTagColorEditor);
 
+        spectrumStartColorEditor.setChangeHandler(this);
         spectrumStartColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         spectrumStartColorEditor.setTitle("Spectrum Start Color");
         spectrumStartColorEditor.setToolTipText("For helices colored using a gradient, this determines the beginning of the spectrum of colors.");
@@ -180,6 +254,7 @@ extends RheatApp.RheatActionPanel {
         labelsPane.add(new JLabel("Spectrum Start Color: "));
         itemsPane.add(spectrumStartColorEditor);
 
+        spectrum50PercentColorEditor.setChangeHandler(this);
         spectrum50PercentColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         spectrum50PercentColorEditor.setTitle("Spectrum 50% Color");
         spectrum50PercentColorEditor.setToolTipText("For helices colored using a gradient, this determines the middle of the spectrum of colors.");
@@ -187,12 +262,18 @@ extends RheatApp.RheatActionPanel {
         labelsPane.add(new JLabel("Spectrum 50% Color: "));
         itemsPane.add(spectrum50PercentColorEditor);
 
+        spectrumEndColorEditor.setChangeHandler(this);
         spectrumEndColorEditor.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         spectrumEndColorEditor.setTitle("Spectrum End Color");
         spectrumEndColorEditor.setToolTipText("For helices colored using a gradient, this determines the end of the spectrum of colors.");
 
         labelsPane.add(new JLabel("Spectrum End Color: "));
         itemsPane.add(spectrumEndColorEditor);
+
+        spectrumSampleView.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.white));
+
+        labelsPane.add(new JLabel(""));
+        itemsPane.add(spectrumSampleView);
 
         contentPane.add(labelsPane, BorderLayout.WEST);
         contentPane.add(itemsPane, BorderLayout.CENTER);
@@ -249,6 +330,7 @@ extends RheatApp.RheatActionPanel {
     private rheat.GUI.ColorEditor spectrumStartColorEditor;
     private rheat.GUI.ColorEditor spectrum50PercentColorEditor;
     private rheat.GUI.ColorEditor spectrumEndColorEditor;
+    private SpectrumSampleView spectrumSampleView;
     private javax.swing.JPanel labelsPane;
     private javax.swing.JPanel itemsPane;
     private javax.swing.JPanel jPanel0;

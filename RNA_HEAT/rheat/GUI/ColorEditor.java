@@ -16,12 +16,32 @@ import javax.swing.event.DocumentListener;
  */
 public class ColorEditor extends javax.swing.JPanel {
 
+    public interface ChangeHandler {
+        public void colorEditorDidChange(ColorEditor editor);
+    }
+
     private enum UpdateType {
         ALL, COLOR_TEXT, COLOR_PANEL
     }
 
     ColorEditor() {
         initComponents();
+        if (this.changeHandler != null) {
+            this.changeHandler.colorEditorDidChange(this);
+        }
+    }
+
+    /**
+     * Returns the color currently displayed in the field (and
+     * rendered by the colored background) if it is a valid color
+     * description; otherwise, returns null.
+     */
+    public Color getColor() {
+        try {
+            return Color.decode(getColorString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
@@ -30,6 +50,14 @@ public class ColorEditor extends javax.swing.JPanel {
      */
     public String getColorString() {
         return colorField.getText();
+    }
+
+    /**
+     * Sets a single object to notify when the color is changed.
+     * May be set to null.
+     */
+    public void setChangeHandler(ChangeHandler h) {
+        this.changeHandler = h;
     }
 
     /**
@@ -113,6 +141,9 @@ public class ColorEditor extends javax.swing.JPanel {
                 (updateWhat == UpdateType.COLOR_TEXT)) {
                 colorField.setText(colorName);
             }
+            if (this.changeHandler != null) {
+                this.changeHandler.colorEditorDidChange(this);
+            }
         } catch (NumberFormatException e) {
             // arbitrarily suppress warnings for shorter strings (since the
             // display is updated while the user types)
@@ -142,5 +173,6 @@ public class ColorEditor extends javax.swing.JPanel {
     private JPanel colorDisplay;
     private JButton chooseColorButton;
     private String titleText = "New Color"; // see setTitle()
+    private ChangeHandler changeHandler = null;
 
 }

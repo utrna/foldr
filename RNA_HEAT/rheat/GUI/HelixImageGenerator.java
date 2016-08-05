@@ -117,16 +117,17 @@ public class HelixImageGenerator {
      * @param outList the list to append new colors onto (NOT CLEARED; this allows
      * you to call the method multiple times to create varied gradients)
      */
-    static public void generateGradient(double fraction, Color start, Color end, ArrayList<Color> outList) {
+    static public void generateGradientFragment(double fraction,
+                                                Color start, Color end,
+                                                ArrayList<Color> outList) {
         assert(fraction >= 0.05);
         assert(fraction <= 0.5);
-        int red = start.getRed();
-        int green = start.getGreen();
-        int blue = start.getBlue();
-        int deltaRed = (int)(((double)end.getRed() - (double)red) * fraction);
-        int deltaGreen = (int)(((double)end.getGreen() - (double)green) * fraction);
-        int deltaBlue = (int)(((double)end.getBlue() - (double)blue) * fraction);
-        outList.add(start);
+        double red = start.getRed();
+        double green = start.getGreen();
+        double blue = start.getBlue();
+        double deltaRed = (((double)end.getRed() - (double)red) * fraction);
+        double deltaGreen = (((double)end.getGreen() - (double)green) * fraction);
+        double deltaBlue = (((double)end.getBlue() - (double)blue) * fraction);
         for (double i = 0.0; i < 1.0; i += fraction) {
             if ((red < 0) || (green < 0) || (blue < 0)) {
                 break;
@@ -134,12 +135,24 @@ public class HelixImageGenerator {
             if ((red > 255) || (green > 255) || (blue > 255)) {
                 break;
             }
-            outList.add(new Color(red, green, blue));
+            outList.add(new Color((int)red, (int)green, (int)blue));
             red += deltaRed;
             green += deltaGreen;
             blue += deltaBlue;
         }
-        outList.add(end);
+    }
+
+    /**
+     * Convenience method; given the anchor colors to use for gradient
+     * displays, regenerates a (currently arbitrary) number of
+     * intermediate colors to fill the spectrum.  The given list is
+     * first cleared.
+     */
+    static public void generateGradient(Color start, Color middle, Color end,
+                                        ArrayList<Color> outList) {
+        outList.clear();
+        generateGradientFragment(0.05, start, middle, outList);
+        generateGradientFragment(0.05, middle, end, outList);
     }
 
     /**
@@ -280,9 +293,7 @@ public class HelixImageGenerator {
      * The new values are not used until the next rendering.
      */
     public void setSpectrumColors(Color start, Color middle, Color end) {
-        helixSpectrum.clear();
-        generateGradient(0.05, start, middle, helixSpectrum);
-        generateGradient(0.05, middle, end, helixSpectrum);
+        generateGradient(start, middle, end, helixSpectrum);
     }
 
     /**
