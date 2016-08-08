@@ -1,6 +1,8 @@
 <html>
 <head>
 <title>RNA HEAT: Running Programs</title>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"><!-- HTML 4 -->
+<meta charset="UTF-8"><!-- HTML 5 -->
 <link rel="stylesheet" type="text/css" href="default.css" />
 </head>
 <body>
@@ -18,7 +20,7 @@
   subdirectory is automatically created first).
   <p>If you have opened an RNA, the file that you used is automatically
   copied to the experiment directory, under the name "input.bpseq" (or
-  whichever file extension you used).  This convention allows programs
+  whichever file extension you used).  This convention allows programs
   to easily guess the name and location of the data, without having to be
   told where the data is.
 
@@ -27,10 +29,10 @@
   <p>The program output will be in the current experiment tree unless
   the program has been written to dump files somewhere else.
   <p>Anything that the program prints to standard output or standard error
-  is captured to a file "log.txt".  This is not opened automatically but
+  is captured to a file "log.txt".  This is not opened automatically but
   you can choose to view it manually.
   <p>The program must exit with a status of 0 in order to be considered
-  successful (if any other exit occurs, output is ignored).  Upon successful
+  successful (if any other exit occurs, output is ignored).  Upon successful
   exit:
   <ul>
   <li>If the program that you run generates a file named "output.bpseq",
@@ -40,7 +42,7 @@
   <li>If the program that you run generates any other non-empty file with
   the prefix "output" and an extension supported by "Open Text or Image File",
   the file will be opened in the GUI automatically in a separate window
-  (as if you had selected "Open Text or Image File").  For example, the file
+  (as if you had selected "Open Text or Image File").  For example, the file
   "output.txt" or the image "output.png" will be opened for you.
   </ul>
 

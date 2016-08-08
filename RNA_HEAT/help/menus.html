@@ -1,6 +1,8 @@
 <html>
 <head>
 <title>RNA HEAT: Menus</title>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"><!-- HTML 4 -->
+<meta charset="UTF-8"><!-- HTML 5 -->
 <link rel="stylesheet" type="text/css" href="default.css" />
 </head>
 <body>
@@ -11,7 +13,7 @@
   <p><b>Open RNA File</b>:
   Updates the display with the contents of an RNA data source (such
   as a '.bpseq' file).  If the option to overlay is not chosen then
-  any previously-opened file is closed.  If an overlay is requested
+  any previously-opened file is closed.  If an overlay is requested
   then the new RNA appears on top of the previous one, in a
   different color.
   <p><b>Open Annotation File</b>:
@@ -26,24 +28,28 @@
   other programs (such as logs, statistics or graphs).
   <p><b>Run Script</b>:
   Runs commands from a JavaScript ('.js') file, such as a series of
-  constraints.  Currently, such scripts must make use of a variable
-  named "rheat".  See <a href="scripting.html">scripting</a> for
+  constraints.  Currently, such scripts must make use of a variable
+  named "rheat".  See <a href="scripting.html">scripting</a> for
   more information.
+  <p><b>Scripting Console</b>:
+  Shows a window for running scripting commands interactively, and
+  displaying history.  See <a href="scripting.html">scripting</a>
+  for more information.
   <p><b>Run Program</b>:
   Runs external programs, sending output to the current experiment
   tree.  See <a href="programs.html">programs</a> for more
   information.
   <p><b>Close Window</b>:
-  Hides the frontmost window that has a close box.  Note that most
+  Hides the frontmost window that has a close box.  Note that most
   RNA HEAT windows will always be visible but this can be used to
   discard other windows (such as this help page).
   <p><b>Close RNA</b>:
-  Clears the display and all other windows.  Note that if you open
+  Clears the display and all other windows.  Note that if you open
   a new file, any previously-displayed file is closed implicitly.
   <p><b>Save As</b>:
   Exports a picture of the current display as an image file (such
-  as '.png').  The image file will reflect what is displayed,
-  including constraints or selections.  Note that if the display
+  as '.png').  The image file will reflect what is displayed,
+  including constraints or selections.  Note that if the display
   has been zoomed, the image file will be much larger.
   <p><b>Exit</b> (or <b>Quit</b>):
   Ends the program.
@@ -58,7 +64,7 @@
   Clears any selection, if possible, and copies it to the Clipboard.
   The Paste command may then be used.
   <p><b>Copy</b>:
-  Copies any selection to the Clipboard, if possible.  The Paste
+  Copies any selection to the Clipboard, if possible.  The Paste
   command may then be used.
   <p><b>Paste</b>:
   Inserts anything that has been put on the Clipboard with a Copy
@@ -76,12 +82,12 @@
   applies to both (unlike other constraints).
   <p><b>Helix Length</b>:
   Excludes helices with a span more or less than the specified
-  range.  One of the values may be omitted to include everything in
+  range.  One of the values may be omitted to include everything in
   that direction (for instance, omitting the upper value will show
   helices greater than or equal to the minimum length).
   <p><b>Diagonal Distance</b>:
   Excludes helices whose distance from the diagonal line (2D view)
-  is outside the given range.  One of the values may be omitted to
+  is outside the given range.  One of the values may be omitted to
   include everything in that direction (for instance, omitting the
   upper value will show helices that are at least as far from the
   diagonal as the minimum distance).
@@ -93,7 +99,7 @@
   start, GAA at 3' end, and AUG at 5' end.
   <p><b>Helix Energy</b>:
   Excludes helices that have an energy value outside the given
-  range.  One of the values may be omitted to include everything in
+  range.  One of the values may be omitted to include everything in
   that direction (for instance, omitting the upper value will show
   helices with energy values greater than or equal to the minimum
   value).
@@ -117,7 +123,7 @@
   <br /><br />
   <h2 id="Window">Window</h2>
   <p><b>Minimize Window</b>:
-  Reduces the frontmost window to a miniature form.  Equivalent to
+  Reduces the frontmost window to a miniature form.  Equivalent to
   clicking the minimization button on the window frame.
   <p><b>Zoom Window</b> (or <b>Maximize/Restore Window</b>):
   Toggles the frontmost window between its two main sizes.
@@ -128,7 +134,7 @@
   Brings another window to the front (reverse order).
   <p><b>(names of windows)</b>:
   A list of open windows, such as opened documents and the help
-  window, will appear at the end of this menu.  Select an item to
+  window, will appear at the end of this menu.  Select an item to
   bring that window to the front.
   <p>
 

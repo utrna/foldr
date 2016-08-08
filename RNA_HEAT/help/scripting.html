@@ -1,6 +1,8 @@
 <html>
 <head>
 <title>RNA HEAT: Scripting</title>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"><!-- HTML 4 -->
+<meta charset="UTF-8"><!-- HTML 5 -->
 <link rel="stylesheet" type="text/css" href="default.css" />
 </head>
 <body>
@@ -14,7 +16,48 @@
   (as shown in the examples that follow).
 
   <br /><br />
-  <h2>Examples</h3>
+  <h2>Scripting Console</h2>
+  <p>The Scripting Console (displayed by the “Scripting Console” command
+  in the File menu) can be used to interactively run commands, and to
+  Copy and Paste your commands into a script file.
+
+  <p>In addition, the contents of the console history are automatically
+  saved in your home folder, under ".rheat/history.js".
+
+  <p>To run new commands, type them into the field at the bottom of
+  the Scripting window (next to the “Run” button), using more than
+  one line if appropriate.  Click “Run” when finished.  If the
+  command is successful, it will be transferred to the top part of
+  the window, as command history; otherwise, an error message will
+  be displayed.
+
+  <p>If you run any commands that refer to files by name only, their
+  locations will be relative to the current working directory (shown at
+  the bottom of the window for your convenience).  To change the working
+  directory from a script, use "rheat.setWorkingDir()"; for example, if
+  the current directory is "/a/b/c" and on Unix you use a path like
+  "rheat.setWorkingDir('../d')", the new directory will become "/a/b/d"
+  (assuming it exists).  Note that all file-related commands obey the
+  platform convention, such as Unix/Mac or Windows; and on Windows, a
+  backslash is doubled as in C (e.g. "\\" is one backslash).  For more
+  portability, consider using the "rheat.makePath()" function to compose
+  paths from a list of components; this adds the correct slashes for you.
+
+  <p>The buttons at the top of the window can be used to perform
+  actions on the history display.  To rerun some of the commands in
+  history, select the desired lines and click “Run Selected”.  To
+  insert comments in history to help separate unrelated tasks, use
+  the buttons “Add Divider” and “Add Timestamp”.  To erase the
+  entire history display, use “Clear…” (a confirmation warning is
+  presented).
+
+  <p>Note that you can resize the window and you can move the bar
+  that separates the top and bottom sections, to make more space.
+  You can also use the window frame controls to minimize the window
+  or close it; it can always be reopened from the menus.
+
+  <br /><br />
+  <h2>Examples of Scripting Commands</h2>
 
   <br /><br />
   <h3>Opening Files</h3>

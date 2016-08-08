@@ -47,6 +47,7 @@ CLASS_PREFIXES += rheat/GUI/MiniFrame
 CLASS_PREFIXES += rheat/GUI/PreferenceDialog
 CLASS_PREFIXES += rheat/GUI/RheatApp
 CLASS_PREFIXES += rheat/GUI/RNADisplay
+CLASS_PREFIXES += rheat/GUI/ScriptEntryFrame
 CLASS_PREFIXES += rheat/GUI/TextFileFrame
 CLASS_PREFIXES += rheat/script/ConstraintInterpreter
 CLASS_PREFIXES += rheat/script/HelixStoreIterationDelegate

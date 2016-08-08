@@ -41,6 +41,7 @@ implements PropertyChangeListener {
         private String title = null;
         private String okTitle = "OK";
         private String cancelTitle = "Cancel";
+        private boolean accepted = false;
 
         RheatActionPanel(String title) {
             this.title = title;
@@ -64,22 +65,17 @@ implements PropertyChangeListener {
          * Calls actionPanelAccepted() only if appropriate.  The
          * dialog is then closed regardless.
          */
-        public void run(RheatApp parent) {
+        public boolean run(RheatApp parent) {
             parent.addWindowListener(new java.awt.event.WindowAdapter() {
                 public void windowClosing(java.awt.event.WindowEvent evt) {
                     // no action (cannot "accept" this way)
                 }
             });
-            JInternalFrame internalFrame = new JInternalFrame();
+            JInternalFrame internalFrame = parent.createDialogInternalFrame();
             internalFrame.setResizable(isResizable());
-            parent.addOrReuseComponent(internalFrame, javax.swing.JLayeredPane.MODAL_LAYER);
-            Dimension desktopSize = parent.desktopPane.getSize();
-            Dimension frameSize = internalFrame.getSize();
-            internalFrame.setLocation((desktopSize.width - frameSize.width) / 2,
-                                      (desktopSize.height- frameSize.height) / 2);
             int result = JOptionPane.showInternalOptionDialog
                          (internalFrame, this, title,
-                          JOptionPane.OK_CANCEL_OPTION,
+                          JOptionPane.DEFAULT_OPTION,
                           JOptionPane.PLAIN_MESSAGE,
                           null/* icon */,
                           new Object[] {
@@ -90,8 +86,12 @@ implements PropertyChangeListener {
             // NOTE: can return JOptionPane.CLOSE_OPTION (-1) or
             // OK_OPTION or CANCEL_OPTION
             if (result == JOptionPane.OK_OPTION) {
+                this.accepted = true;
                 actionPanelAccepted();
+            } else {
+                this.accepted = false;
             }
+            return wasAccepted();
         }
 
         /**
@@ -103,6 +103,15 @@ implements PropertyChangeListener {
          * should NOT try to change the window state.
          */
         abstract void actionPanelAccepted();
+
+        /**
+         * Call run() first, then check this value to see if the
+         * user accepted the dialog (instead of closing or using
+         * Cancel on the dialog).
+         */
+        final boolean wasAccepted() {
+            return this.accepted;
+        }
     }
 
     /**
@@ -166,6 +175,101 @@ implements PropertyChangeListener {
         this.showBinsCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.HELIX_COLOR_SPECTRUM));
         this.showTagsCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.HELIX_ANNOTATIONS));
         this.setBounds(0, 0 , 700, 700);
+    }
+
+    /**
+     * Returns the low-level object given at construction time.
+     * WARNING: Do not call this directly if possible.  It is
+     * usually only correct to call an API that exists directly
+     * in the RheatApp class (as the version from this class may
+     * perform additional tasks, for important side effects).
+     * When you call this method, consider if it wouldn’t be
+     * cleaner to add an appropriate API to RheatApp instead.
+     */
+    public AppMain getAppMain() {
+        return this.appMain;
+    }
+
+    /**
+     * Presents an error message to the user in a large box that
+     * can scroll.  Suitable for errors that might be very long,
+     * such as scripting exceptions.
+     * @param text the main text to display
+     * @param title the title of the message dialog
+     * @param optionPaneType JOptionPane.ERROR_MESSAGE or similar
+     */
+    public void showMessage(String text, String title,
+                            int optionPaneType) {
+        JInternalFrame internalFrame = createDialogInternalFrame();
+        internalFrame.setResizable(true);
+        Component content = createLongMessageComponent(text);
+        JOptionPane.showInternalMessageDialog(internalFrame, content, title,
+                                              JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Convenience version; see showMessage().
+     */
+    public boolean confirm(String text) {
+        JInternalFrame internalFrame = createDialogInternalFrame();
+        internalFrame.setResizable(true);
+        Component content = createLongMessageComponent(text);
+        int result = JOptionPane.showInternalOptionDialog
+                     (internalFrame, content, "Confirm",
+                      JOptionPane.DEFAULT_OPTION,
+                      JOptionPane.QUESTION_MESSAGE,
+                      null/* icon */,
+                      new Object[] {
+                          "OK",
+                          "Cancel"
+                      },
+                      "OK");
+        // NOTE: can return JOptionPane.CLOSE_OPTION (-1) or
+        // OK_OPTION or CANCEL_OPTION
+        if (result == JOptionPane.OK_OPTION) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Convenience version; see showMessage().
+     */
+    public void showError(String text, String title) {
+        showMessage(text, title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Convenience version; see showMessage().
+     */
+    public void showScriptError(ScriptException e) {
+        StringBuilder totalMsg = new StringBuilder();
+        // NOTE: see AppMain.evaluateScriptCode() for this string
+        if (!e.getFileName().equals("(inline script)")) {
+            totalMsg.append("File: ");
+            totalMsg.append(e.getFileName());
+            totalMsg.append("\n");
+        }
+        if (e.getLineNumber() != 1) {
+            totalMsg.append("Line: ");
+            totalMsg.append("" + e.getLineNumber());
+            totalMsg.append("\n");
+        }
+        String sanitizedMessage = e.getMessage();
+        // try to remove stupid stuff from the JavaScript runtime that just
+        // makes error messages longer without adding any useful information
+        final String garbage[] = new String[] {
+            "sun\\.org\\.mozilla\\.javascript\\.internal\\.EcmaError: ",
+            "sun\\.org\\.mozilla\\.javascript\\.internal\\.EvaluatorException: ",
+            "sun\\.org\\.mozilla\\.javascript\\.internal\\.WrappedException: ",
+            "Wrapped javax\\.script\\.ScriptException: "
+        };
+        for (String regex : garbage) {
+            sanitizedMessage = sanitizedMessage.replaceFirst(regex, "");
+        }
+        totalMsg.append(sanitizedMessage);
+        showMessage(totalMsg.toString(), "Error Running Script",
+                    JOptionPane.ERROR_MESSAGE);
     }
 
     /**
@@ -547,6 +651,44 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Creates or returns a no-longer-used internal frame for
+     * use as a dialog.  The frame will already be added to the
+     * modal layer, and positioned at a useful default location.
+     */
+    private JInternalFrame createDialogInternalFrame() {
+        JInternalFrame internalFrame = new JInternalFrame();
+        addOrReuseComponent(internalFrame, javax.swing.JLayeredPane.MODAL_LAYER);
+        Dimension desktopSize = desktopPane.getSize();
+        Dimension frameSize = internalFrame.getSize();
+        internalFrame.setLocation((desktopSize.width - frameSize.width) / 2,
+                                  (desktopSize.height- frameSize.height) / 2);
+        return internalFrame;
+    }
+
+    /**
+     * Creates a component suitable for displaying a large message
+     * in an alert panel.
+     */
+    private Component createLongMessageComponent(String text) {
+        JTextArea msg = new JTextArea(text);
+        msg.setBackground(getBackground());
+        msg.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        msg.setEditable(false);
+        final int columns = 65;
+        int rows = ((text.length() / columns) + 1);
+        if (rows > 7/* arbitrary; do not make too long */) {
+            rows = 7;
+        }
+        msg.setColumns((rows > 2) ? 65 : 30); // arbitrary
+        msg.setRows(rows);
+        msg.setLineWrap(true);
+        msg.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(msg);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        return scrollPane;
+    }
+
+    /**
      * A private method for bringing a JInternalFrame to the front
      * of the JDesktopPane.  A call to this method will unminimize
      * the internal frame (if minimized) and bring it to the front
@@ -618,9 +760,11 @@ implements PropertyChangeListener {
      * bring any window to the front by selecting a menu item.
      */
     private void rebuildWindowMenu() {
-        JInternalFrame[] windows = desktopPane.getAllFramesInLayer(JLayeredPane.DEFAULT_LAYER);
         ArrayList<JMenuItem> itemsToRemove = new ArrayList<JMenuItem>();
         JMenu targetMenu = this.windowMenu;
+        if (targetMenu == null) {
+            return;
+        }
         for (int i = 0; i < targetMenu.getItemCount(); ++i) {
             JMenuItem item = targetMenu.getItem(i);
             if (item == null) {
@@ -635,7 +779,12 @@ implements PropertyChangeListener {
         for (JMenuItem toDelete : itemsToRemove) {
             targetMenu.remove(toDelete);
         }
-        for (JInternalFrame frame : windows) {
+        for (JInternalFrame frame : desktopPane.getAllFramesInLayer(JLayeredPane.DEFAULT_LAYER)) {
+            if (!frame.getTitle().equals("")) {
+                targetMenu.add(new FrameSelectAction(desktopPane, frame));
+            }
+        }
+        for (JInternalFrame frame : desktopPane.getAllFramesInLayer(JLayeredPane.PALETTE_LAYER)) {
             if (!frame.getTitle().equals("")) {
                 targetMenu.add(new FrameSelectAction(desktopPane, frame));
             }
@@ -695,24 +844,17 @@ implements PropertyChangeListener {
 
         helpFrame = new HelpContentJFrame();
         aboutFrame = new AboutFrame();
+        commandFrame = new ScriptEntryFrame(this);
         miniFrame = new MiniFrame();
         mainWindowFrame = new javax.swing.JInternalFrame();
 
-        leftToolBar = new JToolBar();
-        leftToolBar.setFloatable(false);
-        leftToolBar.setOrientation(JToolBar.VERTICAL);
+        leftToolBar = new Box(BoxLayout.Y_AXIS);
 
-        rightToolBar = new JToolBar();
-        rightToolBar.setFloatable(false);
-        rightToolBar.setOrientation(JToolBar.VERTICAL);
+        rightToolBar = new Box(BoxLayout.Y_AXIS);
 
-        topToolBar = new JToolBar();
-        topToolBar.setFloatable(false);
-        topToolBar.setOrientation(JToolBar.HORIZONTAL);
+        topToolBar = new Box(BoxLayout.X_AXIS);
 
-        bottomToolBar = new JToolBar();
-        bottomToolBar.setFloatable(false);
-        bottomToolBar.setOrientation(JToolBar.HORIZONTAL);
+        bottomToolBar = new Box(BoxLayout.X_AXIS);
 
         JPanel paneDisplay = new JPanel();
         paneDisplay.setLayout(new BorderLayout());
@@ -892,11 +1034,13 @@ implements PropertyChangeListener {
         openTagsMenuItem = new javax.swing.JMenuItem();
         openDataMenuItem = new javax.swing.JMenuItem();
         runScriptMenuItem = new javax.swing.JMenuItem();
+        scriptWindowMenuItem = new javax.swing.JMenuItem();
         runProgramMenuItem = new javax.swing.JMenuItem();
         closeRNAMenuItem = new javax.swing.JMenuItem();
         closeWindowMenuItem = new javax.swing.JMenuItem();
         minimizeWindowMenuItem = new javax.swing.JMenuItem();
         zoomWindowMenuItem = new javax.swing.JMenuItem();
+        commandWindowMenuItem = new javax.swing.JMenuItem();
         selectNextWindowMenuItem = new javax.swing.JMenuItem();
         selectPreviousWindowMenuItem = new javax.swing.JMenuItem();
         saveAsMenuItem = new javax.swing.JMenuItem();
@@ -1146,6 +1290,17 @@ implements PropertyChangeListener {
         });
 
         fileMenu.add(runScriptMenuItem);
+
+        //setKey(scriptWindowMenuItem, KeyEvent.VK_SLASH);
+        scriptWindowMenuItem.setText("Scripting Console");
+        scriptWindowMenuItem.setToolTipText("Shows a window for running scripting commands interactively, and displaying history.");
+        scriptWindowMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                displayScriptingWindow();
+            }
+        });
+
+        fileMenu.add(scriptWindowMenuItem);
 
         runProgramMenuItem.setMnemonic('P');
         //setKey(runProgramMenuItem, KeyEvent.VK_...);
@@ -1533,6 +1688,13 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Passes scripting commands to AppMain.
+     */
+    public void evaluateScriptCode(String scriptingCommands) throws ScriptException {
+        this.appMain.evaluateScriptCode(scriptingCommands);
+    }
+
+    /**
      * Adds a filter to the history list and applies its effects to
      * the currently-displayed RNA.
      */
@@ -1549,7 +1711,7 @@ implements PropertyChangeListener {
             // by calling appMain.addConstraint() and updateImage() (see
             // "rheat/script/ScriptMain.java" implementations of each)
             String equivalentScriptCommand = ConstraintInterpreter.getScriptCommandFor(filter);
-            appMain.evaluateScriptCode(equivalentScriptCommand);
+            evaluateScriptCode(equivalentScriptCommand);
             appMain.incrementUndo(); // success; next snapshot should use a new number
             // TODO: should the history-update portion be an option?
             addHistoryCommand(equivalentScriptCommand);
@@ -1718,9 +1880,9 @@ implements PropertyChangeListener {
                 else{
                     javax.imageio.ImageIO.write(img, "jpeg", outputImage);
                 }
-            }
-            catch (java.io.IOException ex){
-                JOptionPane.showMessageDialog(this, "Image IO error", "Save Error", JOptionPane.ERROR_MESSAGE);
+            } catch (java.io.IOException e) {
+                e.printStackTrace();
+                showError(e.getMessage(), "Save Error");
             }
         }
     }
@@ -1750,6 +1912,11 @@ implements PropertyChangeListener {
     private void displayHelp() {
         addOrReuseComponent(helpFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
         bringToFront(helpFrame);
+    }
+
+    private void displayScriptingWindow() {
+        addOrReuseComponent(commandFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
+        bringToFront(commandFrame);
     }
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
@@ -1875,7 +2042,8 @@ implements PropertyChangeListener {
                     showBasePairConstraintDialog();
                 }
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+                showError(e.getMessage(), "Error Opening File");
             }
         }
     }
@@ -1892,7 +2060,8 @@ implements PropertyChangeListener {
                     // openTags() will call refreshForNewRNA()
                     appMain.openTags(inputFile.getAbsolutePath());
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
+                    showError(e.getMessage(), "Error Opening File");
                 }
             }
         }
@@ -1912,7 +2081,7 @@ implements PropertyChangeListener {
                     this.openDataFile(filePath);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    JOptionPane.showMessageDialog(this, e.getMessage(), "Error Opening File", JOptionPane.ERROR_MESSAGE);
+                    showError(e.getMessage(), "Error Opening File");
                 }
             }
         }
@@ -1929,14 +2098,11 @@ implements PropertyChangeListener {
             inputFile = fc.getSelectedFile();
             try {
                 appMain.runScript(inputFile.getAbsolutePath());
+            } catch (ScriptException e) {
+                showScriptError(e);
             } catch (Exception e) {
-                JTextArea msg = new JTextArea(e.getMessage());
-                msg.setColumns(65);
-                msg.setRows(7);
-                msg.setLineWrap(true);
-                msg.setWrapStyleWord(true);
-                JScrollPane scrollPane = new JScrollPane(msg);
-                JOptionPane.showMessageDialog(this, scrollPane, "Error Running Script", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+                showError(e.getMessage(), "Error Running Script");
             }
         }
     }
@@ -1957,13 +2123,8 @@ implements PropertyChangeListener {
                     throw new RuntimeException("Exit status " + exitStatus + ".");
                 }
             } catch (Exception e) {
-                JTextArea msg = new JTextArea(e.getMessage());
-                msg.setColumns(65);
-                msg.setRows(7);
-                msg.setLineWrap(true);
-                msg.setWrapStyleWord(true);
-                JScrollPane scrollPane = new JScrollPane(msg);
-                JOptionPane.showMessageDialog(this, scrollPane, "Error Running Program", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+                showError(e.getMessage(), "Error Running Program");
             }
         }
     }
@@ -2016,6 +2177,7 @@ implements PropertyChangeListener {
     private javax.swing.JLabel helixActualField;
     private javax.swing.JMenuItem basepairConstraintItem;
     private javax.swing.JDesktopPane desktopPane;
+    public ScriptEntryFrame commandFrame;
     public HelpContentJFrame helpFrame;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenuItem eLoopConstraintItem;
@@ -2028,6 +2190,7 @@ implements PropertyChangeListener {
     private javax.swing.JMenuItem openTagsMenuItem;
     private javax.swing.JMenuItem openDataMenuItem;
     private javax.swing.JMenuItem runScriptMenuItem;
+    private javax.swing.JMenuItem scriptWindowMenuItem;
     private javax.swing.JMenuItem runProgramMenuItem;
     private javax.swing.JMenuItem goBackMenuItem;
     private javax.swing.JMenuItem aboutMenuItem;
@@ -2037,6 +2200,7 @@ implements PropertyChangeListener {
     private javax.swing.JMenuItem selectNextWindowMenuItem;
     private javax.swing.JMenuItem selectPreviousWindowMenuItem;
     private javax.swing.JMenuItem zoomWindowMenuItem;
+    private javax.swing.JMenuItem commandWindowMenuItem;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenuItem complexConstraintItem;
@@ -2054,10 +2218,10 @@ implements PropertyChangeListener {
     private JCheckBox openOverlayCheckBox;
     private JPanel openOverlayColorPanel;
     private JButton openOverlayColorButton;
-    private JToolBar topToolBar;
-    private JToolBar bottomToolBar;
-    private JToolBar leftToolBar;
-    private JToolBar rightToolBar;
+    private Box topToolBar;
+    private Box bottomToolBar;
+    private Box leftToolBar;
+    private Box rightToolBar;
     private JPanel displayControlPanel;
     private JSlider zoomSlider;
     private JLabel zoomLabel;

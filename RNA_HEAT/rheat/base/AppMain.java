@@ -7,6 +7,8 @@ import rheat.GUI.RheatApp;
 import rheat.script.ScriptMain;
 
 import java.awt.Color;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.nio.file.Files;
@@ -27,22 +29,28 @@ import javax.swing.UIManager;
 public class AppMain {
 
     /**
+     * Sent to PropertyChangeListener registered with addPropertyChangeListener().
+     */
+    public static String PROPERTY_WORKING_DIR = "PROPERTY_WORKING_DIR";
+
+    /**
      * For the log() method.
      */
     public static final int INFO = 0;
     public static final int WARN = 1;
     public static final int ERROR = 2;
 
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private String fileSep = System.getProperty("file.separator");
     private HashMap<String, String> preferencesMap = new HashMap<String, String>(); // use setPreference() and getPreference()
     private HashMap<String, String> tmpPrefsMap = new HashMap<String, String>(); // use setTemporaryPreference() and getPreference()
     private HashSet<String> validPrefKeys = new HashSet<String>();
     private String preferencesDir = System.getProperty("user.home") + fileSep + ".rheat";
     private String preferencesScript = preferencesDir + fileSep + "prefs.js";
-    private String historyScript = preferencesDir + fileSep + "history.js";
-    private ArrayList<String> historyCommands = new ArrayList<String>();
+    private String constrHistScript = preferencesDir + fileSep + "constraints.js";
+    private ArrayList<String> constrHistCommands = new ArrayList<String>();
     private ArrayList<String> startupScripts = new ArrayList<String>();
-    private Stack<String> previousDirs = new Stack<String>(); // see changeDirectory()
+    private Stack<String> previousDirs = new Stack<String>(); // see setWorkingDir()
     private String currentExperimentDir = null; // see newExperiment()
     private String currentRNAFilePath = null;
     private ScriptEngine scriptEngine; // used to execute external scripts
@@ -101,6 +109,14 @@ public class AppMain {
             }
             this.gui = new rheat.GUI.RheatApp(this);
         }
+    }
+
+    /**
+     * Arranges to notify the given listener (via propertyChange())
+     * when the specified property changes.
+     */
+    public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(property, listener);
     }
 
     /**
@@ -382,7 +398,7 @@ public class AppMain {
      * Returns the current directory, which is set automatically as
      * scripts run.  (Look for "user.dir" in the code.)  This
      * determines the meaning of relative path names when looking for
-     * files.
+     * files.  See also setWorkingDir() and setWorkingDirToPrevious().
      * @return the current directory’s path name
      */
     public String getWorkingDir() {
@@ -417,43 +433,52 @@ public class AppMain {
     /**
      * Changes the current directory and tracks the previous one.  In
      * most cases, this should only be called in a try...finally pair
-     * where restoreDirectory() is called to restore at the end.
+     * where setWorkingDirToPrevious() is called to restore at the end.
+     * See also getWorkingDir().
      * @throws IOException if the directory cannot be found, for instance
      */
-    private void changeDirectory(String newDir) throws IOException {
-        if (!new File(newDir).exists()) {
+    public void setWorkingDir(String newDir) throws IOException {
+        File dirObj = new File(newDir);
+        if (!dirObj.exists()) {
             throw new IOException("Proposed working directory does not exist: '" + newDir + "'.");
         }
+        File canonDirObj = dirObj.getCanonicalFile();
+        String canonNewDir = canonDirObj.getPath();
         String oldDir = System.getProperty("user.dir");
-        if (System.setProperty("user.dir", newDir) == null) {
-            throw new IOException("Unable to set working directory to '" + newDir + "'.");
+        if (System.setProperty("user.dir", canonNewDir) == null) {
+            throw new IOException("Unable to set working directory to '" + canonNewDir + "'.");
         }
         previousDirs.push(oldDir);
         String actualNewDir = System.getProperty("user.dir");
         if ((actualNewDir != null) &&
             ((oldDir == null) ||
              (!actualNewDir.equals(oldDir)))) {
+            // see also similar code in setWorkingDirToPrevious() below
             log(INFO, new String[]{"Changed to dir.: '", actualNewDir, "'."});
+            pcs.firePropertyChange(PROPERTY_WORKING_DIR, oldDir, actualNewDir);
         }
     }
 
     /**
-     * Balances a call to changeDirectory() by setting the "user.dir"
+     * Balances a call to setWorkingDir() by setting the "user.dir"
      * (current directory) to the top entry on the stack and removing
      * it from the stack.  Has no effect if there is nothing on the
      * directory stack.
      */
-    private void restoreDirectory() {
+    public void setWorkingDirToPrevious() {
         if (!previousDirs.empty()) {
             String oldDir = System.getProperty("user.dir");
             String stackTop = previousDirs.pop();
             if (System.setProperty("user.dir", stackTop) == null) {
                 log(WARN, "Unable to restore previous working directory.");
             }
-            if ((oldDir != null) &&
-                ((stackTop == null) ||
-                 (!oldDir.equals(stackTop)))) {
-                log(INFO, new String[]{"Changed back to dir.: '", System.getProperty("user.dir"), "'."});
+            String actualNewDir = System.getProperty("user.dir");
+            if ((actualNewDir != null) &&
+                ((oldDir == null) ||
+                 (!actualNewDir.equals(oldDir)))) {
+                // see also similar code in setWorkingDir() above
+                log(INFO, new String[]{"Changed back to dir.: '", actualNewDir, "'."});
+                pcs.firePropertyChange(PROPERTY_WORKING_DIR, oldDir, stackTop);
             }
         }
     }
@@ -475,7 +500,7 @@ public class AppMain {
         try {
             File canonFileObj = fileObj.getCanonicalFile(); // may throw...
             String parentDir = canonFileObj.getParent(); // may throw...
-            changeDirectory(parentDir);
+            setWorkingDir(parentDir);
             result = canonFileObj.getPath();
         } catch (IOException e) {
             // ignore
@@ -489,7 +514,7 @@ public class AppMain {
      */
     private void endOpenFile(String filePath) {
         // undo any temporary steps taken in beginOpenFile()
-        restoreDirectory();
+        setWorkingDirToPrevious();
     }
 
     /**
@@ -600,7 +625,7 @@ public class AppMain {
      * suitable for use in the generation of files or directories.
      * @return a date string that should be unique and sort well
      */
-    public String getDateTimeString() {
+    static public String getDateTimeString() {
         SimpleDateFormat formatter = new SimpleDateFormat();
         formatter.applyPattern("yyyy-MM-dd-HHmmss"); // may throw IllegalArgumentException
         return formatter.format(new Date(System.currentTimeMillis()));
@@ -655,11 +680,11 @@ public class AppMain {
 
     /**
      * Adds another string to the list of lines to be
-     * written to "~/.rheat/history.js" implicitly.
+     * written to "~/.rheat/constraints.js" implicitly.
      * The GUI may also display this command list.
      */
     public void addHistoryCommand(String commandLines) {
-        historyCommands.add(commandLines);
+        constrHistCommands.add(commandLines);
         try {
             saveHistory();
         } catch (Exception e) {
@@ -672,14 +697,14 @@ public class AppMain {
      * Erases the list; see addHistoryCommand().
      */
     public void clearHistoryCommands() {
-        historyCommands.clear();
+        constrHistCommands.clear();
     }
 
     /**
      * Returns the list of history command strings.
      */
     public ArrayList<String> getHistoryCommands() {
-        return historyCommands;
+        return constrHistCommands;
     }
 
     /**
@@ -715,7 +740,7 @@ public class AppMain {
         RNA old = (RNA)ois.readObject();
         this.rnaData = old;
         this.filterList.remove(this.filterList.size() - 1);
-        this.historyCommands.remove(this.historyCommands.size() - 1);
+        this.constrHistCommands.remove(this.constrHistCommands.size() - 1);
         this.currentUndo = undoIndex;
     }
 
@@ -770,10 +795,15 @@ public class AppMain {
 
     /**
      * Runs the specified code.  The same caveats apply to
-     * this method as for the runScript() method.
+     * this method as for the runScript() method, except
+     * that this does not affect the current directory.
      * @throws ScriptException for script-triggered errors
      */
     public void evaluateScriptCode(String code) throws ScriptException {
+        if (code == null) {
+            log(WARN, "Unable to execute; no code has been given.");
+            return;
+        }
         ScriptContext scriptContext = scriptEngine.getContext();
         // reset current file
         scriptContext.setAttribute(ScriptEngine.FILENAME, "(inline script)", ScriptContext.ENGINE_SCOPE);
@@ -819,7 +849,7 @@ public class AppMain {
         List<String> modifiedArgs = new CopyOnWriteArrayList<String>(arguments);
         if (!new File(program).isAbsolute()) {
             String foundProgram = null;
-            for (String searchDir : new String[]{getPrefProgramsDir(), System.getProperty("user.dir")}) {
+            for (String searchDir : new String[]{getPrefProgramsDir(), getWorkingDir()}) {
                 log(INFO, "Search in '" + searchDir + "'...");
                 String candidate = makePath(searchDir, program);
                 if (new File(candidate).exists()) {
@@ -966,8 +996,8 @@ public class AppMain {
      */
     public void saveHistory() throws IOException {
         new File(this.preferencesDir).mkdirs(); // ensure parent directories exist; ignore "boolean" result
-        PrintWriter pw = new PrintWriter(this.historyScript);
-        for (String line : this.historyCommands) {
+        PrintWriter pw = new PrintWriter(this.constrHistScript);
+        for (String line : this.constrHistCommands) {
             pw.println(line);
         }
         pw.close();
@@ -1050,13 +1080,11 @@ public class AppMain {
                 e.printStackTrace();
                 if (appMain.gui != null) {
                     // can display the error graphically
-                    JTextArea msg = new JTextArea(e.getMessage());
-                    msg.setColumns(65);
-                    msg.setRows(7);
-                    msg.setLineWrap(true);
-                    msg.setWrapStyleWord(true);
-                    JScrollPane scrollPane = new JScrollPane(msg);
-                    JOptionPane.showMessageDialog(appMain.gui, scrollPane, "Error Running Script", JOptionPane.ERROR_MESSAGE);
+                    if (e instanceof ScriptException) {
+                        appMain.gui.showScriptError((ScriptException)e);
+                    } else {
+                        appMain.gui.showError(e.getMessage(), "Startup Error");
+                    }
                 } else {
                     // no GUI; should not display graphically,
                     // only in the terminal

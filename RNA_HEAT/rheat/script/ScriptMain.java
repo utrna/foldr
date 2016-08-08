@@ -305,19 +305,6 @@ public class ScriptMain {
     }
 
     /**
-     * Script interface for AppMain.getWorkingDir().
-     */
-    public String getWorkingDir() throws ScriptException {
-        String result = null;
-        try {
-            result = appMain.getWorkingDir();
-        } catch (Exception e) {
-            rethrowAsScriptException(e);
-        }
-        return result;
-    }
-
-    /**
      * Script interface for AppMain.makePath().
      */
     public String makePath(String... elements) throws ScriptException {
@@ -449,6 +436,41 @@ public class ScriptMain {
     public void runScript(String filePath) throws ScriptException {
         try {
             appMain.runScript(filePath);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.getWorkingDir().
+     */
+    public String getWorkingDir() throws ScriptException {
+        String result = null;
+        try {
+            result = appMain.getWorkingDir();
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+        return result;
+    }
+
+    /**
+     * Script interface for AppMain.setWorkingDir().
+     */
+    public void setWorkingDir(String newDir) throws ScriptException {
+        try {
+            appMain.setWorkingDir(newDir);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for AppMain.setWorkingDirToPrevious().
+     */
+    public void setWorkingDirToPrevious() throws ScriptException {
+        try {
+            appMain.setWorkingDirToPrevious();
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
