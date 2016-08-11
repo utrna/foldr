@@ -98,10 +98,10 @@ extends rheat.filter.Filter {
         if (h1.get5PrimeEnd() >= h2.get5PrimeStart() && h1.get5PrimeEnd() <= h2.get5PrimeEnd()){
             return false;
         }
-        if (h1.get3PrimeStart() <= h2.get3PrimeStart() && h1.get3PrimeStart() >= h2.get3PrimeEnd()){
+        if (h1.get3PrimeEnd() <= h2.get3PrimeEnd() && h1.get3PrimeEnd() >= h2.get3PrimeStart()){
             return false;
         }
-        if (h1.get3PrimeEnd() <= h2.get3PrimeStart() && h1.get3PrimeEnd() >= h2.get3PrimeEnd()){
+        if (h1.get3PrimeStart() <= h2.get3PrimeEnd() && h1.get3PrimeStart() >= h2.get3PrimeStart()){
             return false;
         }
         return true;
@@ -188,13 +188,13 @@ extends rheat.filter.Filter {
     private int CalculateComplexDistance(HelixStore hs, Helix h) {
         
         HelixInfo hi = new HelixInfo(h, r);
-        int distance = ( hi.get5PrimeEnd() - hi.get3PrimeEnd() );
+        int distance = ( hi.get5PrimeEnd() - hi.get3PrimeStart() );
         Iterator itrWithin = hs.iterator();
         //find the compex distance using 'hsWithin'
         while(itrWithin.hasNext()){
             Helix hWithin = (Helix)itrWithin.next();
             HelixInfo hiWithin = new HelixInfo(hWithin, r);
-            distance = ( distance - ( hiWithin.get3PrimeStart() - hiWithin.get5PrimeStart() ) );
+            distance = ( distance - ( hiWithin.get3PrimeEnd() - hiWithin.get5PrimeStart() ) );
         }
         return(distance);
     }
@@ -207,7 +207,7 @@ extends rheat.filter.Filter {
         HelixInfo hiMaster = new HelixInfo(master, r);
         
         if ( ( hiMaster.get5PrimeEnd() < hiSlave.get5PrimeStart() ) &&
-        ( hiMaster.get3PrimeEnd() > hiSlave.get3PrimeStart() ) )
+        ( hiMaster.get3PrimeStart() > hiSlave.get3PrimeEnd() ) )
             return true;
         else
             return false;

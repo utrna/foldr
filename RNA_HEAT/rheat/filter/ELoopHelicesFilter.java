@@ -162,10 +162,10 @@ extends rheat.filter.Filter {
                       
             noException = true;
                     try {
-                    // check for AAG goin into 3' start
-                        a = ((String)sequence.get(hi.get3PrimeStart() + 1)).toLowerCase();
-                        b = ((String)sequence.get(hi.get3PrimeStart() + 2)).toLowerCase();
-                        c = ((String)sequence.get(hi.get3PrimeStart() + 3)).toLowerCase();
+                    // check for AAG goin into 3' end
+                        a = ((String)sequence.get(hi.get3PrimeEnd() + 1)).toLowerCase();
+                        b = ((String)sequence.get(hi.get3PrimeEnd() + 2)).toLowerCase();
+                        c = ((String)sequence.get(hi.get3PrimeEnd() + 3)).toLowerCase();
                         } catch (Exception e) { noException = false; }
                     
                         if (noException && a.equals("g") && b.equals("a") && c.equals("a") )
@@ -193,10 +193,10 @@ extends rheat.filter.Filter {
                     
                     noException = true;
                     try {                    
-                    // check for GAA coming out of 3' end
-                            a = ((String)sequence.get(hi.get3PrimeEnd() - 1)).toLowerCase();
-                            b = ((String)sequence.get(hi.get3PrimeEnd() - 2)).toLowerCase();
-                            c = ((String)sequence.get(hi.get3PrimeEnd() - 3)).toLowerCase();
+                    // check for GAA coming out of 3' start
+                            a = ((String)sequence.get(hi.get3PrimeStart() - 1)).toLowerCase();
+                            b = ((String)sequence.get(hi.get3PrimeStart() - 2)).toLowerCase();
+                            c = ((String)sequence.get(hi.get3PrimeStart() - 3)).toLowerCase();
                             } catch (Exception e) { noException = false; }
                             
                     if (noException && a.equals("g") && b.equals("a") && c.equals("a") )

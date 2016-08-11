@@ -135,12 +135,12 @@ extends rheat.filter.Filter {
             //Check for AU or AA at the end of the helix
             try {
                     a = ((String)sequence.get(hi.get5PrimeStart() - 1)).toLowerCase();
-                    b = ((String)sequence.get(hi.get3PrimeStart() + 1)).toLowerCase();
+                    b = ((String)sequence.get(hi.get3PrimeEnd() + 1)).toLowerCase();
                 } catch (Exception e) { atStart = true;}
 
             try {
                     c = ((String)sequence.get(hi.get5PrimeEnd() + 1)).toLowerCase();
-                    d = ((String)sequence.get(hi.get3PrimeEnd() - 1)).toLowerCase();
+                    d = ((String)sequence.get(hi.get3PrimeStart() - 1)).toLowerCase();
                 } catch (Exception e) { atEnd = true;}
               
                     

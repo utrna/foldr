@@ -36,12 +36,12 @@ public class HelixInfo {
             y--;
         }
         fivePrimeStart = y + 1;
-        threePrimeEnd = x;
+        threePrimeStart = x;
         for (int i = 0; i < l; i++) {
             threeP = rna.getSequence().get(x) + threeP;
             x++;
         }
-        threePrimeStart = x - 1;
+        threePrimeEnd = x - 1;
     }
 
     public String get5PrimeSequence() {
