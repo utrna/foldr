@@ -575,7 +575,7 @@ public class AppMain {
     public void openTags(String filePath) throws IOException {
         String realPath = beginOpenFile(filePath);
         try {
-            BPColorReader.parse(realPath, this.rnaData);
+            HelixColorReader.parse(realPath, this.rnaData);
             if (this.gui != null) {
                 this.gui.refreshCurrentRNA();
             }

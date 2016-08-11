@@ -20,9 +20,9 @@ import java.util.*;
  *
  * @author  Li
  */
-public class HelpContentJFrame extends javax.swing.JInternalFrame {
+public class HelpFrame extends javax.swing.JInternalFrame {
 
-    public HelpContentJFrame() {
+    public HelpFrame() {
         initComponents();
         setClosable(true);
         setMaximizable(true);

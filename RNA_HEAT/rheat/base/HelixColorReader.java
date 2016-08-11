@@ -1,5 +1,5 @@
 /*
- * BPColorReader.java
+ * HelixColorReader.java
  *
  * Created on July 16, 2016.
  */
@@ -14,7 +14,7 @@ import java.util.*;
  * RNA object accordingly.
  * @author Kevin Grant
  */
-public class BPColorReader {
+public class HelixColorReader {
 
     private enum ParserState {
         INIT, EXP_START, EXP_END, EXP_TAGS

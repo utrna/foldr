@@ -846,7 +846,7 @@ implements PropertyChangeListener {
         subPanel.add(openOverlayColorButton, BorderLayout.EAST);
         customOpenPane.add(subPanel);
 
-        helpFrame = new HelpContentJFrame();
+        helpFrame = new HelpFrame();
         aboutFrame = new AboutFrame();
         commandFrame = new ScriptEntryFrame(this);
         miniFrame = new MiniFrame();
@@ -2182,7 +2182,7 @@ implements PropertyChangeListener {
     private javax.swing.JMenuItem basepairConstraintItem;
     private javax.swing.JDesktopPane desktopPane;
     public ScriptEntryFrame commandFrame;
-    public HelpContentJFrame helpFrame;
+    public HelpFrame helpFrame;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenuItem eLoopConstraintItem;
     private javax.swing.JMenuItem saveAsMenuItem;
