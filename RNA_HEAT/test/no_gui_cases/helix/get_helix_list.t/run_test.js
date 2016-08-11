@@ -56,8 +56,8 @@ for (i = 0; i < helices.length(); ++i) {
 expected_lengths =   [ 4,  3,  6,  2,  8,   7,  10]
 expected_5p_starts = [30, 27, 17, 15, 78,  69,   0]
 expected_5p_ends   = [33, 29, 22, 16, 85,  75,   9]
-expected_3p_starts = [50, 55, 64, 67, 96, 105, 118]
-expected_3p_ends   = [47, 53, 59, 66, 89,  99, 109]
+expected_3p_starts = [47, 53, 59, 66, 89,  99, 109]
+expected_3p_ends   = [50, 55, 64, 67, 96, 105, 118]
 helices = rheat.eachActualHelix()
 println("number of actual helices: " + helices.length())
 if (helices.length() != expected_lengths.length) {
