@@ -360,6 +360,10 @@ implements PropertyChangeListener {
             this.helixImgGen.setTagVisibility(tag, isVisible);
         }
         this.updateImage();
+        // NOTE: must use paintImmediately() and not repaint() because
+        // otherwise the runtime might combine multiple calls (e.g.
+        // animation in a script may be squashed)
+        displayPane.paintImmediately(displayPane.getBounds());
     }
 
     /**
@@ -2070,7 +2074,7 @@ implements PropertyChangeListener {
     private void openDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         fc = new JFileChooser(appMain.getPrefHelixDataDir());
         fc.setMultiSelectionEnabled(true);
-        fc.setAcceptAllFileFilterUsed(false);
+        fc.setAcceptAllFileFilterUsed(true);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Text or Image Files", "txt", "jpeg", "jpg", "png"));
         fc.setAcceptAllFileFilterUsed(true); // try to open anything as text
         int returnVal = fc.showOpenDialog(this);
@@ -2091,7 +2095,7 @@ implements PropertyChangeListener {
         File inputFile;
         fc = new JFileChooser(appMain.getPrefScriptDir());
         fc.setMultiSelectionEnabled(false);
-        fc.setAcceptAllFileFilterUsed(false);
+        fc.setAcceptAllFileFilterUsed(true);
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("JavaScript Files", "js", "txt"));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == fc.APPROVE_OPTION) {
