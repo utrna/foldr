@@ -330,7 +330,7 @@ implements PropertyChangeListener {
             }
         } else if (event.getPropertyName().equals(mainWindowFrame.IS_MAXIMUM_PROPERTY)) {
             // always size back to fit when the display is maximized or restored
-            zoomFit();
+            zoomToFit();
         }
     }
 
@@ -354,10 +354,17 @@ implements PropertyChangeListener {
      * change the appearance of a helix.  If all of the tags for a
      * helix are marked as hidden, its appearance may revert to use
      * a normal color (as if it had no tags at all).
+     *
+     * @param isVisible true only if helices with this tag should show annotations
+     * @param tags if empty, ALL tags are changed; otherwise, only specified tags
      */
     public void setHelixTagsVisible(boolean isVisible, String... tags) {
-        for (String tag : tags) {
-            this.helixImgGen.setTagVisibility(tag, isVisible);
+        if (tags.length == 0) {
+            this.helixImgGen.setAllTagsVisibility(isVisible);
+        } else {
+            for (String tag : tags) {
+                this.helixImgGen.setTagVisibility(tag, isVisible);
+            }
         }
         this.updateImage();
         // NOTE: must use paintImmediately() and not repaint() because
@@ -424,7 +431,7 @@ implements PropertyChangeListener {
         historyTextPane.setText("");
     }
 
-    private double getZoomLevel() {
+    public double getZoomLevel() {
         return (zoomSlider.getValue() / 1000f);
     }
 
@@ -438,7 +445,11 @@ implements PropertyChangeListener {
         setZoomLevel(getZoomLevel() - 0.25f); // should match zoom-in amount above
     }
 
-    private void zoomFit() {
+    /**
+     * Zooms the display so that every part of the RNA is visible
+     * and as large as possible.
+     */
+    public void zoomToFit() {
         Dimension availableSize = displayScrollPane.getViewport().getSize();
         Dimension imageSize = helixImgGen.getSize();
         if (imageSize.getWidth() <= 0.001) {
@@ -890,7 +901,7 @@ implements PropertyChangeListener {
         zoomFitButton.setDisplayedMnemonicIndex(-1);
         zoomFitButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                zoomFit();
+                zoomToFit();
             }
         });
         zoomSlider = new JSlider(10, 20000);
@@ -1578,7 +1589,7 @@ implements PropertyChangeListener {
         zoomFitMenuItem.setToolTipText("Shows the entire display, at a size that fills the window.");
         zoomFitMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                zoomFit();
+                zoomToFit();
             }
         });
 
@@ -1928,7 +1939,12 @@ implements PropertyChangeListener {
         bringToFront(aboutFrame);
     }
 
-    private void setZoomLevel(double newLevel) {
+    /**
+     * Changes the magnification level of the RNA display.
+     * The value of 1.0 is actual size; anything less is zoomed out,
+     * and anything larger is zoomed in.
+     */
+    public void setZoomLevel(double newLevel) {
         zoomSlider.setValue((int)(1000 * newLevel));
         //zoomLevelChanged(); // implicit, from events in slider
     }
@@ -2040,7 +2056,7 @@ implements PropertyChangeListener {
                     appMain.openOverlayRNA(inputFile.getAbsolutePath(), openOverlayColorPanel.getBackground());
                 } else {
                     appMain.openRNA(inputFile.getAbsolutePath());
-                    zoomFit();
+                    zoomToFit();
                     // automatically request a base-pair set, since
                     // otherwise the default display is not very useful
                     showBasePairConstraintDialog();

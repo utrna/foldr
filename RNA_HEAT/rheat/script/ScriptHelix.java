@@ -27,6 +27,17 @@ public class ScriptHelix {
     }
 
     /**
+     * Script interface for Helix.addTag().
+     */
+    public void addTag(String tagName) throws ScriptException {
+        try {
+            rawHelix.addTag(tagName);
+        } catch (Exception e) {
+            ScriptMain.rethrowAsScriptException(e);
+        }
+    }
+
+    /**
      * Script interface for Helix.eachTag().
      *
      * Returns an object describing the tag range, which can be

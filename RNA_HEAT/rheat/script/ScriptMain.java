@@ -407,6 +407,17 @@ public class ScriptMain {
     }
 
     /**
+     * Script interface for AppMain.zoomTo().
+     */
+    public void zoomTo(double level) throws ScriptException {
+        try {
+            appMain.zoomTo(level);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
      * Script interface for AppMain.newExperiment().
      */
     public void newExperiment() throws ScriptException {

@@ -206,6 +206,17 @@ public class AppMain {
     }
 
     /**
+     * Passes this request to the GUI, if possible.
+     */
+    public void zoomTo(double level) {
+        if (this.gui == null) {
+           log(WARN, "There is no graphical interface; ignoring zoom request.");
+        } else {
+            this.gui.setZoomLevel(level);
+        }
+    }
+
+    /**
      * Sets a value only if it has no value for the key.
      */
     public void setDefaultPreference(String key, String defaultValue) {

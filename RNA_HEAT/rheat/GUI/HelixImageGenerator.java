@@ -205,7 +205,7 @@ public class HelixImageGenerator {
      * every tag on a helix is hidden, the helix appears normal (as
      * if it has no annotations at all).  Showing a tag does not
      * guarantee its use, as helices can have multiple tags and the
-     * tags have a priority order.
+     * tags have a priority order.  See also setAllTagsVisibility().
      * @param tagName string to find in the getTags() set of a Helix
      * @param isVisible true if the annotation should be visible
      */
@@ -214,6 +214,19 @@ public class HelixImageGenerator {
             this.hiddenTags.remove(tagName);
         } else {
             this.hiddenTags.add(tagName);
+        }
+    }
+
+    /**
+     * Equivalent to calling setTagVisibility() on every tag.
+     */
+    public void setAllTagsVisibility(boolean isVisible) {
+        if (isVisible) {
+            this.hiddenTags.clear();
+        } else {
+            for (String tagName : this.helixTagPriorityOrder) {
+                this.hiddenTags.add(tagName);
+            }
         }
     }
 

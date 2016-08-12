@@ -97,17 +97,30 @@
   <pre>
   var delay = 160
   rheat.scrollTo(270, 270)
+  rheat.zoomTo(3)
   rheat.hideHelixTags('PE', 'PI', 'PET')
   rheat.showHelixTag('PI')
   rheat.msDelay(delay)
-  rheat.showHelixTag('PET')</pre>
+  rheat.showHelixTag('PET')
+  rheat.msDelay(delay)
+  rheat.showHelixTags()</pre>
   <p>The scrollTo() method can be used to move the display to a
   particular X and Y location, where X and Y are bounded by the
   number of base-pairs in the current RNA sequence.  This can be
   used before animation to ensure the desired region is showing.
+  <p>The zoomTo() method can be used to change the magnification
+  amount; 1.0 is actual size, anything smaller is zooming out and
+  anything larger is zooming in.  This value is constrained by
+  the limits of the zoom slider in the graphical interface.
   <p>The msDelay() routine can be used to force a script to wait for
   the specified number of milliseconds.  If this is done in between
   steps that affect the display, animations can be created.
+  <p>The showHelixTag()/showHelixTags() and hideHelixTag()/hideHelixTags()
+  methods can be used to suppress or restore annotations by name;
+  either list any number of comma-separated strings to indicate the
+  affected tags, or provide NO tags to show or hide ALL of them.  Note
+  that since a helix can have more than one tag, it may be useful to
+  hide all tags before showing the tags you are interested in.
 
   <br /><br />
   <h3>Running Other Scripts</h3>
@@ -202,7 +215,8 @@
   return information about the 3' side; similarly, there are the methods
   fivePrimeStart(), fivePrimeEnd() and fivePrimeSequence() for the 5'
   side.  Annotations can be inspected using eachTag() to perform an
-  iteration (see “Iteration” above) or tagsInclude() for simple tests.  
+  iteration (see “Iteration” above) or tagsInclude() for simple tests,
+  and you can manually add new annotations using addTag() with a name.  
   You can also query length(), and energy() if an energy constraint has
   been applied.
 
