@@ -348,6 +348,16 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Requests that helices with the given tag be rendered using the
+     * given line thickness.  As with setHelixTagColor(), the exact
+     * rendering depends on priority and visibility of tags.
+     */
+    public void setHelixTagLineWidth(String tag, Float width) {
+        this.helixImgGen.addLineWidthForHelicesWithTag(tag, width);
+        this.updateImage();
+    }
+
+    /**
      * Shows or hides the specified annotations.  Since a helix may
      * have multiple annotations and the list of tags is prioritized,
      * enabling or disabling a particular tag is not guaranteed to

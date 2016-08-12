@@ -186,6 +186,17 @@ public class AppMain {
     /**
      * Passes this request to the GUI, if possible.
      */
+    public void setHelixTagLineWidth(String tag, Float width) {
+        if (this.gui == null) {
+           log(WARN, "There is no graphical interface; ignoring line width setting for '" + tag + "'.");
+        } else {
+            this.gui.setHelixTagLineWidth(tag, width);
+        }
+    }
+
+    /**
+     * Passes this request to the GUI, if possible.
+     */
     public void setHelixTagsVisible(boolean isVisible, String... tags) {
         if (this.gui == null) {
            log(WARN, "There is no graphical interface; ignoring visibility setting for tags: " + tags + ".");

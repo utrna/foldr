@@ -98,6 +98,7 @@ public class HelixImageGenerator {
     private ArrayList<Color> helixSpectrum = new ArrayList<Color>();
     private ArrayList<String> helixTagPriorityOrder = new ArrayList<String>();
     private Map<String, Color> helixTagColorMap = new HashMap<String, Color>();
+    private Map<String, Float> helixTagLineWidthMap = new HashMap<String, Float>();
     private Set<String> hiddenTags = new HashSet<String>();
     private Set<OptionalElement> hiddenElements = new HashSet<OptionalElement>();
     private Helix selectedHelix = null;
@@ -106,6 +107,7 @@ public class HelixImageGenerator {
 
     public HelixImageGenerator() {
         setZoomLevel(1);
+        setElementVisibility(OptionalElement.HELIX_COLOR_SPECTRUM, false);
     }
 
     /**
@@ -198,6 +200,19 @@ public class HelixImageGenerator {
             this.helixTagPriorityOrder.add(tagName);
         }
         this.helixTagColorMap.put(tagName, color);
+    }
+
+    /**
+     * Similar to addColorForHelicesWithTag() but this sets a line
+     * width to use for drawing matching helices.
+     * @param tagName string to find in the getTags() set of a Helix
+     * @param width the line width (such as 1.0 or 1.5)
+     */
+    public void addLineWidthForHelicesWithTag(String tagName, Float width) {
+        if (!this.helixTagPriorityOrder.contains(tagName)) {
+            this.helixTagPriorityOrder.add(tagName);
+        }
+        this.helixTagLineWidthMap.put(tagName, width);
     }
 
     /**
@@ -593,6 +608,7 @@ public class HelixImageGenerator {
         boolean allowAnnotations = isVisible(OptionalElement.HELIX_ANNOTATIONS);
         Set<String> helixTags = h.getTags();
         Color annotationColor = null;
+        Stroke annotationStroke = null;
         if ((helixTags != null) && (allowAnnotations)) {
             // determine if any of the tags on this helix are visible
             int usedTagCount = helixTags.size();
@@ -605,12 +621,25 @@ public class HelixImageGenerator {
                 // determine the right color for this annotated helix
                 showAnnotations = true;
                 annotationColor = defaultAnnotationColor; // initially...
+                annotationStroke = strokeAnnotatedHelix; // initially...
                 for (String tag : this.helixTagPriorityOrder) {
                     if ((!hiddenTags.contains(tag)) && (helixTags.contains(tag))) {
                         // see if this tag has a custom color
                         Color color = this.helixTagColorMap.get(tag);
                         if (color != null) {
                             annotationColor = color;
+                            break;
+                        }
+                    }
+                }
+                for (String tag : this.helixTagPriorityOrder) {
+                    if ((!hiddenTags.contains(tag)) && (helixTags.contains(tag))) {
+                        // see if this tag has a custom line width
+                        Float thickness = this.helixTagLineWidthMap.get(tag);
+                        if (thickness != null) {
+                            // IMPORTANT: this ought to be similar to the way the
+                            // field "this.strokeAnnotatedHelix" is constructed
+                            annotationStroke = new BasicStroke(thickness, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
                             break;
                         }
                     }
@@ -663,7 +692,7 @@ public class HelixImageGenerator {
         // first draw normal helix
         helixGraphics.setColor((showAnnotations) ? annotationColor : primaryColor);
         if (showAnnotations) {
-            helixGraphics.setStroke(strokeAnnotatedHelix);
+            helixGraphics.setStroke(annotationStroke);
         } else {
             helixGraphics.setStroke(strokeNormalHelix);
         }

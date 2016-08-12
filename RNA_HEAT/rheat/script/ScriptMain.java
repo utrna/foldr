@@ -368,6 +368,17 @@ public class ScriptMain {
     }
 
     /**
+     * Script interface for AppMain.setHelixTagLineWidth().
+     */
+    public void setHelixTagLineWidth(String tag, Float width) throws ScriptException {
+        try {
+            appMain.setHelixTagLineWidth(tag, width);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
      * Script interface for AppMain.setHelixTagsVisible().
      */
     public void showHelixTag(String tag) throws ScriptException {

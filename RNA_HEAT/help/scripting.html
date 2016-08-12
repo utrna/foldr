@@ -78,19 +78,16 @@
   <h3>Annotating the Display</h3>
   <pre>
   rheat.setHelixTagColor('PI', '#ff0000')
+  rheat.setHelixTagLineWidth('PI', 1.5)
   rheat.setHelixTagColor('PE', '#222222')
   rheat.openTags('test.helixcolor')</pre>
   <p>If openTags() is used (above) to read helix annotations, any
   number of new tags may be created and assigned to helices.  To
-  control the presentation of tagged helices, colors may be set for
-  specific tags.  In addition, a priority order is implicitly set
-  based on which tags are first used with setHelixTagColor(): the
+  control the presentation of tagged helices, colors and line
+  thicknesses may be set for specific tags.  In addition, a
+  priority order is implicitly set based on which tags are first
+  used with setHelixTagColor() or setHelixTagLineWidth(): the
   earlier assignments have higher precedence in case of conflict.
-  <p>It is also possible to show or hide arbitrary tags.  Helices
-  that have no visible tags will appear like normal helices.
-  Otherwise, a helix will appear in the color of one of its tags
-  (the highest-priority tag that is not hidden).  Helices will
-  change color as soon as a tag is hidden or shown.
 
   <br /><br />
   <h3>Display Controls and Animation</h3>
@@ -115,11 +112,16 @@
   <p>The msDelay() routine can be used to force a script to wait for
   the specified number of milliseconds.  If this is done in between
   steps that affect the display, animations can be created.
+  <p>It is possible to show or hide annotations by tag name.  If
+  a helix has NO visible tags, it looks like a normal helix.
+  Otherwise, a helix will appear in the color of one of its tags
+  (the highest-priority tag that is not hidden).  Helices will
+  change color as soon as a tag is hidden or shown.
   <p>The showHelixTag()/showHelixTags() and hideHelixTag()/hideHelixTags()
   methods can be used to suppress or restore annotations by name;
   either list any number of comma-separated strings to indicate the
-  affected tags, or provide NO tags to show or hide ALL of them.  Note
-  that since a helix can have more than one tag, it may be useful to
+  affected tags, or provide NO tags to show or hide ALL.  Note that
+  since a helix can have more than one tag, it may be useful to
   hide all tags before showing the tags you are interested in.
 
   <br /><br />
