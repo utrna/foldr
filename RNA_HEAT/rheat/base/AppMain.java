@@ -601,6 +601,8 @@ public class AppMain {
             if (this.gui != null) {
                 this.gui.refreshCurrentRNA();
             }
+        } catch (HelixColorReader.ParseError e) {
+            throw new IOException(e.getMessage());
         } finally {
             endOpenFile(filePath);
         }

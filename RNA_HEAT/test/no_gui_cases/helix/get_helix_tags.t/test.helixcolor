@@ -4,5 +4,6 @@
 # - all helices that share the same tag may appear the same in the graphical interface
 16-17 68-67 1
 # comments can be on any line
+// comments can also look like this
 18-23 65-60 2 1 # end-of-line comments are also OK
-  79-86 97-90 3 2
+  79-86 97-90 3 2 //also a comment
