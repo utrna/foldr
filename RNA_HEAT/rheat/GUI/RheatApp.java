@@ -146,6 +146,39 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Used to implement menu items that run particular scripts.
+     */
+    static public class RunSpecificScriptAction
+    extends AbstractAction {
+
+        RunSpecificScriptAction(RheatApp app, File scriptFile, int indentLevel) {
+            // for convenience; in the most basic case, make the menu item
+            // match the file name exactly (if this is not desirable, use
+            // the alternate version that customizes the title completely)
+            this(app, scriptFile,
+                 RheatApp.createIndentString(indentLevel) + scriptFile.getName());
+        }
+
+        RunSpecificScriptAction(RheatApp app, File scriptFile, String title) {
+            super(title);
+            this.app = app;
+            this.scriptFile = scriptFile;
+        }
+
+        @Override
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            try {
+                app.runScript(this.scriptFile);
+            } finally {
+            }
+        }
+
+        private RheatApp app;
+        private File scriptFile;
+
+    }
+
+    /**
      * For the log() method.
      */
     public static final int INFO = AppMain.INFO;
@@ -270,6 +303,17 @@ implements PropertyChangeListener {
         totalMsg.append(sanitizedMessage);
         showMessage(totalMsg.toString(), "Error Running Script",
                     JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Utility for creating the specified number of spaces.
+     */
+    static public String createIndentString(int indentLevel) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indentLevel; ++i) {
+            sb.append(" ");
+        }
+        return sb.toString();
     }
 
     /**
@@ -776,6 +820,52 @@ implements PropertyChangeListener {
             this.eLoopConstraintItem.setEnabled(false);
             this.energyConstraintItem.setEnabled(false);
             this.complexConstraintItem.setEnabled(false);
+        }
+    }
+
+    /**
+     * Removes any script-running items and adds new ones to
+     * reflect the current recent-list.  This lets the user
+     * run a script by selecting a menu item.
+     */
+    private void rebuildRecentScriptsMenu() {
+        ArrayList<JMenuItem> itemsToRemove = new ArrayList<JMenuItem>();
+        JMenu targetMenu = this.fileMenu;
+        if (targetMenu == null) {
+            return;
+        }
+        int insertionPointIndex = -1; // put new items below this point
+        for (int i = 0; i < targetMenu.getItemCount(); ++i) {
+            JMenuItem item = targetMenu.getItem(i);
+            if (item == null) {
+                // e.g. separators do not have items
+                continue;
+            } else if (item == this.runScriptMenuItem) {
+                insertionPointIndex = (i + 1);
+                continue;
+            }
+            Action action = item.getAction();
+            if ((action != null) && (action instanceof RunSpecificScriptAction)) {
+                itemsToRemove.add(item);
+            }
+        }
+        for (JMenuItem toDelete : itemsToRemove) {
+            targetMenu.remove(toDelete);
+        }
+        for (File recentScriptFile : this.recentScriptFiles) {
+            if (recentScriptFile.exists()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(createIndentString(4));
+                sb.append("Rerun “");
+                // FIXME: it is possible that two files in completely different
+                // directories will have the same name, adding confusion; for
+                // now, use only the name for brevity
+                sb.append(recentScriptFile.getName());
+                sb.append("”");
+                targetMenu.insert(new RunSpecificScriptAction(this, recentScriptFile,
+                                                              sb.toString()),
+                                  insertionPointIndex);
+            }
         }
     }
 
@@ -2117,6 +2207,61 @@ implements PropertyChangeListener {
         }
     }
 
+    private void beginCursor(int cursorType) {
+        final int finalType = cursorType;
+        getGlassPane().setVisible(true);
+        try {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    getGlassPane().setCursor(Cursor.getPredefinedCursor(finalType));
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            // call it anyway (may not happen until the long-running
+            // operation completes though, hence this method)
+            getGlassPane().setCursor(Cursor.getPredefinedCursor(finalType));
+        }
+    }
+
+    private void endCursor() {
+        getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        getGlassPane().setVisible(false);
+    }
+
+    /**
+     * Runs the script in the specified file or displays an error.
+     * The script is also added to the “recent” list.
+     */
+    private void runScript(File inputFile) {
+        try {
+            beginCursor(Cursor.WAIT_CURSOR);
+            appMain.runScript(inputFile.getAbsolutePath());
+        } catch (ScriptException e) {
+            showScriptError(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError(e.getMessage(), "Error Running Script");
+        } finally {
+            endCursor();
+            // the list is extended even when there are errors (since the user
+            // may fix the problem and want to try again)
+            String canonPath = null;
+            try {
+                canonPath = inputFile.getCanonicalPath();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // add each file only once (cannot use object equality test for this;
+            // must compare something unique such as the canonical path)
+            if ((canonPath != null) && (!this.recentScriptCanonPaths.contains(canonPath))) {
+                this.recentScriptCanonPaths.add(canonPath);
+                this.recentScriptFiles.add(inputFile);
+                this.rebuildRecentScriptsMenu();
+            }
+        }
+    }
+
     private void runScriptMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         File inputFile;
         fc = new JFileChooser(appMain.getPrefScriptDir());
@@ -2125,15 +2270,7 @@ implements PropertyChangeListener {
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("JavaScript Files", "js", "txt"));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == fc.APPROVE_OPTION) {
-            inputFile = fc.getSelectedFile();
-            try {
-                appMain.runScript(inputFile.getAbsolutePath());
-            } catch (ScriptException e) {
-                showScriptError(e);
-            } catch (Exception e) {
-                e.printStackTrace();
-                showError(e.getMessage(), "Error Running Script");
-            }
+            this.runScript(fc.getSelectedFile());
         }
     }
 
@@ -2148,6 +2285,7 @@ implements PropertyChangeListener {
             inputFile = fc.getSelectedFile();
             int exitStatus = -1;
             try {
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 exitStatus = appMain.runProgram(inputFile.getAbsolutePath());
                 if (exitStatus != 0) {
                     throw new RuntimeException("Exit status " + exitStatus + ".");
@@ -2155,6 +2293,8 @@ implements PropertyChangeListener {
             } catch (Exception e) {
                 e.printStackTrace();
                 showError(e.getMessage(), "Error Running Program");
+            } finally {
+                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
             }
         }
     }
@@ -2264,5 +2404,7 @@ implements PropertyChangeListener {
     private RNADisplay displayPane;
     private AboutFrame aboutFrame;
     private MiniFrame miniFrame;
+    private ArrayList<File> recentScriptFiles = new ArrayList<File>();
+    private ArrayList<String> recentScriptCanonPaths = new ArrayList<String>(); // same size
 
 }
