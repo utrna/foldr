@@ -83,6 +83,7 @@ public class HelixImageGenerator {
     // single point completely invisible so the length-1 case uses a shape
     private Stroke strokeNormalHelix = new BasicStroke(0.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeAnnotatedHelix = new BasicStroke(0.9f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private Stroke strokeAnnotationHairline = new BasicStroke(0.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeSelectedHelix = new BasicStroke(0.65f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private Stroke strokeHelixHandle = new BasicStroke(0.1f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
     private Stroke strokeFlatHelix = new BasicStroke(0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
@@ -607,8 +608,8 @@ public class HelixImageGenerator {
         boolean showAnnotations = false;
         boolean allowAnnotations = isVisible(OptionalElement.HELIX_ANNOTATIONS);
         Set<String> helixTags = h.getTags();
-        Color annotationColor = null;
-        Stroke annotationStroke = null;
+        Color annotationColor = defaultAnnotationColor; // initially...
+        Stroke annotationStroke = strokeAnnotatedHelix; // initially...
         if ((helixTags != null) && (allowAnnotations)) {
             // determine if any of the tags on this helix are visible
             int usedTagCount = helixTags.size();
@@ -620,8 +621,6 @@ public class HelixImageGenerator {
             if (usedTagCount > 0) {
                 // determine the right color for this annotated helix
                 showAnnotations = true;
-                annotationColor = defaultAnnotationColor; // initially...
-                annotationStroke = strokeAnnotatedHelix; // initially...
                 for (String tag : this.helixTagPriorityOrder) {
                     if ((!hiddenTags.contains(tag)) && (helixTags.contains(tag))) {
                         // see if this tag has a custom color
@@ -693,10 +692,24 @@ public class HelixImageGenerator {
         helixGraphics.setColor((showAnnotations) ? annotationColor : primaryColor);
         if (showAnnotations) {
             helixGraphics.setStroke(annotationStroke);
+            helixGraphics.draw(this.tmpLine);
+            // when using annotations, add a slightly darker hairline at
+            // the exact helix location so that the click line is apparent
+            // (otherwise very thick annotations may appear clickable when
+            // they are not)
+            Color lineColor = helixGraphics.getColor();
+            // FIXME: may want to allocate this color in advance (less heap activity
+            // if there are many annotations)
+            lineColor = new Color(Math.max(0, lineColor.getRed() - 30),
+                                  Math.max(0, lineColor.getGreen() - 30),
+                                  Math.max(0, lineColor.getBlue() - 30));
+            helixGraphics.setColor(lineColor);
+            helixGraphics.setStroke(strokeAnnotationHairline);
+            helixGraphics.draw(this.tmpLine);
         } else {
             helixGraphics.setStroke(strokeNormalHelix);
+            helixGraphics.draw(this.tmpLine);
         }
-        helixGraphics.draw(this.tmpLine);
         // TODO: repeatedly testing for intersection is not efficient
         // if it involves ALL helices; if the data can be rearranged
         // into a geometric form (such as an R-tree), the start point
