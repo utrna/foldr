@@ -1406,7 +1406,7 @@ implements PropertyChangeListener {
 
         fileMenu.add(runScriptMenuItem);
 
-        //setKey(scriptWindowMenuItem, KeyEvent.VK_SLASH);
+        setKey(scriptWindowMenuItem, KeyEvent.VK_L);
         scriptWindowMenuItem.setText("Scripting Console");
         scriptWindowMenuItem.setToolTipText("Shows a window for running scripting commands interactively, and displaying history.");
         scriptWindowMenuItem.addActionListener(new java.awt.event.ActionListener() {

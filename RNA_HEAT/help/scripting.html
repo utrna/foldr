@@ -31,17 +31,27 @@
   the window, as command history; otherwise, an error message will
   be displayed.
 
+  <p>Several commands make use of colors specified as HTML-style strings
+  such as "#abcdef".  While there are various ways to compose these, for
+  convenience a color editor is provided right in the script console.  The
+  displayed color is not used for anything but you can Copy and Paste the
+  string field; and (as with other similar color editors) when you type a
+  new value, the color display is updated automatically.
+
   <p>If you run any commands that refer to files by name only, their
   locations will be relative to the current working directory (shown at
-  the bottom of the window for your convenience).  To change the working
-  directory from a script, use "rheat.setWorkingDir()"; for example, if
-  the current directory is "/a/b/c" and on Unix you use a path like
-  "rheat.setWorkingDir('../d')", the new directory will become "/a/b/d"
-  (assuming it exists).  Note that all file-related commands obey the
-  platform convention, such as Unix/Mac or Windows; and on Windows, a
-  backslash is doubled as in C (e.g. "\\" is one backslash).  For more
+  the bottom of the window for your convenience).  If you use the "…"
+  button next to the path, you can select a new working directory; this
+  generates the equivalent "rheat.setWorkingDir()" command, automatically
+  runs that command, and adds the command to your history.
+
+  <p>Note that all file-related commands obey the platform convention,
+  such as Unix/Mac or Windows; and on Windows, a backslash is doubled as
+  in C (e.g. "\\" is one backslash).  On Unix/Mac, "./" and "../" may be
+  used for the current and parent directories, respectively.  For more
   portability, consider using the "rheat.makePath()" function to compose
-  paths from a list of components; this adds the correct slashes for you.
+  paths from a list of components; this adds the correct slashes for you
+  depending on the current platform.
 
   <p>The buttons at the top of the window can be used to perform
   actions on the history display.  To rerun some of the commands in

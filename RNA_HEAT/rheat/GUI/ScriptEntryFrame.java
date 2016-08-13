@@ -8,8 +8,6 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import javax.script.ScriptException;
 import javax.swing.*;
@@ -34,9 +32,9 @@ implements PropertyChangeListener {
         setIconifiable(true);
         setResizable(true);
         setTitle("Scripting Console");
-        setMinimumSize(new java.awt.Dimension(610, 80));
-        setNormalBounds(new java.awt.Rectangle(500, 450, 650, 250)); // arbitrary
-        setBounds(new java.awt.Rectangle(500, 450, 650, 250));
+        setMinimumSize(new java.awt.Dimension(610, 200));
+        setNormalBounds(new java.awt.Rectangle(500, 400, 650, 300)); // arbitrary
+        setBounds(new java.awt.Rectangle(500, 400, 650, 300));
         this.gui.getAppMain().addPropertyChangeListener(AppMain.PROPERTY_WORKING_DIR, this);
     }
 
@@ -142,16 +140,6 @@ implements PropertyChangeListener {
         this.commandPane.setRows(2);
         this.scrollCommandPane.setViewportView(this.commandPane);
         this.scrollCommandPane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3)); // arbitrary insets
-        JLabel dirLabel = new JLabel("Current directory: ");
-        dirLabel.setEnabled(false); // make gray
-        this.workingDirPathLabel = new JLabel("");
-        this.workingDirPathLabel.setEnabled(false); // make gray
-        this.workingDirPathLabel.setToolTipText("The location of files specified only by name.  Use 'rheat.setWorkingDir()' to set new value (may be relative to old one).");
-        JPanel dirPanel = new JPanel();
-        dirPanel.setLayout(new BorderLayout());
-        dirPanel.add(new JSeparator(), BorderLayout.NORTH);
-        dirPanel.add(dirLabel, BorderLayout.WEST);
-        dirPanel.add(this.workingDirPathLabel, BorderLayout.CENTER);
         this.runButton = new JButton("Run");
         this.runButton.setToolTipText("Interprets given text as a script file.  Any errors are displayed; otherwise, commands move into the history area.");
         this.runButton.addActionListener(new java.awt.event.ActionListener() {
@@ -159,15 +147,52 @@ implements PropertyChangeListener {
                 runEnteredCommand();
             }
         });
+        JLabel colorLabel = new JLabel("Color helper: ");
+        colorLabel.setEnabled(false); // make gray
+        JPanel colorPanel = new JPanel();
+        colorPanel.setLayout(new BorderLayout());
+        colorPanel.add(colorLabel, BorderLayout.WEST);
+        colorPanel.add(new ColorEditor(), BorderLayout.CENTER); // color is not used; just helps when writing scripts
+        JLabel dirLabel = new JLabel("Current directory: ");
+        dirLabel.setEnabled(false); // make gray
+        this.workingDirPathLabel = new JLabel(""); this.workingDirPathLabel.setEnabled(false); // make gray
+        this.workingDirPathLabel.setToolTipText("The location of files specified only by name.  Use 'rheat.setWorkingDir()' to set new value (may be relative to old one).");
+        JButton browseButton = new JButton("…");
+        browseButton.setToolTipText("For convenience; browse to select a directory, then 'rheat.setWorkingDir()' will be automatically called for you.");
+        browseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                JFileChooser fc = new JFileChooser(workingDirPathLabel.getText());
+                fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                if (fc.showOpenDialog(gui) == fc.APPROVE_OPTION) {
+                    String dir = fc.getSelectedFile().getAbsolutePath();
+                    // IMPORTANT: if the value contains backslashes (e.g. Windows paths),
+                    // it will not be read back correctly by JavaScript later; translate
+                    // any backslashes into double-backslash to escape them
+                    dir = dir.replace("\\", "\\\\");
+                    String command = "rheat.setWorkingDir(\'" + dir + "\')";
+                    runCommandLines(command);
+                }
+            }
+        });
+        JPanel dirPanel = new JPanel();
+        dirPanel.setLayout(new BorderLayout());
+        dirPanel.add(dirLabel, BorderLayout.WEST);
+        dirPanel.add(this.workingDirPathLabel, BorderLayout.CENTER);
+        dirPanel.add(browseButton, BorderLayout.EAST);
+        Box paneHelpers = new Box(BoxLayout.Y_AXIS);
+        paneHelpers.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        paneHelpers.add(colorPanel);
+        paneHelpers.add(dirPanel);
+        paneHelpers.add(new JSeparator());
         JPanel paneCommandControls = new JPanel();
         paneCommandControls.setLayout(new BorderLayout());
         paneCommandControls.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
         paneCommandControls.add(this.runButton, BorderLayout.NORTH);
         JPanel paneCommands = new JPanel();
         paneCommands.setLayout(new BorderLayout());
+        paneCommands.add(paneHelpers, BorderLayout.NORTH);
         paneCommands.add(this.scrollCommandPane, BorderLayout.CENTER);
         paneCommands.add(paneCommandControls, BorderLayout.EAST);
-        paneCommands.add(dirPanel, BorderLayout.SOUTH);
         JPanel padPaneCommands = new JPanel();
         padPaneCommands.setLayout(new BorderLayout());
         padPaneCommands.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
