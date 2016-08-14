@@ -244,19 +244,6 @@ public class RNA implements java.io.Serializable {
         processHelixAnnotations();
     }
 
-    /** This method is for debugging purposes only.  It outputs the possible helices in
-     * a grid based format to the specified PrintStream.  This may take a REALLY LONG
-     * time to complete.
-     * @param ps The PrintStream used for output.
-     * @return number of helices
-     */
-    public int outputHelices(PrintStream ps) {
-        int result = 0;
-        ArrayList<String> seq = getSequence();
-        result = ((HelixGrid)predictedHelices).debugOutput(ps, seq);
-        return result;
-    }
-
     /**
      * @return unique ID, taken from original input file
      */

@@ -1853,7 +1853,7 @@ implements PropertyChangeListener {
             addConstraint(newFilter);
             this.enableConstraintMenuItems(true);
             HelixStore helices = appMain.rnaData.getHelices();
-            int count = ((helices != null) ? helices.getCount() : 0);
+            int count = ((helices != null) ? helices.getHelixCount() : 0);
             this.helixTotalField.setText("" + count);
         }
     }
@@ -2114,8 +2114,8 @@ implements PropertyChangeListener {
             this.helixImgGen.setBaseWidth(rna.getLength());
             this.helixImgGen.setBaseHeight(rna.getLength());
             HelixStore helices = rna.getHelices();
-            int count = ((helices != null) ? helices.getCount() : 0);
-            this.helixActualField.setText("" + rna.getActual().getCount());
+            int count = ((helices != null) ? helices.getHelixCount() : 0);
+            this.helixActualField.setText("" + rna.getActual().getHelixCount());
             this.helixNumField.setText("" + count);
             this.helixTotalField.setText("");
         } else {

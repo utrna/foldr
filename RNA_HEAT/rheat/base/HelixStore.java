@@ -9,27 +9,50 @@ package rheat.base;
 import java.util.Iterator;
 
 /**
- * This is a generic interface specifying the functionality of a HelixStore.  The
- * function of a HelixStore is to store a set of helices of a RNA.
+ * Specifies the features that a class must have in order to
+ * store the helices of an RNA.
  *
  * @author Team Matrix
  */
 public interface HelixStore extends java.io.Serializable {
 
-    /** Add an Helix to the HelixStore.
-     * @param h Helix to be added.
-     */    
+    /**
+     * @param h the Helix to add to the store
+     */
     public void addHelix(Helix h);
 
-    /** Test to see if a helix is present in the HelixStore
-     * @param h Helix to be tested for its presence.
-     * @return True if found, false otherwise.
-     */    
+    /**
+     * @return the number of times that addHelix() has been called
+     */
+    public int getHelixCount();
+
+    /**
+     * @return the maximum number of Helix references that can be stored
+     */
+    public int getHelixStoreSize();
+
+    /**
+     * @return the number of base-pairs in the original sequence
+     */
+    public int getSequenceLength();
+
+    /**
+     * @return true only if specified Helix is found
+     */
     public boolean hasHelix(Helix h);
 
+    /**
+     * @return true only if getHelixCount() would be 0
+     */
+    public boolean isEmpty();
+
+    /**
+     * @return an iterator over all Helix objects in the store
+     * in NO PARTICULAR ORDER
+     */
     public Iterator<Helix> iterator();
 
-    public int getCount();
+    // TODO: range-specific interfaces (e.g. iterator with
+    // suggested nucleotide boundaries, returning a subset)
 
-    public int getLength();
 }

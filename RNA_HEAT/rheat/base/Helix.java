@@ -85,10 +85,10 @@ implements Comparable<Helix>, java.io.Serializable {
         // defer to other constructor (translate); this MUST
         // agree with interpretation in get3PrimeRange()
         // and get5PrimeRange()
-        final int x = (threePrimeRange.getA() - 1);
-        final int length3 = (threePrimeRange.getB() - threePrimeRange.getA() + 1);
-        final int y = (fivePrimeRange.getB() - 1);
-        final int length5 = (fivePrimeRange.getB() - fivePrimeRange.getA() + 1);
+        final int x = getXForThreePrimeRange(threePrimeRange);
+        final int length3 = getRangeLength(threePrimeRange);
+        final int y = getYForFivePrimeRange(fivePrimeRange);
+        final int length5 = getRangeLength(fivePrimeRange);
         // the two ranges must be consistent
         if (length3 != length5) {
             throw new IllegalArgumentException("failed to create helix: 5' range of length " + length5 + " does not match 3' range of length " + length3 + " (given: " + fivePrimeRange + ", " + threePrimeRange + ")");
@@ -105,6 +105,26 @@ implements Comparable<Helix>, java.io.Serializable {
             get5PrimeRange(p2);
             throw new IllegalArgumentException("failed to create helix: intersection test failed for " + p1 + ", " + p2 + " (given: " + fivePrimeRange + ", " + threePrimeRange + ")");
         }
+    }
+
+    static public int getXForThreePrimeRange(SortedPair threePrimeRange) {
+        return (threePrimeRange.getA() - 1);
+    }
+
+    static public void setThreePrimeRangeFromXandLength(int x, int length, SortedPair threePrimeRange) {
+        threePrimeRange.setValues(x + length, x + 1);
+    }
+
+    static public int getYForFivePrimeRange(SortedPair fivePrimeRange) {
+        return (fivePrimeRange.getB() - 1);
+    }
+
+    static public void setFivePrimeRangeFromYandLength(int y, int length, SortedPair fivePrimeRange) {
+        fivePrimeRange.setValues(y + 1 - length + 1, y + 1);
+    }
+
+    static public int getRangeLength(SortedPair fiveOrThreePrimeRange) {
+        return (fiveOrThreePrimeRange.getB() - fiveOrThreePrimeRange.getA() + 1);
     }
 
     private void init(int posx, int posy, int hlen) {
@@ -222,7 +242,7 @@ implements Comparable<Helix>, java.io.Serializable {
      */
     public void get3PrimeRange(SortedPair sp) {
         // IMPORTANT: must agree with translation in Helix constructor (SortedPair)
-        sp.setValues(xPosition + helixLength, xPosition + 1);
+        setThreePrimeRangeFromXandLength(xPosition, helixLength, sp);
     }
 
     /**
@@ -234,7 +254,7 @@ implements Comparable<Helix>, java.io.Serializable {
      */
     public void get5PrimeRange(SortedPair sp) {
         // IMPORTANT: must agree with translation in Helix constructor (SortedPair)
-        sp.setValues(yPosition + 1 - helixLength + 1, yPosition + 1);
+        setFivePrimeRangeFromYandLength(yPosition, helixLength, sp);
     }
 
     /**

@@ -108,11 +108,11 @@ extends rheat.filter.Filter {
     }
     
     private HelixStore pickNonIntersectingDiagonals(HelixStore hs){
-        HelixGrid result = new HelixGrid(hs.getLength());
-        if (hs.getCount() == 0) {
+        HelixGrid result = new HelixGrid(hs.getSequenceLength());
+        if (hs.isEmpty()) {
             return result;
         }
-        ArrayList<Helix> helixList = new ArrayList<Helix>(hs.getCount());
+        ArrayList<Helix> helixList = new ArrayList<Helix>(hs.getHelixCount());
         Iterator itr = hs.iterator();
         while (itr.hasNext()){
             Helix h = (Helix)itr.next();
@@ -167,7 +167,7 @@ extends rheat.filter.Filter {
 /* Function that returns true if slave is within master
  */
     private HelixStore PopulateHelicesWithin(Helix h, HelixStore hsDiagonal) {
-        HelixStore hswithin = new HelixGrid(hsDiagonal.getLength());  // will store helices within h
+        HelixStore hswithin = new HelixGrid(hsDiagonal.getSequenceLength());  // will store helices within h
         // Why doesn't helixStore have a constructor?
         // answer: helixStore is a INTERFACE... helixGrid implments this interface
         Iterator itr = hsDiagonal.iterator();
@@ -218,7 +218,7 @@ extends rheat.filter.Filter {
      * @return HelixStore
      */
     private HelixStore RemoveOverlappingHelices(HelixStore hs) {
-        HelixStore hsminimal = new HelixGrid(hs.getLength());  // will store helices within h
+        HelixStore hsminimal = new HelixGrid(hs.getSequenceLength());  // will store helices within h
         Iterator itrOuter = hs.iterator();
         while(itrOuter.hasNext()){
             Helix hO = (Helix)itrOuter.next();
