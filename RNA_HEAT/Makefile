@@ -24,7 +24,6 @@ CLASS_PREFIXES += rheat/filter/BPFilter
 CLASS_PREFIXES += rheat/filter/ComplexFilter
 CLASS_PREFIXES += rheat/filter/ELoopHelicesFilter
 CLASS_PREFIXES += rheat/filter/EnergyMaxMinFilter
-CLASS_PREFIXES += rheat/filter/ExactLengthHelicesFilter
 CLASS_PREFIXES += rheat/filter/Filter
 CLASS_PREFIXES += rheat/filter/MaxMinFilter
 CLASS_PREFIXES += rheat/filter/NonDiagonalHelicesFilter
@@ -73,7 +72,7 @@ rheat.jar: $(foreach PREFIX,$(CLASS_PREFIXES),$(PREFIX).class)  $(HELP_FILES)
 
 # build source code
 %.class: %.java
-	javac -cp $(CLASSPATH) -Xlint:deprecation -Xlint:unchecked $^
+	javac -cp $(CLASSPATH) -encoding UTF-8 -Xlint:deprecation -Xlint:unchecked $^
 
 # build documentation
 javadoc/index.html: all
