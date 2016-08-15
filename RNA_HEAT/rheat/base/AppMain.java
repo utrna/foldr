@@ -920,7 +920,7 @@ public class AppMain {
         if ((exitStatus == 0) && (this.gui != null)) {
             // after a successful run, if a designated output file exists
             // then automatically import it as an overlay
-            String outputPath = makePath(runDir, "output" + extension);
+            String outputPath = makePath(runDir, "output.bpseq");
             if (new File(outputPath).exists()) {
                 log(INFO, "Located results in '" + outputPath + "'; opening as overlay…");
                 // FIXME: pull this color from preferences or somewhere else
@@ -936,7 +936,15 @@ public class AppMain {
                     this.gui.openDataFile(outputPath);
                 }
             }
+            // if any helix annotations exist, apply them
+            outputPath = makePath(runDir, "output.helixcolor");
+            File asFile = new File(outputPath);
+            if (asFile.exists() && (asFile.length() > 0)) {
+                log(INFO, "Located results in '" + outputPath + "'; opening as annotations…");
+                this.openTags(outputPath);
+            }
             // append the log output to the log area
+            // FIXME: GUI does not have designated log area
         }
         return exitStatus;
     }
