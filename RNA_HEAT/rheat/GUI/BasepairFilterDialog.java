@@ -104,51 +104,39 @@ extends FilterDialog {
      */
     void actionPanelAccepted() {
         BPFilter newFilter = new BPFilter();
-        String d = "Basepairs selected: \n";
         int[] filterOptions = new int[10];
         // get the selected basepair types.
         if (this.ccCheckBox.isSelected()){
             filterOptions[0] = BasepairType.CC;
-            d += "C-C \n";
         }
         if (this.cgCheckBox.isSelected()){
             filterOptions[1] = BasepairType.CG;
-            d += "C-G \n";
         }
         if (this.cuCheckBox.isSelected()){
             filterOptions[2] = BasepairType.CU;
-            d += "C-U \n";
         }
         if (this.aaCheckBox.isSelected()){
             filterOptions[3] = BasepairType.AA;
-            d += "A-A\n";
         }
         if (this.acCheckBox.isSelected()){
             filterOptions[4] = BasepairType.AC;
-            d += "A-C\n";
         }
         if (this.agCheckBox.isSelected()){
             filterOptions[5] = BasepairType.AG;
-            d += "A-G\n";
         }
         if (this.auCheckBox.isSelected()){
             filterOptions[6] = BasepairType.AU;
-            d += "A-U\n";
         }
         if (this.ggCheckBox.isSelected()){
             filterOptions[7] = BasepairType.GG;
-            d += "G-G\n";
         }
         if (this.guCheckBox.isSelected()){
             filterOptions[8] = BasepairType.GU;
-            d += "G-U\n";
         }
         if (this.uuCheckBox.isSelected()){
             filterOptions[9] = BasepairType.UU;
-            d += "U-U\n";
         }
         newFilter.setArguments(filterOptions);
-        newFilter.setDescription(d);
         // set return value for getNewFilter()
         this.filter = newFilter;
     }

@@ -97,10 +97,7 @@ extends FilterDialog {
                 min = Integer.parseInt(minG);
             }
             this.setVisible(false);
-            String d = "Maximum Simple Distance: " + min + "\n";
-            d += "Maximum Complex Distance: " + max + "\n";
             newFilter.setArguments(max, min);
-            newFilter.setDescription(d);
             this.filter = newFilter;
         }
         catch (NumberFormatException ex){

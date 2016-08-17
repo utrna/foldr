@@ -100,10 +100,7 @@ extends FilterDialog {
                 throw new RuntimeException ("Minimum cannot be >= maximum.");
             }
             this.setVisible(false);
-            String d = "Minimum distance from diagonal: " + min + "\n";
-            d += "Maximum distance from diagonal: " + max + "\n";
             newFilter.setArguments(max, min);
-            newFilter.setDescription(d);
             this.filter = newFilter;
         }
         catch (NumberFormatException ex){

@@ -101,10 +101,7 @@ extends FilterDialog {
                 throw new RuntimeException ("Minimum cannot be >= maximum.");
             }
             this.setVisible(false);
-            String d = "Minimum helix length: " + min + "\n";
-            d += "Maxium helix length: " + max + "\n";
             newFilter.setArguments(max, min);
-            newFilter.setDescription(d);
             this.filter = newFilter;
         }
         catch (NumberFormatException ex){

@@ -100,10 +100,7 @@ extends FilterDialog {
                 throw new RuntimeException ("Minimum G value must be less than Maximum G value");
             }
             this.setVisible(false);
-            String d = "Minimum G Value: " + min + "\n";
-            d += "Maximum G Value: " + max + "\n";
             newFilter.setArguments(max, min);
-            newFilter.setDescription(d);
             this.filter = newFilter;
         }
         catch (NumberFormatException ex){
