@@ -2078,14 +2078,10 @@ implements PropertyChangeListener {
     }
 
     /**
-     * Private method to do clean up when closing the current session.
+     * Cleans up when closing the current session.
      */
-    private void closeRNA() {
-        appMain.cleanUp();
-        refreshForNewRNA();
-        this.enableConstraintMenuItems(false);
-        this.basepairConstraintItem.setEnabled(false);
-        this.clearHistory();
+    public void closeRNA() {
+        appMain.closeRNA();
     }
 
     /**
@@ -2130,10 +2126,12 @@ implements PropertyChangeListener {
             setZoomLevel(1);
         }
         this.helixInfoTextPane.setText("");
+        clearHistory();
         setControlLabels();
-        basepairConstraintItem.setEnabled(true);
+        this.enableConstraintMenuItems(false);
+        this.basepairConstraintItem.setEnabled(true);
         this.updateImage(); // erases to blank if "appMain.rnaData" is null
-        displayPane.repaint();
+        this.displayPane.repaint();
     }
 
     private void openRNAMenuItemActionPerformed(java.awt.event.ActionEvent evt) {

@@ -609,6 +609,20 @@ public class AppMain {
     }
 
     /**
+     * Closes any open helix file, clearing the display.
+     */
+    public void closeRNA() {
+        rnaData = null;
+        overlayData.clear();
+        overlayColors.clear();
+        currentRNAFilePath = null;
+        System.gc();
+        if (this.gui != null) {
+            this.gui.refreshForNewRNA();
+        }
+    }
+
+    /**
      * Provides the location for output in the current experiment.
      * This will be the result of getPrefRunRootDir() combined with
      * at least one subdirectory.  The first time this is requested,
@@ -1070,17 +1084,6 @@ public class AppMain {
             }
         }
         scriptEngine = engineMgr.getEngineByName("JavaScript");
-    }
-
-    /**
-     * Performs clean-up when closing the current session.
-     */
-    public void cleanUp() {
-        rnaData = null;
-        overlayData.clear();
-        overlayColors.clear();
-        currentRNAFilePath = null;
-        System.gc();
     }
 
     /**

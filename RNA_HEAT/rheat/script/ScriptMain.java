@@ -329,6 +329,17 @@ public class ScriptMain {
     }
 
     /**
+     * Script interface for AppMain.closeRNA().
+     */
+    public void closeRNA() throws ScriptException {
+        try {
+            appMain.closeRNA();
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
      * Script interface for AppMain.openOverlayRNA().
      */
     public void openOverlayRNA(String filePath, String color) throws ScriptException {
