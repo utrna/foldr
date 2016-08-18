@@ -189,14 +189,24 @@
   for (i = 0; i &lt; actual_helices.length(); ++i) {
     helix = actual_helices.next()
     ...
-  }</pre>
+  }
+
+  while (true) {
+    var helix = actual_helices.next()
+    if (helix == null) {
+      break
+    }
+    ...
+  }
   <p>Some functions return objects that can iterate over more than
   one other value.  This iteration can be performed as in the above
-  example, by looping up to the length() and calling next().  An
-  iteration object also has a left() method if you want to see how
-  many items remain.
-  <p>This approach is taken for efficiency so that memory is not
-  allocated unnecessarily.
+  examples, by looping up to the length() and calling next() or
+  just looping until next() returns a null value.  An iteration
+  object also has a left() method if you want to see how many items
+  remain.
+  <p>It is important to note that querying the length() may be
+  time-consuming with some kinds of iterations; if you do not need
+  to know the length, the while-true variant is the most efficient.
 
   <br /><br />
   <h3>Helices</h3>
@@ -227,7 +237,7 @@
   return information about the 3' side; similarly, there are the methods
   fivePrimeStart(), fivePrimeEnd() and fivePrimeSequence() for the 5'
   side.  Annotations can be inspected using eachTag() to perform an
-  iteration (see “Iteration” above) or tagsInclude() for simple tests,
+  iteration (see “Iteration” above) or hasTag() for simple tests,
   and you can manually add new annotations using addTag() with a name.  
   You can also query length(), and energy() if an energy constraint has
   been applied.

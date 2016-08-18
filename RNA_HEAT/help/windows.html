@@ -28,6 +28,31 @@
   may be moved to another location by dragging its title bar.
 
   <br /><br />
+  <h2 id="Show">Show</h2>
+  <p>The panel of check-boxes on the right-hand side allows you to decide
+  which elements of the RNA display are visible.  (It is important to
+  note that <a href="scripting.html">scripting commands</a> can show and
+  hide elements with more precision than the check-boxes allow.)
+  <p><b>Grid</b>:
+  Refers to the horizontal and vertical lines and labels that appear in
+  the background.
+  <p><b>Spectrum</b>:
+  Refers to the process of coloring helices based on whichever “bin” they
+  have been assigned to.  Bins currently are set only for energy values,
+  when a Helix Energy constraint has been applied.  The colors in the
+  gradient can be set via Preferences.
+  <p><b>Annotations</b>:
+  Refers to the set of custom colors and line styles for annotated (tagged)
+  helices.  If you want all helices to be drawn normally without showing
+  their annotations, uncheck this box (note that it is always possible to
+  select a helix to see if it has any annotations).  Tags can be set by a
+  ".helixcolor" file (see the “Open Annotation File…” command in the File
+  menu), by applying a constraint, or by using scripting commands.
+  <p><b>Untagged Helices</b>:
+  Completely hides helices that have no annotations.  This helps to reduce
+  clutter and improve the performance of the RNA display.  You can use
+  this to treat constraints like filters, for instance.
+  <br /><br />
   <h2 id="RNAFileInfo">RNA File Info</h2>
   <p>The top-left region shows a summary of the RNA file that is open.
   The Current count depends on any applied Constraints, the Total count

@@ -207,6 +207,7 @@ implements PropertyChangeListener {
         this.showGridCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.GRID));
         this.showBinsCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.HELIX_COLOR_SPECTRUM));
         this.showTagsCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.HELIX_ANNOTATIONS));
+        this.showUnconstrainedCheckBox.setSelected(this.helixImgGen.isVisible(HelixImageGenerator.OptionalElement.HELIX_NO_ANNOTATIONS));
         this.setBounds(0, 0 , 700, 700);
     }
 
@@ -363,10 +364,10 @@ implements PropertyChangeListener {
                     sb.append("3' End: " + (info.get3PrimeEnd() + 1) + "\n");
                     Set<String> helixTags = selectedHelix.getTags();
                     if (helixTags != null) {
-                        sb.append("Annotations:");
                         for (String tag : helixTags) {
-                            sb.append(" ");
+                            sb.append("Tag: ");
                             sb.append(tag);
+                            sb.append("\n");
                         }
                     }
                 }
@@ -804,23 +805,13 @@ implements PropertyChangeListener {
         }
     }
 
-    private void enableConstraintMenuItems(boolean b){
-        if (b){
-            this.helixConstraintItem.setEnabled(true);
-            this.diagonalConstraintItem.setEnabled(true);
-            this.aa_agConstraintItem.setEnabled(true);
-            this.eLoopConstraintItem.setEnabled(true);
-            this.energyConstraintItem.setEnabled(true);
-            this.complexConstraintItem.setEnabled(true);
-        }
-        else {
-            this.helixConstraintItem.setEnabled(false);
-            this.diagonalConstraintItem.setEnabled(false);
-            this.aa_agConstraintItem.setEnabled(false);
-            this.eLoopConstraintItem.setEnabled(false);
-            this.energyConstraintItem.setEnabled(false);
-            this.complexConstraintItem.setEnabled(false);
-        }
+    private void setVisible(HelixImageGenerator.OptionalElement element, boolean isVisible) {
+        displayPane.setVisible(element, isVisible);
+        displayPane.repaint();
+    }
+
+    private void toggleVisible(HelixImageGenerator.OptionalElement element) {
+        setVisible(element, (!displayPane.isVisible(element)));
     }
 
     /**
@@ -1313,39 +1304,38 @@ implements PropertyChangeListener {
         JPanel paneShowHide = new JPanel();
         paneShowHide.setLayout(new GridLayout(20, 1)); // FIXME: adjust if there are more controls than this number (otherwise they may wrap)
         paneShowHide.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-        final HelixImageGenerator.OptionalElement gridElement =
-              HelixImageGenerator.OptionalElement.GRID;
         showGridCheckBox = new JCheckBox("Grid");
+        showGridCheckBox.setToolTipText("When checked, numbered grid lines will be drawn in the background.");
         showGridCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                displayPane.setVisible(gridElement,
-                                       (!displayPane.isVisible(gridElement)));
-                displayPane.repaint();
+                toggleVisible(HelixImageGenerator.OptionalElement.GRID);
             }
         });
         paneShowHide.add(showGridCheckBox);
-        final HelixImageGenerator.OptionalElement helixSpectrumElement =
-              HelixImageGenerator.OptionalElement.HELIX_COLOR_SPECTRUM;
         showBinsCheckBox = new JCheckBox("Spectrum");
+        showBinsCheckBox.setToolTipText("When checked, helices that have been binned (according to energy, by default) will use spectrum colors from Preferences.");
         showBinsCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                displayPane.setVisible(helixSpectrumElement,
-                                       (!displayPane.isVisible(helixSpectrumElement)));
-                displayPane.repaint();
+                toggleVisible(HelixImageGenerator.OptionalElement.HELIX_COLOR_SPECTRUM);
             }
         });
         paneShowHide.add(showBinsCheckBox);
-        final HelixImageGenerator.OptionalElement annotationsElement =
-              HelixImageGenerator.OptionalElement.HELIX_ANNOTATIONS;
         showTagsCheckBox = new JCheckBox("Annotations");
+        showTagsCheckBox.setToolTipText("When checked, annotated helices will use assigned colors/lines instead of the default appearance.");
         showTagsCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                displayPane.setVisible(annotationsElement,
-                                       (!displayPane.isVisible(annotationsElement)));
-                displayPane.repaint();
+                toggleVisible(HelixImageGenerator.OptionalElement.HELIX_ANNOTATIONS);
             }
         });
         paneShowHide.add(showTagsCheckBox);
+        showUnconstrainedCheckBox = new JCheckBox("Untagged Helices");
+        showUnconstrainedCheckBox.setToolTipText("When checked, helices that have no annotations at all will still be displayed.");
+        showUnconstrainedCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                toggleVisible(HelixImageGenerator.OptionalElement.HELIX_NO_ANNOTATIONS);
+            }
+        });
+        paneShowHide.add(showUnconstrainedCheckBox);
         JPanel padPaneShowHide = new JPanel();
         padPaneShowHide.setLayout(new BorderLayout());
         padPaneShowHide.setBorder(BorderFactory.createTitledBorder("Show"));
@@ -1397,7 +1387,7 @@ implements PropertyChangeListener {
         runScriptMenuItem.setMnemonic('R');
         setKey(runScriptMenuItem, KeyEvent.VK_R);
         runScriptMenuItem.setText("Run Script…");
-        runScriptMenuItem.setToolTipText("Runs commands from a JavaScript ('.js') file, such as a series of filters.");
+        runScriptMenuItem.setToolTipText("Runs commands from a JavaScript ('.js') file, such as a series of constraints.");
         runScriptMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 runScriptMenuItemActionPerformed(evt);
@@ -1543,7 +1533,6 @@ implements PropertyChangeListener {
         setKey(basepairConstraintItem, KeyEvent.VK_1);
         basepairConstraintItem.setText("Basepairs…");
         basepairConstraintItem.setToolTipText("Excludes helices that do not match selected base-pair values, such as 'C-G'.");
-        basepairConstraintItem.setEnabled(false);
         basepairConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showBasePairConstraintDialog();
@@ -1556,7 +1545,6 @@ implements PropertyChangeListener {
         setKey(helixConstraintItem, KeyEvent.VK_2);
         helixConstraintItem.setText("Helix Length…");
         helixConstraintItem.setToolTipText("Excludes helices with a span more or less than the specified range.");
-        helixConstraintItem.setEnabled(false);
         helixConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showHelixLengthConstraintDialog();
@@ -1569,7 +1557,6 @@ implements PropertyChangeListener {
         setKey(diagonalConstraintItem, KeyEvent.VK_3);
         diagonalConstraintItem.setText("Diagonal Distance…");
         diagonalConstraintItem.setToolTipText("Excludes helices whose distance from the diagonal line (2D view) is outside the given range.");
-        diagonalConstraintItem.setEnabled(false);
         diagonalConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showDiagonalDistanceConstraintDialog();
@@ -1582,7 +1569,6 @@ implements PropertyChangeListener {
         setKey(aa_agConstraintItem, KeyEvent.VK_4);
         aa_agConstraintItem.setText("AA / AG Ends…");
         aa_agConstraintItem.setToolTipText("Excludes helices that do not have AA or AG 'just past' their ends.");
-        aa_agConstraintItem.setEnabled(false);
         aa_agConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showAA_AGEndsConstraintDialog();
@@ -1595,7 +1581,6 @@ implements PropertyChangeListener {
         setKey(eLoopConstraintItem, KeyEvent.VK_5);
         eLoopConstraintItem.setText("E-Loop…");
         eLoopConstraintItem.setToolTipText("Excludes helices unless they have AAG at 3' start, AUG at 5' start, GAA at 3' end, and AUG at 5' end.");
-        eLoopConstraintItem.setEnabled(false);
         eLoopConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showELoopConstraintDialog();
@@ -1608,7 +1593,6 @@ implements PropertyChangeListener {
         setKey(energyConstraintItem, KeyEvent.VK_6);
         energyConstraintItem.setText("Helix Energy…");
         energyConstraintItem.setToolTipText("Excludes helices that have an energy value outside the given range.");
-        energyConstraintItem.setEnabled(false);
         energyConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showEnergyConstraintDialog();
@@ -1621,7 +1605,6 @@ implements PropertyChangeListener {
         setKey(complexConstraintItem, KeyEvent.VK_7);
         complexConstraintItem.setText("Complex Distance…");
         complexConstraintItem.setToolTipText("Excludes helices with simple or complex distances that are greater than the specified maximums.");
-        complexConstraintItem.setEnabled(false);
         complexConstraintItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showComplexDistanceConstraintDialog();
@@ -1815,12 +1798,6 @@ implements PropertyChangeListener {
      */
     public void addConstraint(Filter filter) {
         try {
-            try {
-                appMain.snapshotRNAData();
-            } catch (IOException e) {
-                e.printStackTrace();
-                log(WARN, "Unable to take a snapshot of previous state (see trace above); Undo will not work.");
-            }
             // to guarantee the script command is correct, constraints are
             // applied by executing the equivalent script command instead of
             // by calling appMain.addConstraint() and updateImage() (see
@@ -1830,13 +1807,40 @@ implements PropertyChangeListener {
             appMain.incrementUndo(); // success; next snapshot should use a new number
             // TODO: should the history-update portion be an option?
             addHistoryCommand(equivalentScriptCommand);
+            if (filter instanceof EnergyMaxMinFilter) {
+                // to reduce confusion, if an energy filter has been applied
+                // then make sure that the “spectrum” is visible
+                if (!showBinsCheckBox.isSelected()) {
+                    showBinsCheckBox.doClick();
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            log(WARN, "Unable to produce script command for filter history (see trace above).");
+            log(WARN, "Unable to produce script command for constraint history (see trace above).");
         }
     }
 
+    private boolean constraintPreCheckError() {
+        return constraintPreCheckError(false/* no helices OK */);
+    }
+
+    private boolean constraintPreCheckError(boolean noHelicesOK) {
+        if (this.appMain.rnaData == null) {
+            showError("Please open an RNA file first.", "No RNA Loaded");
+            return true;
+        }
+        if ((!noHelicesOK) && this.appMain.rnaData.getHelices().isEmpty()) {
+            showError("There are no helices defined; please apply a base-pair constraint first.", "No Base-Pairs Chosen");
+            return true;
+        }
+        // no error
+        return false;
+    }
+
     private void showAA_AGEndsConstraintDialog() {
+        if (constraintPreCheckError()) {
+            return;
+        }
         FilterDialog fd = new AAandAGFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
@@ -1846,12 +1850,14 @@ implements PropertyChangeListener {
     }
 
     private void showBasePairConstraintDialog() {
+        if (constraintPreCheckError(true/* no helices OK */)) {
+            return;
+        }
         FilterDialog fd = new BasepairFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addConstraint(newFilter);
-            this.enableConstraintMenuItems(true);
             HelixStore helices = appMain.rnaData.getHelices();
             int count = ((helices != null) ? helices.getHelixCount() : 0);
             this.helixTotalField.setText("" + count);
@@ -1859,6 +1865,9 @@ implements PropertyChangeListener {
     }
 
     private void showComplexDistanceConstraintDialog() {
+        if (constraintPreCheckError()) {
+            return;
+        }
         FilterDialog fd = new ComplexFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
@@ -1868,6 +1877,9 @@ implements PropertyChangeListener {
     }
 
     private void showDiagonalDistanceConstraintDialog() {
+        if (constraintPreCheckError()) {
+            return;
+        }
         FilterDialog fd = new DiagonalFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
@@ -1877,6 +1889,9 @@ implements PropertyChangeListener {
     }
 
     private void showELoopConstraintDialog() {
+        if (constraintPreCheckError()) {
+            return;
+        }
         FilterDialog fd = new ELoopFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
@@ -1886,6 +1901,9 @@ implements PropertyChangeListener {
     }
 
     private void showEnergyConstraintDialog() {
+        if (constraintPreCheckError()) {
+            return;
+        }
         FilterDialog fd = new EnergyFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
@@ -1895,6 +1913,9 @@ implements PropertyChangeListener {
     }
 
     private void showHelixLengthConstraintDialog() {
+        if (constraintPreCheckError()) {
+            return;
+        }
         FilterDialog fd = new HelixFilterDialog();
         fd.run(this);
         Filter newFilter = fd.getNewFilter();
@@ -1907,9 +1928,16 @@ implements PropertyChangeListener {
         try {
             int index = appMain.getUndoIndex() - 1;
             appMain.revertToPreviousRNA(index);
+            if (appMain.getHistoryCommands().isEmpty()) {
+                // to reduce confusion, if all constraints have been removed
+                // then make sure that “untagged helices” are made visible
+                if (!showUnconstrainedCheckBox.isSelected()) {
+                    showUnconstrainedCheckBox.doClick();
+                }
+            }
             updateImage();
             refreshHistoryTextPane();
-            log(INFO, "Reverted to snapshot #" + index + ".");
+            log(INFO, "Reverted to constraint #" + index + ".");
         } catch (Exception e) {
             e.printStackTrace();
             log(WARN, "Unable to undo (see trace above).");
@@ -1998,6 +2026,9 @@ implements PropertyChangeListener {
             } catch (java.io.IOException e) {
                 e.printStackTrace();
                 showError(e.getMessage(), "Save Error");
+            } catch (java.lang.OutOfMemoryError e) {
+                e.printStackTrace();
+                showError("There is not enough memory to save the RNA image at this size.  Zoom out some more and try again.", "Memory Error");
             }
         }
     }
@@ -2128,8 +2159,6 @@ implements PropertyChangeListener {
         this.helixInfoTextPane.setText("");
         clearHistory();
         setControlLabels();
-        this.enableConstraintMenuItems(false);
-        this.basepairConstraintItem.setEnabled(true);
         this.updateImage(); // erases to blank if "appMain.rnaData" is null
         this.displayPane.repaint();
     }
@@ -2150,7 +2179,7 @@ implements PropertyChangeListener {
                 // openRNA()/openOverlayRNA() will call refreshForNewRNA()
                 if (isOverlay) {
                     // in AppMain class, overlay data automatically
-                    // uses the same base-pair filter as the original
+                    // uses the same base-pairs as the original
                     appMain.openOverlayRNA(inputFile.getAbsolutePath(), openOverlayColorPanel.getBackground());
                 } else {
                     appMain.openRNA(inputFile.getAbsolutePath());
@@ -2399,6 +2428,7 @@ implements PropertyChangeListener {
     private JCheckBox showGridCheckBox;
     private JCheckBox showBinsCheckBox;
     private JCheckBox showTagsCheckBox;
+    private JCheckBox showUnconstrainedCheckBox;
     private RNADisplay displayPane;
     private AboutFrame aboutFrame;
     private MiniFrame miniFrame;

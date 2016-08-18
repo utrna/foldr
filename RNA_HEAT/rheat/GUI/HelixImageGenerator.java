@@ -7,6 +7,7 @@
 package rheat.GUI;
 
 import rheat.base.*;
+import rheat.filter.EnergyMaxMinFilter;
 import java.awt.*;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -35,9 +36,10 @@ import java.util.*;
 public class HelixImageGenerator {
 
     public enum OptionalElement {
-        GRID,
-        HELIX_ANNOTATIONS,
-        HELIX_COLOR_SPECTRUM
+        GRID, // background grid lines
+        HELIX_ANNOTATIONS, // helices that have at least one annotation and/or matching constraint
+        HELIX_NO_ANNOTATIONS, // helices that have exactly ZERO annotations (i.e. normally filtered out)
+        HELIX_COLOR_SPECTRUM // choose helix colors from spectrums based on bins, overriding default colors
     }
 
     public enum HelixType {
@@ -607,9 +609,15 @@ public class HelixImageGenerator {
         boolean becameSelected = false;
         boolean showAnnotations = false;
         boolean allowAnnotations = isVisible(OptionalElement.HELIX_ANNOTATIONS);
+        boolean allowUnconstrained = (isVisible(OptionalElement.HELIX_NO_ANNOTATIONS) ||
+                                      (helixType == HelixType.ACTUAL));
         Set<String> helixTags = h.getTags();
         Color annotationColor = defaultAnnotationColor; // initially...
         Stroke annotationStroke = strokeAnnotatedHelix; // initially...
+        if ((!allowUnconstrained) && ((helixTags == null) || helixTags.isEmpty())) {
+            // do not render unconstrained helices (simulate being filtered-out)
+            return;
+        }
         if ((helixTags != null) && (allowAnnotations)) {
             // determine if any of the tags on this helix are visible
             int usedTagCount = helixTags.size();
@@ -647,7 +655,7 @@ public class HelixImageGenerator {
         }
         final double energyBinSize = 0.1;
         final double helixEnergy = h.getEnergy();
-        boolean showEnergyBins = ((!showAnnotations) &&
+        boolean showEnergyBins = (/*EnergyMaxMinFilter.appliedToHelix(h) &&*/
                                   isVisible(OptionalElement.HELIX_COLOR_SPECTRUM));
         if (showEnergyBins) {
             int colorIndex = h.getBinNumber();
