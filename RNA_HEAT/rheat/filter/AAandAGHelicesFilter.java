@@ -1,13 +1,8 @@
 /*
- *
  * AAandAGHelicesFilter.java
  *
  * Created on April 4, 2003, 2:44 PM
  */
-
-/** This Filter outputs helices which have AA or AG at their ends.
- */    
-
 
 package rheat.filter;
 
@@ -17,21 +12,21 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
+ * Finds helices which have AA or AG at their ends.
+ * Note that this looks outside the normal boundaries
+ * of a helix.
  *
  * @author  TEAM MATRIX
  */
-
 public class AAandAGHelicesFilter
 extends rheat.filter.Filter {
-        
-    /** Creates a new instance of AAandAGHelicesFilter */
+
     public AAandAGHelicesFilter() {
     }
-    
-    public RNA apply(RNA rna){
-        HelixStore hs = rna.getHelices();
-        HelixGrid hg = new HelixGrid(rna.getSequence().size());
-        Iterator itr = hs.iterator();
+
+    @Override
+    public void applyConstraint(RNA rna) {
+        Iterator itr = rna.getHelices().iterator();
         boolean atStart = false, atEnd = false, Selected = false;        
         String a = " ", b = " ", c = " ", d = " ";        
 
@@ -72,19 +67,17 @@ extends rheat.filter.Filter {
                 }            
             
 
-             if (Selected){
-                hg.addHelix(h);
-             }                        
-
+             if (Selected) {
+                 h.addTag(Helix.InternalTags.TAG_MATCH_AA_AG);
+             } else {                     
+                 h.removeTag(Helix.InternalTags.TAG_MATCH_AA_AG);
+             }
         }
-        rna.setHelices(hg);
-        return rna;
     }
 
-        
-    
-/** Sets Arguments for the Filter
- */    
-    public void setArguments(){
+    @Override
+    public void removeConstraint(RNA rna) {
+        removeTagAllPredictedHelices(rna, Helix.InternalTags.TAG_MATCH_AA_AG);
     }
+
 }

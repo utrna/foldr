@@ -30,7 +30,60 @@ import java.util.Set;
 public class Helix
 implements Comparable<Helix>, java.io.Serializable {
 
-    public static int NO_BIN = -1; // see setBinNumber()
+    /**
+     * For use with Helix.addTag(), typically to keep track of the
+     * helices that matched the settings of a particular constraint.
+     * By convention, built-in tags have underscores at start/end so
+     * they are unlikely to conflict with anything set by the user.
+     */
+    static public interface InternalTags {
+
+        /**
+         * Helix is from original data file, above diagonal; see setActual().
+         */
+        public static final String TAG_ACTUAL = "_ACTUAL_";
+
+        /**
+         * Helix was successfully assigned an energy value by a constraint.
+         */
+        public static final String TAG_MATCH_ENERGY = "_MATCH_ENERGY_";
+
+        /**
+         * Helix matches the AAandAGHelicesFilter object.
+         */
+        public static final String TAG_MATCH_AA_AG = "_MATCH_AA_AG_";
+
+        /**
+         * Helix matches the ComplexFilter object.
+         */
+        public static final String TAG_MATCH_COMPLEX_DISTANCE = "_MATCH_COMPLEX_DISTANCE_";
+
+        /**
+         * Helix matches the DiagonalDistanceFilter object, NORMAL mode.
+         */
+        public static final String TAG_MATCH_DIAGONAL_DISTANCE = "_MATCH_DIAGONAL_DISTANCE_";
+
+        /**
+         * Helix matches the DiagonalDistanceFilter object, INVERTED mode.
+         */
+        public static final String TAG_MATCH_NON_DIAGONAL_DISTANCE = "_MATCH_NON_DIAGONAL_DISTANCE_";
+
+        /**
+         * Helix matches the ELoopHelicesFilter object.
+         */
+        public static final String TAG_MATCH_E_LOOP = "_MATCH_E_LOOP_";
+
+        /**
+         * Helix matches the MaxMinFilter object.
+         */
+        public static final String TAG_MATCH_LENGTH = "_MATCH_LENGTH_";
+
+    }
+
+    /**
+     * Used with setBinNumber() to indicate a lack of bin membership.
+     */
+    public static final int NO_BIN = -1;
 
     /**
      * In some cases it is useful to be able to compare helices using
@@ -133,6 +186,7 @@ implements Comparable<Helix>, java.io.Serializable {
         helixLength = hlen;
         tags = null;
         binNumber = -1;
+        helixEnergy = 0;
     }
 
     /**
@@ -145,6 +199,55 @@ implements Comparable<Helix>, java.io.Serializable {
         tags.add(tag);
     }
 
+    /**
+     * Deletes string tag set by addTag().
+     */
+    public void removeTag(String tag) {
+        if (tags != null) {
+            tags.remove(tag);
+        }
+    }
+
+    /**
+     * Returns true if the annotations of this helix include
+     * the given tag, in a search that is faster than manual
+     * iteration would be.
+     */
+    public boolean hasTag(String tagName) {
+        boolean result = false;
+        Set<String> tags = getTags();
+        if (tags != null) {
+            result = tags.contains(tagName);
+        }
+        return result;
+    }
+
+    /**
+     * Returns any annotations on this helix.  May be null.
+     */
+    public Set<String> getTags() {
+        return tags; // may be null
+    }
+
+    /**
+     * Specifies that this Helix OBJECT represents an actual helix
+     * (as opposed to other Helix objects that may be equal in
+     * range but rendered below the diagonal).
+     */
+    public void setActual() {
+        addTag(InternalTags.TAG_ACTUAL);
+    }
+
+    /**
+     * @return true only if setActual() was called
+     */
+    public boolean isActualHelix() {
+        return hasTag(InternalTags.TAG_ACTUAL);
+    }
+
+    /**
+     * Returns the value set by setBinNumber().
+     */
     public int getBinNumber() {
         return binNumber; // may be -1
     }
@@ -159,10 +262,6 @@ implements Comparable<Helix>, java.io.Serializable {
      */
     public void setBinNumber(int binNumber) {
         this.binNumber = binNumber;
-    }
-
-    public Set<String> getTags() {
-        return tags; // may be null
     }
 
     /** Returns the starting X position.
@@ -292,4 +391,5 @@ implements Comparable<Helix>, java.io.Serializable {
     private int binNumber;
     private double helixEnergy;
     private HashSet<String> tags; // created on demand
+
 }

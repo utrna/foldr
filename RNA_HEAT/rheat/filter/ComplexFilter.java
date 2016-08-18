@@ -4,11 +4,6 @@
  * Created on May 1, 2003, 2:44 PM
  */
 
-/** This Filter outputs helices within a particular complex distance
- */
-
-
-
 package rheat.filter;
 
 import rheat.base.*;
@@ -17,20 +12,14 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
+ * Finds helices within a particular complex distance
+ * or simple distance.
  *
  * @author  TEAM MATRIX
  */
-
 public class ComplexFilter
 extends rheat.filter.Filter {
 
-    private int ComplexDistance;
-    private int SimpleDistance;
-    //private RNA rna_diagonal;
-    //private RNA rna_non_diagonal;
-    private RNA r;
-    
-    /** Creates a new instance of MaxMinFilter */
     public ComplexFilter() {
         ComplexDistance = Integer.MAX_VALUE;
         SimpleDistance = Integer.MAX_VALUE;
@@ -44,14 +33,14 @@ extends rheat.filter.Filter {
         return this.SimpleDistance;
     }
 
-    public RNA apply(RNA rna){
-        r = rna;
-        //rna_diagonal = rna;
+    public void applyConstraint(RNA rna) {
+
+        this.r = rna;
 
 ///////Creating a Diagonal set of helices        
-        BasePairRangeHelicesFilter bprf = new BasePairRangeHelicesFilter();
+        DiagonalDistanceFilter bprf = new DiagonalDistanceFilter();
         bprf.setArguments(0, SimpleDistance);
-        rna = bprf.apply(rna);
+        bprf.applyConstraint(rna);
         
         HelixStore hsDiagonal = rna.getHelices();
         //HelixStore hsSorted = SortHelicesByEnergy(hsDiagonal); //james
@@ -59,23 +48,23 @@ extends rheat.filter.Filter {
         
 ///////Creating a Non-Diagonal set of helices
 //        RNA rna_non_diagonal = rna;
-        AllHelicesFilter ahf = new AllHelicesFilter();
-        ahf.setArguments();
-        rna = ahf.apply(rna);
+        // TODO: not clear why all helices are restored here
+        // (could the steps above have operated on any RNA, even a copy?)
+        rna.resetPredictedHelices();
         
-        NonDiagonalHelicesFilter ndf = new NonDiagonalHelicesFilter(); //guru
+        DiagonalDistanceFilter ndf = new DiagonalDistanceFilter(DiagonalDistanceFilter.Mode.INVERTED);
         ndf.setArguments(0, SimpleDistance);
-        rna = ndf.apply(rna);
+        ndf.applyConstraint(rna);
 //////////        
 
-        
         HelixStore hsNonDiagonal = rna.getHelices();
-        HelixGrid hg = new HelixGrid(rna.getSequence().size());
         Iterator itr = hsNonDiagonal.iterator();
         while(itr.hasNext()){
             Helix h = (Helix)itr.next();
             if (complexDistance(h, hsNonIntersecting) <= ComplexDistance){
-                hg.addHelix(h);
+                h.addTag(Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE);
+            } else {
+                h.removeTag(Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE);
             }
         }
         
@@ -83,14 +72,16 @@ extends rheat.filter.Filter {
         Iterator newitr = hsNonIntersecting.iterator();
         while(newitr.hasNext()) {
             Helix h = (Helix)newitr.next();
-            hg.addHelix(h);
+            h.addTag(Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE);
         }
         //HelixStore newhg = pickNonIntersectingDiagonals(hg);
-        //rna.setHelices(newhg);
-        rna.setHelices(hg);
-        return rna;
     }
-    
+
+    @Override
+    public void removeConstraint(RNA rna) {
+        removeTagAllPredictedHelices(rna, Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE);
+    }
+
     private boolean noninterfering(HelixInfo h1, HelixInfo h2){
         if (h1.get5PrimeStart() >= h2.get5PrimeStart() && h1.get5PrimeStart() <= h2.get5PrimeEnd()){
             return false;
@@ -106,7 +97,7 @@ extends rheat.filter.Filter {
         }
         return true;
     }
-    
+
     private HelixStore pickNonIntersectingDiagonals(HelixStore hs){
         HelixGrid result = new HelixGrid(hs.getSequenceLength());
         if (hs.isEmpty()) {
@@ -122,7 +113,9 @@ extends rheat.filter.Filter {
         }
         java.util.Collections.sort(helixList, new HelixComparator());
         ArrayList<Helix> permanent = new ArrayList<Helix>();
-        permanent.add(helixList.get(0));
+        if (!helixList.isEmpty()) {
+            permanent.add(helixList.get(0));
+        }
         HelixInfo hinfo_1;
         HelixInfo hinfo_2;
         boolean good = true;
@@ -150,10 +143,9 @@ extends rheat.filter.Filter {
         }
         return result;
     }
-    
+
     /** Function to find complex distance
      */
-    
     private int complexDistance(Helix h, HelixStore hsDiagonal) {
         
         HelixStore hsWithin = PopulateHelicesWithin(h, hsDiagonal);
@@ -162,8 +154,7 @@ extends rheat.filter.Filter {
         int CD = CalculateComplexDistance(hsMinimal, h);
         return (CD);
     }
-    
-    
+
 /* Function that returns true if slave is within master
  */
     private HelixStore PopulateHelicesWithin(Helix h, HelixStore hsDiagonal) {
@@ -181,8 +172,7 @@ extends rheat.filter.Filter {
         }
         return (hswithin);
     }
-    
-    
+
 /* Function that actually calculates the complex distance given the helices within h
  */
     private int CalculateComplexDistance(HelixStore hs, Helix h) {
@@ -198,8 +188,7 @@ extends rheat.filter.Filter {
         }
         return(distance);
     }
-    
-    
+
 /* Function that returns true if slave is within master
  */
     private boolean within(Helix slave, Helix master) {
@@ -212,7 +201,7 @@ extends rheat.filter.Filter {
         else
             return false;
     }
-    
+
     /** Removes Overlappin Helices from hs
      * @param HelixStore
      * @return HelixStore
@@ -234,8 +223,7 @@ extends rheat.filter.Filter {
         }
         return (hsminimal);
     }
-    
-    
+
     /**
      * Sets Arguments for the Filter.
      * @param cd complex distance
@@ -245,6 +233,11 @@ extends rheat.filter.Filter {
         ComplexDistance = cd;
         SimpleDistance = sd;
     }
+
+    private int ComplexDistance;
+    private int SimpleDistance;
+    private RNA r;
+
 }
 
 

@@ -53,6 +53,13 @@ public class HelixGrid implements HelixStore {
     }
 
     @Override
+    public void clear() {
+        final int seqLength = getSequenceLength();
+        helices.clear();
+        pairings = new Helix[seqLength][seqLength]; // clear to zero
+    }
+
+    @Override
     public int getHelixCount() {
         return helices.size();
     }

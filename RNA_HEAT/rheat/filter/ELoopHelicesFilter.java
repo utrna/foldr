@@ -1,14 +1,8 @@
 /*
- *
  * ELoopHelicesFilter.java
  *
  * Created on April 4, 2003, 2:44 PM
  */
-
-/** This Filter outputs all E loop helices 
- */    
-
-
 
 package rheat.filter;
 
@@ -18,21 +12,20 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
+ * Identifies E-loop helices.
  *
  * @author  TEAM MATRIX
  */
-
 public class ELoopHelicesFilter
 extends rheat.filter.Filter {
-        
-    /** Creates a new instance of ELoopHelicesFilter */
+
     public ELoopHelicesFilter() {
     }
-    
-    public RNA apply(RNA rna) {
+
+    @Override
+    public void applyConstraint(RNA rna) {
         HelixStore hs = rna.getHelices();
         ArrayList sequence = rna.getSequence();        
-        HelixGrid hg = new HelixGrid(rna.getSequence().size());
         boolean containsAUG = false, containsAAG = false, isELoop = false, noException;
         String a = " ", b = " ", c = " ", d = " ";              
         
@@ -97,21 +90,18 @@ extends rheat.filter.Filter {
                     
                 if (containsAUG && containsAAG)
                             isELoop = true;
-                        
             
-            if (isELoop){
-                hg.addHelix(h);
+            if (isELoop) {
+                h.addTag(Helix.InternalTags.TAG_MATCH_E_LOOP);
+            } else {
+                h.removeTag(Helix.InternalTags.TAG_MATCH_E_LOOP);
             }
-                                    
         }
-        rna.setHelices(hg);
-        return rna;
     }
-    
-   
-    
-/** Sets Arguments for the Filter
- */    
-    public void setArguments(){
+
+    @Override
+    public void removeConstraint(RNA rna) {
+        removeTagAllPredictedHelices(rna, Helix.InternalTags.TAG_MATCH_E_LOOP);
     }
+
 }

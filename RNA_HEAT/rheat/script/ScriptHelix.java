@@ -129,7 +129,7 @@ public class ScriptHelix {
      * given string, in a search that is faster than manual
      * iteration would be.
      */
-    public boolean tagsInclude(String tag) throws ScriptException {
+    public boolean hasTag(String tag) throws ScriptException {
         boolean result = false;
         try {
             Set<String> tags = rawHelix.getTags();
@@ -140,6 +140,15 @@ public class ScriptHelix {
             ScriptMain.rethrowAsScriptException(e);
         }
         return result;
+    }
+
+    /**
+     * Deprecated name for hasTag().  Maintained for compatibility
+     * with older scripts but this could be removed at some point.
+     */
+    public boolean tagsInclude(String tag) throws ScriptException {
+        ScriptMain.deprecationWarning("tagsInclude", "hasTag");
+        return hasTag(tag);
     }
 
     /**

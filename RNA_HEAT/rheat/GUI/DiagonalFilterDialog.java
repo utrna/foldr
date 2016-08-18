@@ -7,7 +7,7 @@
 package rheat.GUI;
 
 import rheat.base.*;
-import rheat.filter.BasePairRangeHelicesFilter;
+import rheat.filter.DiagonalDistanceFilter;
 import rheat.filter.Filter;
 import javax.swing.JOptionPane;
 
@@ -84,7 +84,7 @@ extends FilterDialog {
      * user has accepted the dialog).
      */
     void actionPanelAccepted() {
-        BasePairRangeHelicesFilter newFilter = new BasePairRangeHelicesFilter();
+        DiagonalDistanceFilter newFilter = new DiagonalDistanceFilter();
         try {
             int min = 1; 
             int max = Integer.MAX_VALUE;

@@ -14,20 +14,18 @@ import java.lang.Object;
 
 
 /**
+ * Calculates helix energy values.
  *
  * @author  Team MatriX
  */
-
 public class EnergyMaxMinFilter
 extends rheat.filter.Filter {
-    
+
     double minEnergy;
     double maxEnergy;
     double[][] EnergyData;
     double INF;
-    
   
-    /** Creates a new instance of EnergyMaxMinFilter */
     public EnergyMaxMinFilter() {
         maxEnergy = Double.POSITIVE_INFINITY;
         minEnergy = Double.NEGATIVE_INFINITY;
@@ -65,13 +63,20 @@ extends rheat.filter.Filter {
         return this.maxEnergy;
     }
 
+    /**
+     * Short-cut to see if a helix has matched ANY energy constraint
+     * (that is, if its energy is in the maximum/minimum range of
+     * some constraint).
+     */
+    static public boolean appliedToHelix(Helix h) {
+        return h.hasTag(Helix.InternalTags.TAG_MATCH_ENERGY);
+    }
+
     /** for each helix calculate energy and see if in range, if yes keep **/
-    public RNA apply(RNA rna) {
+    @Override
+    public void applyConstraint(RNA rna) {
         ArrayList sequence = rna.getSequence();
-        HelixStore OldStore = rna.getHelices();
-        HelixStore NewStore = new HelixGrid(sequence.size()); 
-        
-        Iterator i = OldStore.iterator();
+        Iterator i = rna.getHelices().iterator();
         while(i.hasNext())
         {
             Helix h = (Helix)i.next();
@@ -80,20 +85,23 @@ extends rheat.filter.Filter {
             final int numBins = 30; // arbitrary (FIXME: make customizable)
             int binNumber = AppMain.selectBin(HelixEnergy, numBins, minEnergy, maxEnergy);
             if (binNumber != -1) {
-                NewStore.addHelix(h);
+                h.addTag(Helix.InternalTags.TAG_MATCH_ENERGY);
                 h.setBinNumber(binNumber); // may be -1 (no bin)
+            } else {
+                h.removeTag(Helix.InternalTags.TAG_MATCH_ENERGY);
             }
         }
-        rna.setHelices(NewStore);
-        return rna;
     }
-    
 
-    
+    @Override
+    public void removeConstraint(RNA rna) {
+        removeTagAllPredictedHelices(rna, Helix.InternalTags.TAG_MATCH_ENERGY);
+    }
+
     private double getValueAt(int row, int col) {
         return EnergyData[row][col];
     }   
-    
+
     private int getBasepairIndex(char first, char second) {
         String basepair = ("" + first + second).toLowerCase();
         
@@ -108,7 +116,7 @@ extends rheat.filter.Filter {
 
         return i;
     }
-    
+
     private double findEnergy(Helix h, RNA rna)
     {
         HelixInfo hinfo = new HelixInfo(h, rna);

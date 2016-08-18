@@ -31,8 +31,8 @@ public class ConstraintInterpreter {
             sb.append("addAAandAGFilter(");
             // no arguments defined
             sb.append(")");
-        } else if (filter instanceof BasePairRangeHelicesFilter) {
-            BasePairRangeHelicesFilter castFilter = (BasePairRangeHelicesFilter)filter;
+        } else if (filter instanceof DiagonalDistanceFilter) {
+            DiagonalDistanceFilter castFilter = (DiagonalDistanceFilter)filter;
             sb.append("addDiagonalDistanceFilter(");
             sb.append(castFilter.getRangeMax());
             sb.append(", ");
@@ -41,7 +41,7 @@ public class ConstraintInterpreter {
         } else if (filter instanceof BPFilter) {
             BPFilter castFilter = (BPFilter)filter;
             BitSet enabledBP = castFilter.getBasePairs();
-            sb.append("addBasePairFilter(");
+            sb.append("setBasePairs(");
             Vector<String> pairs = new Vector<String>();
             if (enabledBP.get(BasepairType.AA)) {
                 pairs.add("AA");

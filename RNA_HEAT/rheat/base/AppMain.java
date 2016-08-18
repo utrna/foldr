@@ -1,6 +1,5 @@
 package rheat.base;
 
-import rheat.filter.AllHelicesFilter;
 import rheat.filter.BPFilter;
 import rheat.filter.Filter;
 import rheat.GUI.RheatApp;
@@ -409,14 +408,6 @@ public class AppMain {
     }
 
     /**
-     * Returns the directory for storing undo-files.
-     */
-    public String getUndoDir() {
-        // return temporary directory, or current directory if none
-        return System.getProperty("java.io.tmpdir", getWorkingDir());
-    }
-
-    /**
      * Returns the current directory, which is set automatically as
      * scripts run.  (Look for "user.dir" in the code.)  This
      * determines the meaning of relative path names when looking for
@@ -576,7 +567,7 @@ public class AppMain {
             // apply same transforms to overlay data
             for (Filter filter : this.filterList) {
                 if (filter instanceof BPFilter) {
-                    newData = filter.apply(newData);
+                    filter.applyConstraint(newData);
                 }
             }
             this.overlayData.add(newData);
@@ -746,15 +737,6 @@ public class AppMain {
     }
 
     /**
-     * Creates another snapshot of "rnaData".
-     */
-    public void snapshotRNAData() throws IOException {
-        String undoFile = makePath(getUndoDir(), "undo" + currentUndo);
-        ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(undoFile));
-        ois.writeObject(this.rnaData);
-    }
-
-    /**
      * Adds 1 to the current undo index.
      */
     public void incrementUndo() {
@@ -769,15 +751,12 @@ public class AppMain {
     }
 
     /**
-     * Replaces "rnaData" with a previous version, as
-     * captured by a call to snapshotRNAData().
+     * Asks the most-recently-applied constraint to roll back its changes.
      */
     public void revertToPreviousRNA(int undoIndex) throws ClassNotFoundException, IOException {
-        String s = getUndoDir() + File.separator + "undo" + undoIndex;
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(s));
-        RNA old = (RNA)ois.readObject();
-        this.rnaData = old;
-        this.filterList.remove(this.filterList.size() - 1);
+        Filter filter = this.filterList.remove(this.filterList.size() - 1);
+        filter.removeConstraint(this.rnaData);
+        // FIXME: put this in Script Console history instead of separate history
         this.constrHistCommands.remove(this.constrHistCommands.size() - 1);
         this.currentUndo = undoIndex;
     }
@@ -788,26 +767,21 @@ public class AppMain {
      */
     public void addFilter(Filter filter) {
         // FIXME: create low-level history list (in GUI for now)
-        RNA newData = filter.apply(this.rnaData);
-        if (newData == null) {
-            log(ERROR, "Filter failed to apply.");
-        } else {
-            this.rnaData = newData;
-            this.filterList.add(filter);
-            if (filter instanceof BPFilter) {
-                // if a base-pair filter is used, keep the overlay in sync
-                for (int i = 0; i < this.overlayData.size(); ++i) {
-                    RNA oldData = this.overlayData.get(i);
-                    RNA newOverlayData = filter.apply(oldData);
-                    if (newOverlayData == null) {
-                        log(ERROR, "Filter failed to apply to overlay data.");
-                    } else {
-                        this.overlayData.set(i, newData);
-                    }
-                }
+        filter.applyConstraint(this.rnaData);
+        this.filterList.add(filter);
+        if (filter instanceof BPFilter) {
+            // if a base-pair filter is used, keep the overlay in sync
+            for (int i = 0; i < this.overlayData.size(); ++i) {
+                RNA overlayData = this.overlayData.get(i);
+                filter.applyConstraint(overlayData);
+                this.overlayData.set(i, overlayData);
             }
             if (this.gui != null) {
                 this.gui.refreshForNewRNA(EnumSet.of(RheatApp.RNADisplayFeature.ZOOM_LEVEL));
+            }
+        } else {
+            if (this.gui != null) {
+                this.gui.refreshCurrentRNA();
             }
         }
     }
@@ -816,18 +790,12 @@ public class AppMain {
      * Clears the history list and shows all helices.
      */
     public void removeFilters() {
-        // FIXME: use low-level history list (in GUI for now)
-        AllHelicesFilter filter = new AllHelicesFilter();
-        RNA newData = filter.apply(this.rnaData);
-        if (newData == null) {
-            log(ERROR, "All-helices filter failed to apply.");
-        } else {
-            this.rnaData = newData;
-            this.filterList.clear();
-            if (this.gui != null) {
-                this.gui.clearHistory();
-                this.gui.refreshForNewRNA();
-            }
+        this.rnaData.resetPredictedHelices();
+        this.filterList.clear();
+        if (this.gui != null) {
+            // FIXME: use low-level history list (in GUI for now)
+            this.gui.clearHistory();
+            this.gui.refreshForNewRNA();
         }
     }
 

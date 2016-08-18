@@ -7,7 +7,6 @@
 package rheat.GUI;
 
 import rheat.base.*;
-import rheat.filter.AllHelicesFilter;
 import rheat.filter.BPFilter;
 import rheat.filter.Filter;
 
@@ -28,6 +27,14 @@ extends FilterDialog {
      */
     public rheat.filter.Filter getNewFilter() {
         return filter;
+    }
+
+    /**
+     * Customizes the primary action button.
+     */
+    @Override
+    public String getOKTitle() {
+        return "Set";
     }
 
     /** This method is called from within the constructor to

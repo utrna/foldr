@@ -26,4 +26,12 @@ public abstract class FilterDialog extends RheatApp.RheatActionPanel {
      */
     abstract public Filter getNewFilter();
 
+    /**
+     * Customizes the primary action button.
+     */
+    @Override
+    public String getOKTitle() {
+        return "Continue";
+    }
+
 }

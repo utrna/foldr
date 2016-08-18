@@ -29,10 +29,10 @@ for (i = 0; i < helices.length(); ++i) {
             this_tag = tags.next()
             rheat.log(rheat.INFO, "predicted helix #" + i + ": tag=" + this_tag)
         }
-        if (!helix.tagsInclude(test_tags[current_test])) {
+        if (!helix.hasTag(test_tags[current_test])) {
             throw "TEST FAILED: helix tag '" + test_tags[current_test] + "' not found when it should be found"
         }
-        if (helix.tagsInclude(test_nontags[current_test])) {
+        if (helix.hasTag(test_nontags[current_test])) {
             throw "TEST FAILED: helix tag '" + test_nontags[current_test] + "' found when it should NOT be found"
         }
         ++current_test

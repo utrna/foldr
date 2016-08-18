@@ -18,10 +18,7 @@ import java.util.BitSet;
  */
 public class BPFilter
 extends rheat.filter.Filter {
-    
-    /**
-     * Creates a new instance of BPFilter.
-     */
+
     public BPFilter() {
         int[] defaultrule = {BasepairType.AU, BasepairType.CG, BasepairType.GU};
         bprules = BasepairType.returnBasepairTypes(defaultrule);
@@ -30,33 +27,33 @@ extends rheat.filter.Filter {
     public BitSet getBasePairs() {
         return bprules;
     }
-    
-    /** Apply this filter.
-     * @return A new RNA due to the result of applying this Filter.
-     */    
-    public RNA apply(RNA rna){
+
+    @Override
+    public void applyConstraint(RNA rna) {
         ArrayList sequence = rna.getSequence();
         boolean[][] bp = new boolean[sequence.size()][sequence.size()];
-        for (int i = 0; i < sequence.size(); i++){
-            for (int j = 0; j < i; j++){
+        for (int i = 0; i < sequence.size(); i++) {
+            for (int j = 0; j < i; j++) {
                 String a = ((String)sequence.get(i)).toLowerCase();
                 String b = ((String)sequence.get(j)).toLowerCase();
                 int r = BasepairType.getBasepairType(a, b);
-                if (bprules.get(r)){
+                if (bprules.get(r)) {
                     bp[i][j] = true;
                 }
             }
         }
-        rna.setBasePairs(bp);
-        rna = new AllHelicesFilter().apply(rna);
-        return rna;
+        rna.setBasePairs(bp); // clears and rebuilds helices
     }
-    
-    public void setArguments(int[] array){
+
+    @Override
+    public void removeConstraint(RNA rna) {
+        AppMain.log(AppMain.ERROR, "Unable to Undo a base-pair setting; just apply a new one.");
+    }
+
+    public void setArguments(int[] array) {
         bprules = BasepairType.returnBasepairTypes(array);
     }
-    
-    private RNA rna;
+
     private BitSet bprules;
-    
+
 }

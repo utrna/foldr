@@ -8,19 +8,19 @@ var i = 0
 rheat.openRNA('test.bpseq')
 
 // look at predicted helices (would appear bottom-left of diagonal)
-rheat.addBasePairFilter('AA', 'AG', 'CG')
+rheat.setBasePairs('AA', 'AG', 'CG')
 helices = rheat.eachPredictedHelix()
 println("number of predicted helices, after filtering AA/AG/CG: " + helices.length())
 if (helices.length() != 1790) {
     throw "TEST FAILED: wrong number of helices after applying AA/AG/CG"
 }
-rheat.addBasePairFilter('CC', 'UU')
+rheat.setBasePairs('CC', 'UU')
 helices = rheat.eachPredictedHelix()
 println("number of predicted helices, after filtering CC/UU: " + helices.length())
 if (helices.length() != 684) {
     throw "TEST FAILED: wrong number of helices after applying CC/UU"
 }
-rheat.addBasePairFilter('AU')
+rheat.setBasePairs('AU')
 helices = rheat.eachPredictedHelix()
 println("number of predicted helices, after filtering AU: " + helices.length())
 if (helices.length() != 428) {
@@ -28,18 +28,31 @@ if (helices.length() != 428) {
 }
 rheat.addEnergyFilter(-1, -2)
 helices = rheat.eachPredictedHelix()
-println("number of predicted helices, after filtering energy: " + helices.length())
-if (helices.length() != 12) {
-    throw "TEST FAILED: wrong number of helices after applying energy filter"
+var numWithEnergy = 0
+for (i = 0; i < helices.length(); ++i) {
+    helix = helices.next()
+    if (helix.hasTag('_MATCH_ENERGY_')) {
+        ++numWithEnergy
+    }
+}
+println("number of predicted helices, after filtering energy: " + numWithEnergy)
+var expNumWithEnergy = 12
+if (numWithEnergy != expNumWithEnergy) {
+    throw "TEST FAILED: wrong number of helices after applying energy filter (exp. " + expNumWithEnergy + " but saw " + numWithEnergy + ")"
 }
 test_indices =  [   2,    3,   11] // subset of total matching helices to use for testing
 test_energies = [-1.3, -1.3, -1.1] // correct energy values at selected locations
 test_lengths  = [   2,    2,    2] // correct length values at selected locations
 var current_test = 0
+var energy_index = 0
+helices = rheat.eachPredictedHelix()
 for (i = 0; i < helices.length(); ++i) {
     helix = helices.next()
+    if (!helix.hasTag('_MATCH_ENERGY')) {
+        continue
+    }
     // since there are many values, check only those chosen above
-    if (test_indices[current_test] == i) {
+    if (test_indices[current_test] == energy_index) {
         rheat.log(rheat.INFO, "predicted helix #" + i + ": energy=" + helix.energy())
         rheat.log(rheat.INFO, "predicted helix #" + i + ": len=" + helix.length())
         if (helix.energy() != test_energies[current_test]) {
@@ -50,6 +63,7 @@ for (i = 0; i < helices.length(); ++i) {
         }
         ++current_test
     }
+    ++energy_index
 }
 
 // look at actual helices (would appear top-right of diagonal)
@@ -63,8 +77,13 @@ println("number of actual helices: " + helices.length())
 if (helices.length() != expected_lengths.length) {
     throw "TEST FAILED: wrong number of helices returned"
 }
-for (i = 0; i < helices.length(); ++i) {
+// alternate approach: while-loop with no length() check
+var i = 0
+while (true) {
     helix = helices.next()
+    if (helix == null) {
+        break
+    }
     rheat.log(rheat.INFO, "actual helix #" + i + ": len=" + helix.length())
     if (expected_lengths[i] != helix.length()) {
         throw "TEST FAILED: wrong helix length returned (#" + i + " exp. " + expected_lengths[i] + " but saw " + helix.length() + ")"
@@ -81,4 +100,5 @@ for (i = 0; i < helices.length(); ++i) {
     if (expected_3p_ends[i] != helix.threePrimeEnd()) {
         throw "TEST FAILED: wrong helix 3' end returned (#" + i + " exp. " + expected_3p_ends[i] + " but saw " + helix.threePrimeEnd() + ")"
     }
+    ++i
 }

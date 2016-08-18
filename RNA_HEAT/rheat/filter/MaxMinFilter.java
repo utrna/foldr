@@ -1,15 +1,8 @@
 /*
- *
  * MaxMinFilter.java
  *
  * Created on April 4, 2003, 2:44 PM
  */
-
-/** This Filter outputs helices with length in the range MinLength and 
- * MaxLength
- */    
-
-
 
 package rheat.filter;
 
@@ -19,17 +12,16 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
+ * Finds helices with length in the given range.
  *
  * @author  TEAM MATRIX
  */
-
 public class MaxMinFilter
 extends rheat.filter.Filter {
 
     private int MaxLength;
     private int MinLength;
 
-    /** Creates a new instance of MaxMinFilter */
     public MaxMinFilter() {
         MaxLength = Integer.MAX_VALUE;
         MinLength = 1;
@@ -43,20 +35,24 @@ extends rheat.filter.Filter {
         return this.MinLength;
     }
 
-    public RNA apply(RNA rna){
-        HelixStore hs = rna.getHelices();
-        HelixGrid hg = new HelixGrid(rna.getSequence().size());
-        Iterator itr = hs.iterator();
-        while(itr.hasNext()){
+    @Override
+    public void applyConstraint(RNA rna) {
+        Iterator itr = rna.getHelices().iterator();
+        while (itr.hasNext()) {
             Helix h = (Helix)itr.next();
             if ((h.getLength() >= MinLength) && (h.getLength() <= MaxLength)){
-                hg.addHelix(h);
+                h.addTag(Helix.InternalTags.TAG_MATCH_LENGTH);
+            } else {
+                h.removeTag(Helix.InternalTags.TAG_MATCH_LENGTH);
             }
         }
-        rna.setHelices(hg);
-        return rna;
     }
-    
+
+    @Override
+    public void removeConstraint(RNA rna) {
+        removeTagAllPredictedHelices(rna, Helix.InternalTags.TAG_MATCH_LENGTH);
+    }
+
 /** Sets Arguments for the Filter
  * @param max The Maximum Length of Helix
  * @param min The Minimum Length of Helix
@@ -65,4 +61,5 @@ extends rheat.filter.Filter {
         MaxLength = max;
         MinLength = min;
     }
+
 }

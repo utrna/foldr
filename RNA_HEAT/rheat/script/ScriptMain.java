@@ -58,6 +58,14 @@ public class ScriptMain {
     }
 
     /**
+     * Helper for warning the user about outdated method names.
+     * Pass only the names of old and new methods (no "rheat.").
+     */
+    static public void deprecationWarning(String oldName, String newName) throws ScriptException {
+       _log(WARN, "Script method rheat." + oldName + " is deprecated; please use rheat." + newName + " instead.");
+    }
+
+    /**
      * Creates a scripting interface for the given object, which
      * may or may not have an associated GUI.
      * @param appMain primary application object
@@ -96,7 +104,7 @@ public class ScriptMain {
      *
      * NOTE: Should be consistent with ScriptFilterInterpreter.
      */
-    public void addBasePairFilter(String... bpArgs) throws ScriptException {
+    public void setBasePairs(String... bpArgs) throws ScriptException {
         try {
             // translate two-character strings into constants
             int[] filterArgs = new int[bpArgs.length];
@@ -117,6 +125,15 @@ public class ScriptMain {
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
+    }
+
+    /**
+     * Deprecated name for setBasePairs().  Maintained for compatibility
+     * with older scripts but this could be removed at some point.
+     */
+    public void addBasePairFilter(String... bpArgs) throws ScriptException {
+       deprecationWarning("addBasePairFilter", "setBasePairs");
+       setBasePairs(bpArgs);
     }
 
     /**
@@ -143,7 +160,7 @@ public class ScriptMain {
      */
     public void addDiagonalDistanceFilter(int rangeMax, int rangeMin) throws ScriptException {
         try {
-            BasePairRangeHelicesFilter newFilter = new BasePairRangeHelicesFilter();
+            DiagonalDistanceFilter newFilter = new DiagonalDistanceFilter();
             newFilter.setArguments(rangeMax, rangeMin);
             appMain.addFilter(newFilter);
         } catch (Exception e) {
@@ -244,7 +261,7 @@ public class ScriptMain {
         ScriptIteration<ScriptHelix> result = null;
         try {
             final RNA sourceRNA = appMain.rnaData;
-            HelixStore predictedHelices = sourceRNA.getHelices(); // FIXME: bad name
+            final HelixStore predictedHelices = sourceRNA.getHelices(); // FIXME: bad name
             result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(predictedHelices, sourceRNA));
         } catch (Exception e) {
             rethrowAsScriptException(e);

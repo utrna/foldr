@@ -655,7 +655,7 @@ public class HelixImageGenerator {
         }
         final double energyBinSize = 0.1;
         final double helixEnergy = h.getEnergy();
-        boolean showEnergyBins = (/*EnergyMaxMinFilter.appliedToHelix(h) &&*/
+        boolean showEnergyBins = (EnergyMaxMinFilter.appliedToHelix(h) &&
                                   isVisible(OptionalElement.HELIX_COLOR_SPECTRUM));
         if (showEnergyBins) {
             int colorIndex = h.getBinNumber();

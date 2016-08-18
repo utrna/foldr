@@ -6,6 +6,8 @@
 
 package rheat.base;
 
+import rheat.filter.EnergyMaxMinFilter;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
@@ -34,6 +36,8 @@ public class RNA implements java.io.Serializable {
         seq = s;
         //System.out.println("Size of the Sequence: " + seq.size());
         basePairs = new boolean[seq.size()][seq.size()];
+        actualHelices = new HelixGrid(seq.size());
+        predictedHelices = new HelixGrid(seq.size());
     }
 
     /** Gives a string representation for the RNA object.
@@ -45,8 +49,6 @@ public class RNA implements java.io.Serializable {
         ans += "Accession #: " + accession + "\n";
         ans += "Description: " + description + "\n";
         ans += seq.toString();
-        //predictedHelices = new HelixGroup(seq.size());
-        //outputBP();
         return ans;
     }
 
@@ -86,7 +88,8 @@ public class RNA implements java.io.Serializable {
      * log warnings about ranges that did not match any helix.
      */
     public void processHelixAnnotations() {
-        if (tagValues != null) {
+        HelixStore targetHelices = getHelices();
+        if ((tagValues != null) && (targetHelices != null)) {
             // FIXME: the helix storage is not optimized for quickly locating
             // a helix based on any property (part of the reason this method
             // exists at all); this is essentially linear in the number of
@@ -104,7 +107,6 @@ public class RNA implements java.io.Serializable {
                     AppMain.log(AppMain.INFO, "found annotation: " + p1 + "/" + p2 + "/" + tag);
                 }
             }
-            HelixStore targetHelices = getHelices();
             Iterator<Helix> iter = targetHelices.iterator();
             Set<Integer> tagIndicesUsed = new TreeSet<Integer>();
             while (iter.hasNext()) {
@@ -181,33 +183,65 @@ public class RNA implements java.io.Serializable {
         return basePairs;
     }
 
-    /** Changes the current set of possible basepairs.  This should be called inside a
-     * Filter's apply() method when changing the basepairing rules or refining the base
-     * pairing rules due to the application of the Filter.
-     * @param newbp The new set of all possible basepairs that is to replace the original one.
+    /**
+     * Currently equivalent to using setBasePairs() to clear and rebuild
+     * all helices without actually changing the base-pair values (useful
+     * if something has since pruned the original set).
      */
-    public void setBasePairs(boolean[][] newbp) {
-        basePairs = newbp;
-    }
-
-    /** This is a method for debugging purposes only.  It outputs the basepairs of this
-     * RNA in a half grid shaped format to the specified PrintStream.  For large RNA
-     * this may take a long time.
-     * @param ps The PrintStream to use for output.  If you don't know which one to use, then you
-     * can use System.out which prints everything on the screen.
-     */
-    public void outputBP(PrintStream ps) {
-        for (int i = 0; i < (seq.size()); i++) {
-            for (int j = 0; j <= i; j++) {
-                if (basePairs[i][j]) {
-                    ps.print("1 ");
-                }
-                else {
-                    ps.print("0 ");
+    public void resetPredictedHelices() {
+        boolean[][] newBasePairs = getBasePairs();
+        final int seqLength = newBasePairs.length; // note: reads 1st array dimension only
+        HelixStore targetStore = predictedHelices;
+        if (targetStore == null) {
+            return;
+        }
+        targetStore.clear();
+        boolean[][] bp_temp = new boolean[seqLength][seqLength];
+        // Creating a temp copy of base-pairs, to be used in the function
+        for (int i = 0; i < seqLength; ++i) {
+            System.arraycopy(newBasePairs[i], 0, bp_temp[i], 0, seqLength);
+        }
+        for (int i = 0; i< (seqLength - 1); ++i) {
+            for (int j = 0; j < i; ++j) {
+                if (bp_temp[i][j] == true) {
+                    int temp_i = i;
+                    int temp_j = j;
+                    int helixLength = 0;
+                    int startX = i;
+                    int startY = j;
+                    do {
+                        bp_temp[temp_i][temp_j] = false;
+                        ++temp_i; --temp_j; 
+                        ++helixLength;
+                        if ((temp_i == seqLength) || (temp_j < 0)) {
+                            break;
+                        }
+                    } while (bp_temp[temp_i][temp_j] == true);
+                    targetStore.addHelix(new Helix(startX, startY, helixLength));
                 }
             }
-            ps.println();
         }
+        predictedHelicesChanged();
+        // probability is high that memory profile has changed;
+        // try to free some memory now
+        System.gc();
+        // NOTE: energies no longer assigned by default (this just forces
+        // everything to be annotated, over a wide spectrum; better to
+        // force the user to set a range)
+        //EnergyMaxMinFilter energyCalc = new EnergyMaxMinFilter();
+        //energyCalc.applyConstraint(this);
+    }
+
+    /**
+     * Creates Helix objects by examining the given grid of on/off
+     * values and determining where there are helices.  Any
+     * previous Helix objects are cleared.  WARNING: References to
+     * old Helix objects will become meaningless (e.g. as held by
+     * script variables or otherwise).
+     */
+    public void setBasePairs(boolean[][] newBasePairs) {
+        this.basePairs = newBasePairs;
+        resetPredictedHelices();
     }
 
     /** Returns the sequence of this RNA in an ArrayList, with each item of the
@@ -225,23 +259,6 @@ public class RNA implements java.io.Serializable {
      */
     public HelixStore getHelices() {
         return predictedHelices;
-    }
-
-    /** Changes the current set of predicted helices.  This should be called inside a
-     * Filter's apply() method when changing the helices that are to appear due to the
-     * rules applied by the Filter.
-     * @param newHelices The new set of Helices that is to replace the current set.
-     */
-    public void setHelices(HelixStore newHelices) {
-        if (newHelices == null) {
-            throw new RuntimeException("illegal to set helix store to null");
-        }
-        predictedHelices = newHelices;
-        // the new helices could hold references to entirely different
-        // instances of Helix objects that are equivalent, and they
-        // may not be tagged at all (e.g. created anew by filtering);
-        // therefore, revisit all annotations and apply them again
-        processHelixAnnotations();
     }
 
     /**
@@ -288,7 +305,7 @@ public class RNA implements java.io.Serializable {
 
     public void setActual(boolean[][] actual) {
         final int seqLength = seq.size();
-        this.actualHelices = new HelixGrid(seqLength);
+        actualHelices.clear();
         // IMPORTANT: array indices are zero-based but displayed
         // numbers are one-based; therefore, index 0 is described
         // as nucleotide #1, etc.
@@ -319,10 +336,22 @@ public class RNA implements java.io.Serializable {
                     }
                     // create helix from lowest-left with full length
                     Helix h = new Helix(startX, startY, helixLength);
-                    this.actualHelices.addHelix(h);
+                    h.setActual();
+                    actualHelices.addHelix(h);
                 }
             }
         }
+    }
+
+    /**
+     * Call whenever modifying the "predictedHelices" store.
+     */
+    private void predictedHelicesChanged() {
+        // the new helices could hold references to entirely different
+        // instances of Helix objects that are equivalent, and they
+        // may not be tagged at all (e.g. created anew by filtering);
+        // therefore, revisit all annotations and apply them again
+        processHelixAnnotations();
     }
 
     private String uid; // unique ID of the RNA sequence.

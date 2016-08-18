@@ -22,6 +22,11 @@ public interface HelixStore extends java.io.Serializable {
     public void addHelix(Helix h);
 
     /**
+     * erase the helix store
+     */
+    public void clear();
+
+    /**
      * @return the number of times that addHelix() has been called
      */
     public int getHelixCount();

@@ -20,8 +20,13 @@ public class HelixStoreIterationDelegate implements IterationDelegate<ScriptHeli
     private RNA sourceRNA = null;
 
     public HelixStoreIterationDelegate(HelixStore helices, RNA sourceRNA) {
-        this.left = helices.getHelixCount();
-        this.iter = helices.iterator();
+        if (helices == null) {
+            this.left = 0;
+            this.iter = null;
+        } else {
+            this.left = helices.getHelixCount();
+            this.iter = helices.iterator();
+        }
         this.sourceRNA = sourceRNA;
     }
 
