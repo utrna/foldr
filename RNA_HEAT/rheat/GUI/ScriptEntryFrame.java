@@ -37,6 +37,16 @@ implements PropertyChangeListener {
         setNormalBounds(new java.awt.Rectangle(500, 400, 650, 300)); // arbitrary
         setBounds(new java.awt.Rectangle(500, 400, 650, 300));
         this.gui.getAppMain().addPropertyChangeListener(AppMain.PROPERTY_WORKING_DIR, this);
+        // automatically restore any history from last time (may fail silently)
+        try (BufferedReader reader = new BufferedReader(new FileReader(this.historyScript))) {
+            historyPane.read(reader, this.historyScript/* description object */);
+        } catch (FileNotFoundException e) {
+            // not an error
+            this.gui.getAppMain().log(AppMain.INFO, "No previous history file was found.");
+        } catch (IOException e) {
+            // not an error
+            e.printStackTrace();
+        }
     }
 
     /**
