@@ -2,6 +2,7 @@ package rheat.script;
 
 import rheat.base.*;
 import rheat.filter.*;
+import static rheat.script.JSUtil.*;
 
 import java.util.*;
 import javax.script.*;
@@ -63,7 +64,7 @@ public class ScriptIteration<ScriptT> {
             try {
                 result = delegate.getNext();
             } catch (Exception e) {
-                ScriptMain.rethrowAsScriptException(e);
+                rethrowAsScriptException(e);
             }
         }
         return result;

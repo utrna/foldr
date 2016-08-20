@@ -3,6 +3,7 @@ package rheat.script;
 import rheat.base.*;
 import rheat.filter.*;
 import rheat.GUI.RheatApp;
+import static rheat.script.JSUtil.*;
 
 import java.util.*;
 import javax.script.*;
@@ -29,41 +30,6 @@ public class ScriptMain {
     public static final int INFO = AppMain.INFO;
     public static final int WARN = AppMain.WARN;
     public static final int ERROR = AppMain.ERROR;
-
-
-
-    /**
-     * Throws the specified exception as a ScriptException,
-     * enveloping all of its stack-trace and message details.
-     * @throws ScriptException with specified exception’s details
-     */
-    static public void rethrowAsScriptException(Exception e) throws ScriptException {
-        StringBuilder sb = new StringBuilder();
-        sb.append(e.getMessage());
-        sb.append("\n");
-        int lineNumber = 0;
-        for (StackTraceElement ste : e.getStackTrace()) {
-            sb.append(ste.toString());
-            sb.append("\n");
-            // arbitrarily stop after so many lines (the traces
-            // tend to repeat and they have many more implementation
-            // details than necessary)
-            if (lineNumber > 7) {
-                sb.append("...\n");
-                break;
-            }
-            ++lineNumber;
-        }
-        throw new ScriptException(sb.toString());
-    }
-
-    /**
-     * Helper for warning the user about outdated method names.
-     * Pass only the names of old and new methods (no "rheat.").
-     */
-    static public void deprecationWarning(String oldName, String newName) throws ScriptException {
-       _log(WARN, "Script method rheat." + oldName + " is deprecated; please use rheat." + newName + " instead.");
-    }
 
     /**
      * Creates a scripting interface for the given object, which
@@ -132,7 +98,7 @@ public class ScriptMain {
      * with older scripts but this could be removed at some point.
      */
     public void addBasePairFilter(String... bpArgs) throws ScriptException {
-       deprecationWarning("addBasePairFilter", "setBasePairs");
+       jsDeprecationWarning("addBasePairFilter", "setBasePairs");
        setBasePairs(bpArgs);
     }
 

@@ -2,6 +2,7 @@ package rheat.script;
 
 import rheat.base.*;
 import rheat.filter.*;
+import static rheat.script.JSUtil.*;
 
 import java.util.*;
 import javax.script.*;
@@ -33,7 +34,7 @@ public class ScriptHelix {
         try {
             rawHelix.addTag(tagName, null);
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
     }
 
@@ -44,7 +45,7 @@ public class ScriptHelix {
         try {
             rawHelix.addTag(tagName, tagValue);
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
     }
 
@@ -62,7 +63,7 @@ public class ScriptHelix {
             Map<String, String> tags = rawHelix.getTags(); // may be null
             result = new ScriptIteration<String>(new StringSetIterationDelegate(tags.keySet()));
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -78,7 +79,7 @@ public class ScriptHelix {
         try {
             result = rawHelix.getEnergy();
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -91,7 +92,7 @@ public class ScriptHelix {
         try {
             result = rawHelix.getLength();
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -104,7 +105,7 @@ public class ScriptHelix {
         try {
             result = getHelixInfo().get5PrimeEnd();
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -117,7 +118,7 @@ public class ScriptHelix {
         try {
             result = getHelixInfo().get5PrimeSequence();
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -130,7 +131,7 @@ public class ScriptHelix {
         try {
             result = getHelixInfo().get5PrimeStart();
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -150,7 +151,7 @@ public class ScriptHelix {
                 result = tags.get(key);
             }
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -170,7 +171,7 @@ public class ScriptHelix {
                 result = tags.containsKey(tag);
             }
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -180,7 +181,7 @@ public class ScriptHelix {
      * with older scripts but this could be removed at some point.
      */
     public boolean tagsInclude(String tag) throws ScriptException {
-        ScriptMain.deprecationWarning("tagsInclude", "hasTag");
+        jsDeprecationWarning("tagsInclude", "hasTag");
         return hasTag(tag);
     }
 
@@ -192,7 +193,7 @@ public class ScriptHelix {
         try {
             result = getHelixInfo().get3PrimeEnd();
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -205,7 +206,7 @@ public class ScriptHelix {
         try {
             result = getHelixInfo().get3PrimeSequence();
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }
@@ -218,7 +219,7 @@ public class ScriptHelix {
         try {
             result = getHelixInfo().get3PrimeStart();
         } catch (Exception e) {
-            ScriptMain.rethrowAsScriptException(e);
+            rethrowAsScriptException(e);
         }
         return result;
     }

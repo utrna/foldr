@@ -1,6 +1,7 @@
 package rheat.GUI;
 
 import rheat.base.AppMain;
+import static rheat.script.JSUtil.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -168,8 +169,7 @@ implements PropertyChangeListener {
                     // IMPORTANT: if the value contains backslashes (e.g. Windows paths),
                     // it will not be read back correctly by JavaScript later; translate
                     // any backslashes into double-backslash to escape them
-                    dir = dir.replace("\\", "\\\\");
-                    String command = "rheat.setWorkingDir(\'" + dir + "\')";
+                    String command = "rheat.setWorkingDir(\'" + jsEscape(dir) + "\')";
                     runCommandLines(command);
                 }
             }

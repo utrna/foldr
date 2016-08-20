@@ -3,6 +3,7 @@ package rheat.base;
 import rheat.filter.BPFilter;
 import rheat.filter.Filter;
 import rheat.GUI.RheatApp;
+import static rheat.script.JSUtil.*;
 import rheat.script.ScriptMain;
 
 import java.awt.Color;
@@ -1043,8 +1044,7 @@ public class AppMain {
             // IMPORTANT: if the value contains backslashes (e.g. Windows paths),
             // it will not be read back correctly by JavaScript later; translate
             // any backslashes into double-backslash to escape them
-            value = value.replace("\\", "\\\\");
-            pw.println("rheat.setPreference(\'" + key + "\', \'" + value + "\')");
+            pw.println("rheat.setPreference(\'" + key + "\', \'" + jsEscape(value) + "\')");
         }
         pw.close();
         log(INFO, "Preferences file has been saved.");

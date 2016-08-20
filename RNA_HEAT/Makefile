@@ -47,6 +47,7 @@ CLASS_PREFIXES += rheat/GUI/TextFileFrame
 CLASS_PREFIXES += rheat/script/ConstraintInterpreter
 CLASS_PREFIXES += rheat/script/HelixStoreIterationDelegate
 CLASS_PREFIXES += rheat/script/IterationDelegate
+CLASS_PREFIXES += rheat/script/JSUtil
 CLASS_PREFIXES += rheat/script/ScriptHelix
 CLASS_PREFIXES += rheat/script/ScriptIteration
 CLASS_PREFIXES += rheat/script/ScriptMain
