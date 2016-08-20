@@ -37,6 +37,12 @@ public interface HelixStore extends java.io.Serializable {
     public int getHelixStoreSize();
 
     /**
+     * @return the length of the longest helix added using addHelix()
+     * (reset to zero after a clear())
+     */
+    public int getMaxHelixLength();
+
+    /**
      * @return the number of base-pairs in the original sequence
      */
     public int getSequenceLength();
@@ -57,7 +63,13 @@ public interface HelixStore extends java.io.Serializable {
      */
     public Iterator<Helix> iterator();
 
-    // TODO: range-specific interfaces (e.g. iterator with
-    // suggested nucleotide boundaries, returning a subset)
+    /**
+     * @return an iterator with a SUGGESTED subset range (the
+     * caller is still expected to verify helices before using
+     * them), allowing an operation in a certain region to
+     * check fewer helices overall; in NO PARTICULAR ORDER
+     */
+    public Iterator<Helix> iterator(SortedPair threePrimeRange,
+                                    SortedPair fivePrimeRange);
 
 }

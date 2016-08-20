@@ -92,7 +92,7 @@ extends rheat.filter.Filter {
                             isELoop = true;
             
             if (isELoop) {
-                h.addTag(Helix.InternalTags.TAG_MATCH_E_LOOP);
+                h.addTag(Helix.InternalTags.TAG_MATCH_E_LOOP, null);
             } else {
                 h.removeTag(Helix.InternalTags.TAG_MATCH_E_LOOP);
             }

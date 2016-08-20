@@ -57,6 +57,7 @@ public class HelixColorReader {
         final BufferedReader threadDataSource = dataSource;
         final RNA threadRNA = toAnnotate;
         try {
+            Map<String, String> tagKV = new HashMap<String, String>(); // reused below
             String lineString = null;
             StringBuilder errorMessages = new StringBuilder();
             LineType lineType = LineType.COMMENT;
@@ -94,29 +95,11 @@ public class HelixColorReader {
                 int start2 = -1;
                 int end1 = -1;
                 int end2 = -1;
-                Set<String> tags = new HashSet<String>();
                 // read entire line
+                tagKV.clear(); // reused each time
                 while (scanner.hasNext() && (!scanError)) {
                     String token = scanner.next();
-                    int v1 = -1;
-                    int v2 = -1;
                     //AppMain.log(0, "parsed token: '" + token + "'"); // debug
-                    if (token.contains("-")) {
-                        // a range
-                        Scanner subScan = new Scanner(token);
-                        subScan.useDelimiter("-");
-                        v1 = subScan.nextInt();
-                        v2 = subScan.nextInt();
-                        //AppMain.log(0, "parsed range: " + v1 + " to " + v2); // debug
-                    } else {
-                        // for convenience, see if this is a number and
-                        // capture the number (otherwise, ignore for now)
-                        try {
-                            v1 = Integer.parseInt(token);
-                        } catch (NumberFormatException e) {
-                            // not a number (fine)
-                        }
-                    }
                     // the parser may expect different things in
                     // different states; report errors accordingly
                     switch (state) {
@@ -126,12 +109,14 @@ public class HelixColorReader {
                         break;
                     case EXP_START:
                         // expecting to see the start of a sequence
-                        if (v1 == -1) {
+                        Scanner subScanR1= new Scanner(token);
+                        subScanR1.useDelimiter("-");
+                        start1 = subScanR1.nextInt();
+                        start2 = subScanR1.nextInt();
+                        if (start1 == -1) {
                             errorMessages.append("Expected to see a number or range to identify the start of a sequence but saw: " + lineString + "\n");
                             scanError = true;
                         } else {
-                            start1 = v1;
-                            start2 = v2; // optional
                             if (start2 == -1) {
                                 start2 = start1;
                             }
@@ -141,12 +126,14 @@ public class HelixColorReader {
                         break;
                     case EXP_END:
                         // expecting to see the end of a sequence
-                        if (v1 == -1) {
+                        Scanner subScanR2 = new Scanner(token);
+                        subScanR2.useDelimiter("-");
+                        end1 = subScanR2.nextInt();
+                        end2 = subScanR2.nextInt();
+                        if (end1 == -1) {
                             errorMessages.append("Expected to see a number or range to identify the end of a sequence but saw: " + lineString + "\n");
                             scanError = true;
                         } else {
-                            end1 = v1;
-                            end2 = v2; // optional
                             if (end2 == -1) {
                                 end2 = end1;
                             }
@@ -156,8 +143,25 @@ public class HelixColorReader {
                         break;
                     case EXP_TAGS:
                         // any remaining tokens will be treated as tags
-                        //AppMain.log(0, "tag: '" + token + "'"); // debug
-                        tags.add(token);
+                        //AppMain.log(0, "tag token: '" + token + "'"); // debug
+                        int equalsIndex = token.indexOf("=");
+                        if (equalsIndex >= 0) {
+                            // parse key=value form
+                            String value = token.substring(equalsIndex + 1);
+                            String key = token.substring(0, equalsIndex);
+                            //AppMain.log(0, "tag key '" + key + "', value '" + value + "'"); // debug
+                            // add tag with value
+                            tagKV.put(key, value); // TEST: what happens if these are all ignored?
+                        } else {
+                            // assume key-only form but warn about certain punctuation
+                            // that might be useful for future expansion
+                            //AppMain.log(0, "tag key-only '" + token + "'"); // debug
+                            if (token.contains(",") || token.contains(":")) {
+                                AppMain.log(AppMain.WARN, "Token '" + token + "' contains punctuation that might conflict with future extensions to the file format; more basic tag names are recommended.");
+                            }
+                            // add tag with no value
+                            tagKV.put(token, null);
+                        }
                         break;
                     default:
                         // ???
@@ -176,8 +180,8 @@ public class HelixColorReader {
                         // construct an annotation for given helix and tag(s)
                         SortedPair p1 = new SortedPair(start1, start2);
                         SortedPair p2 = new SortedPair(end1, end2);
-                        for (String tag : tags) {
-                            threadRNA.addHelixAnnotation(p1, p2, tag);
+                        for (String tag : tagKV.keySet()) {
+                            threadRNA.addHelixAnnotation(p1, p2, tag, tagKV.get(tag));
                         }
                     }
                 } else if (lineType == LineType.COMMENT) {

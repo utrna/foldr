@@ -8,11 +8,7 @@ package rheat.base;
 
 import rheat.filter.EnergyMaxMinFilter;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
-import java.io.PrintStream;
+import java.util.*;
 
 /** This is an RNA class, representing an RNA to be studied.  This RNA class
  * contains the sequence of the RNA and some other relevant information.
@@ -38,6 +34,7 @@ public class RNA implements java.io.Serializable {
         basePairs = new boolean[seq.size()][seq.size()];
         actualHelices = new HelixGrid(seq.size());
         predictedHelices = new HelixGrid(seq.size());
+        minimumAnnotationCapacity = ((seq.size() / 10) * (seq.size() / 10)); // arbitrary estimate (can be set later)
     }
 
     /** Gives a string representation for the RNA object.
@@ -66,19 +63,26 @@ public class RNA implements java.io.Serializable {
      *
      * @param range5Prime the range of nucleotide numbers on the 5' side
      * @param range3Prime the range of nucleotide numbers on the 3' side
+     * @param tag the name of the annotation key
+     * @param value the value of the annotation, or null for key-only
+     * @param totalHint if this is the first of many annotations, provide
+     * a hint as to the likely number of annotations to expect; use 0 if
+     * this is unknown
      */
     public void addHelixAnnotation(SortedPair range5Prime, SortedPair range3Prime,
-                                   String tag) {
+                                   String tag, String value) {
         if (tagValues == null) {
             // allocate on demand
-            tag5Ps = new ArrayList<SortedPair>();
-            tag3Ps = new ArrayList<SortedPair>();
-            tagValues = new ArrayList<String>();
+            tag5Ps = new ArrayList<SortedPair>(this.minimumAnnotationCapacity);
+            tag3Ps = new ArrayList<SortedPair>(this.minimumAnnotationCapacity);
+            tagKeys = new ArrayList<String>(this.minimumAnnotationCapacity);
+            tagValues = new ArrayList<String>(this.minimumAnnotationCapacity);
         }
         // IMPORTANT: all lists must be the same length
         tag5Ps.add(range5Prime);
         tag3Ps.add(range3Prime);
-        tagValues.add(tag);
+        tagKeys.add(tag);
+        tagValues.add(value);
     }
 
     /**
@@ -103,27 +107,32 @@ public class RNA implements java.io.Serializable {
                 for (int i = 0; i < tagValues.size(); ++i) {
                     SortedPair p1 = tag5Ps.get(i);
                     SortedPair p2 = tag3Ps.get(i);
-                    String tag = tagValues.get(i);
-                    AppMain.log(AppMain.INFO, "found annotation: " + p1 + "/" + p2 + "/" + tag);
+                    String key = tagKeys.get(i);
+                    String value = tagValues.get(i);
+                    AppMain.log(AppMain.INFO, "found annotation: " + p1 + "/" + p2 + "/" + key + "=" + value);
                 }
             }
-            Iterator<Helix> iter = targetHelices.iterator();
             Set<Integer> tagIndicesUsed = new TreeSet<Integer>();
-            while (iter.hasNext()) {
-                Helix h = iter.next();
-                // IMPORTANT: all lests must be the same length
-                for (int i = 0; i < tagValues.size(); ++i) {
-                    SortedPair p1 = tag5Ps.get(i);
-                    SortedPair p2 = tag3Ps.get(i);
-                    String tag = tagValues.get(i);
+            for (int i = 0; i < tagValues.size(); ++i) {
+                // IMPORTANT: all lists must be the same length
+                SortedPair p1 = tag5Ps.get(i);
+                SortedPair p2 = tag3Ps.get(i);
+                String key = tagKeys.get(i);
+                String value = tagValues.get(i);
+                int count = 0;
+                Iterator<Helix> iter = targetHelices.iterator(p1, p2);
+                while (iter.hasNext()) {
+                    Helix h = iter.next();
                     if (h.intersects(p1, p2)) {
                         if (debug) {
-                            AppMain.log(AppMain.INFO, "found helix for annotation: " + p1 + "/" + p2 + "/" + tag); // debug
+                            AppMain.log(AppMain.INFO, "found helix for annotation: " + p1 + "/" + p2 + "/" + key + "=" + value); // debug
                         }
-                        h.addTag(tag);
+                        h.addTag(key, value);
                         tagIndicesUsed.add(i);
                     }
+                    ++count;
                 }
+                //AppMain.log(AppMain.INFO, "helices considered for annotation: " + p1 + "/" + p2 + "/" + key + "=" + value + ": " + count); // debug
             }
             // if any annotations were never used, automatically create
             // new helices to represent the requested ranges
@@ -137,7 +146,8 @@ public class RNA implements java.io.Serializable {
                         // per unique range
                         SortedPair p1 = tag5Ps.get(i);
                         SortedPair p2 = tag3Ps.get(i);
-                        String tag = tagValues.get(i);
+                        String key = tagKeys.get(i);
+                        String value = tagValues.get(i);
                         try {
                             Helix h = new Helix(p1, p2);
                             if (newHelices.contains(h)) {
@@ -148,7 +158,7 @@ public class RNA implements java.io.Serializable {
                                 newHelices.add(h);
                                 this.predictedHelices.addHelix(h);
                             }
-                            h.addTag(tag);
+                            h.addTag(key, value);
                         } catch (IllegalArgumentException e) {
                             // helix will fail to construct if the pair values
                             // are inconsistent (Forming different lengths)
@@ -160,10 +170,10 @@ public class RNA implements java.io.Serializable {
             }
             if (debug) {
                 // show that helices now have tags
-                iter = targetHelices.iterator();
-                while (iter.hasNext()) {
-                    Helix h = iter.next();
-                    Set<String> tags = h.getTags();
+                Iterator<Helix> debugIter = targetHelices.iterator();
+                while (debugIter.hasNext()) {
+                    Helix h = debugIter.next();
+                    Map<String, String> tags = h.getTags();
                     if (tags != null) {
                         AppMain.log(AppMain.INFO, "helix <" + h + "> has tags: " + tags);
                     }
@@ -361,7 +371,9 @@ public class RNA implements java.io.Serializable {
     private ArrayList<String> seq; // the sequence of the RNA.
     private ArrayList<SortedPair> tag5Ps; // 5' ranges for tagged helices
     private ArrayList<SortedPair> tag3Ps; // 3' ranges for tagged helices
-    private ArrayList<String> tagValues; // tag values for tagged helices
+    private ArrayList<String> tagKeys; // tag keys for tagged helices
+    private ArrayList<String> tagValues; // tag values for tagged helices (may contain null)
+    private int minimumAnnotationCapacity; // a hint to the likely length of "tagValues", etc.
     private boolean[][] basePairs; // the possible basepairs.
     private HelixStore predictedHelices; // the possible helices
     private HelixStore actualHelices; // the actual helices

@@ -540,13 +540,13 @@ public class AppMain {
      * for base-pairs by default but this low-level call does not.
      */
     public void openRNA(String filePath) throws IOException {
+        closeRNA();
         String realPath = beginOpenFile(filePath);
         try {
             this.rnaData = BPSeqReader.parse(realPath);
             this.overlayData.clear();
             this.overlayColors.clear();
             this.currentRNAFilePath = realPath;
-            removeFilters(); // initialize data and update display
             //if (this.gui != null) {
             //    this.gui.refreshForNewRNA();
             //}
@@ -787,11 +787,25 @@ public class AppMain {
     }
 
     /**
-     * Clears the history list and shows all helices.
+     * Clears the history list and shows all helices
+     * (strictly speaking, the history list retains its
+     * first item, containing base-pair settings that
+     * defined helices in the first place).
      */
     public void removeFilters() {
-        this.rnaData.resetPredictedHelices();
-        this.filterList.clear();
+        // ask each constraint to undo itself in turn (backwards)
+        // until the original base-pair settings are found
+        ListIterator<Filter> filterIter = this.filterList.listIterator();
+        while (filterIter.hasPrevious()) {
+            Filter filter = filterIter.previous();
+            if (filter instanceof BPFilter) {
+                // base-pair filter is first (sets helices);
+                // keep this and stop here
+                break;
+            }
+            filter.removeConstraint(this.rnaData);
+            filterIter.remove(); // delete filter from list
+        }
         if (this.gui != null) {
             // FIXME: use low-level history list (in GUI for now)
             this.gui.clearHistory();

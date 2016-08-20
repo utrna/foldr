@@ -611,7 +611,7 @@ public class HelixImageGenerator {
         boolean allowAnnotations = isVisible(OptionalElement.HELIX_ANNOTATIONS);
         boolean allowUnconstrained = (isVisible(OptionalElement.HELIX_NO_ANNOTATIONS) ||
                                       (helixType == HelixType.ACTUAL));
-        Set<String> helixTags = h.getTags();
+        Map<String, String> helixTags = h.getTags();
         Color annotationColor = defaultAnnotationColor; // initially...
         Stroke annotationStroke = strokeAnnotatedHelix; // initially...
         if ((!allowUnconstrained) && ((helixTags == null) || helixTags.isEmpty())) {
@@ -621,7 +621,7 @@ public class HelixImageGenerator {
         if ((helixTags != null) && (allowAnnotations)) {
             // determine if any of the tags on this helix are visible
             int usedTagCount = helixTags.size();
-            for (String tag : helixTags) {
+            for (String tag : helixTags.keySet()) {
                 if (hiddenTags.contains(tag)) {
                     --usedTagCount;
                 }
@@ -630,7 +630,7 @@ public class HelixImageGenerator {
                 // determine the right color for this annotated helix
                 showAnnotations = true;
                 for (String tag : this.helixTagPriorityOrder) {
-                    if ((!hiddenTags.contains(tag)) && (helixTags.contains(tag))) {
+                    if ((!hiddenTags.contains(tag)) && (helixTags.containsKey(tag))) {
                         // see if this tag has a custom color
                         Color color = this.helixTagColorMap.get(tag);
                         if (color != null) {
@@ -640,7 +640,7 @@ public class HelixImageGenerator {
                     }
                 }
                 for (String tag : this.helixTagPriorityOrder) {
-                    if ((!hiddenTags.contains(tag)) && (helixTags.contains(tag))) {
+                    if ((!hiddenTags.contains(tag)) && (helixTags.containsKey(tag))) {
                         // see if this tag has a custom line width
                         Float thickness = this.helixTagLineWidthMap.get(tag);
                         if (thickness != null) {

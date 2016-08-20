@@ -6,9 +6,7 @@
 
 package rheat.base;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
+import java.util.*;
 
 /**
  * HelixGrid is an implementation of a HelixStore.  Its responsibility is to store
@@ -38,18 +36,25 @@ public class HelixGrid implements HelixStore {
     public HelixGrid(int size) {
         pairings = new Helix[size][size];
         helices = new ArrayList<Helix>();
+        maxHelixLength = 0;
     }
 
     @Override
     public void addHelix(Helix h) {
         int x = h.getStartX();
         int y = h.getStartY();
-        int length = h.getLength();
+        final int helixLength = h.getLength();
         helices.add(h);
+        int l = helixLength;
         do {
             pairings[x][y] = h;
-            x++; y--; length--;
-        } while (length > 0);
+            ++x;
+            --y;
+            --l;
+        } while (l > 0);
+        if (this.maxHelixLength < helixLength) {
+            this.maxHelixLength = helixLength;
+        }
     }
 
     @Override
@@ -73,6 +78,11 @@ public class HelixGrid implements HelixStore {
     }
 
     @Override
+    public int getMaxHelixLength() {
+        return this.maxHelixLength;
+    }
+
+    @Override
     public int getSequenceLength() {
         return pairings.length; // note: refers only to 1st dimension of array
     }
@@ -92,7 +102,39 @@ public class HelixGrid implements HelixStore {
         return java.util.Collections.unmodifiableCollection(helices).iterator();
     }
 
+    @Override
+    public Iterator<Helix> iterator(SortedPair threePrimeRange,
+                                    SortedPair fivePrimeRange) {
+        if (isEmpty()) {
+            // short-cut for base case
+            return this.iterator();
+        }
+        final int xStart = Helix.getXForThreePrimeRange(threePrimeRange);
+        final int yStart = Helix.getYForFivePrimeRange(fivePrimeRange);
+        final int length = (threePrimeRange.getB() - threePrimeRange.getA() + 1); // should not matter which range is chosen (should be the same)
+        final int xPastEnd = (xStart + length);
+        final int yPastEnd = (yStart + length);
+        Set<Helix> helicesInRange = new HashSet<Helix>();
+        for (int i = xStart; i < xPastEnd; ++i) {
+            for (int j = yStart; j < yPastEnd; ++j) {
+                // the same Helix reference will occur at multiple grid
+                // locations for the entire helix length; the Set ensures
+                // that it only appears once in the result
+                if ((i >= pairings.length) || (j >= pairings.length)) {
+                    // out of range (should not happen...)
+                    continue;
+                }
+                Helix h = this.pairings[j][i];
+                if (h != null) {
+                    helicesInRange.add(h);
+                }
+            }
+        }
+        return helicesInRange.iterator();
+    }
+
     private Helix[][] pairings;
     private ArrayList<Helix> helices;
+    private int maxHelixLength;
 
 }

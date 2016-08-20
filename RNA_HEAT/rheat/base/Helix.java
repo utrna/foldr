@@ -7,8 +7,8 @@
 package rheat.base;
 
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /** This class represents one helix that could form.  Helix is defined as a
  * consecutive sequence of basepairs, with length of one or more.  A single
@@ -192,11 +192,11 @@ implements Comparable<Helix>, java.io.Serializable {
     /**
      * See processHelixAnnotations() in the RNA class.
      */
-    public void addTag(String tag) {
+    public void addTag(String key, String value) {
         if (tags == null) {
-            tags = new HashSet<String>();
+            tags = new HashMap<String, String>();
         }
-        tags.add(tag);
+        tags.put(key, value);
     }
 
     /**
@@ -215,9 +215,9 @@ implements Comparable<Helix>, java.io.Serializable {
      */
     public boolean hasTag(String tagName) {
         boolean result = false;
-        Set<String> tags = getTags();
+        Map<String, String> tags = getTags();
         if (tags != null) {
-            result = tags.contains(tagName);
+            result = tags.keySet().contains(tagName);
         }
         return result;
     }
@@ -225,7 +225,7 @@ implements Comparable<Helix>, java.io.Serializable {
     /**
      * Returns any annotations on this helix.  May be null.
      */
-    public Set<String> getTags() {
+    public Map<String, String> getTags() {
         return tags; // may be null
     }
 
@@ -235,7 +235,7 @@ implements Comparable<Helix>, java.io.Serializable {
      * range but rendered below the diagonal).
      */
     public void setActual() {
-        addTag(InternalTags.TAG_ACTUAL);
+        addTag(InternalTags.TAG_ACTUAL, null);
     }
 
     /**
@@ -390,6 +390,6 @@ implements Comparable<Helix>, java.io.Serializable {
     private int helixLength;
     private int binNumber;
     private double helixEnergy;
-    private HashSet<String> tags; // created on demand
+    private HashMap<String, String> tags; // created on demand
 
 }

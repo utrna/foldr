@@ -31,7 +31,18 @@ public class ScriptHelix {
      */
     public void addTag(String tagName) throws ScriptException {
         try {
-            rawHelix.addTag(tagName);
+            rawHelix.addTag(tagName, null);
+        } catch (Exception e) {
+            ScriptMain.rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for Helix.addTag().
+     */
+    public void addTag(String tagName, String tagValue) throws ScriptException {
+        try {
+            rawHelix.addTag(tagName, tagValue);
         } catch (Exception e) {
             ScriptMain.rethrowAsScriptException(e);
         }
@@ -42,12 +53,14 @@ public class ScriptHelix {
      *
      * Returns an object describing the tag range, which can be
      * used to find the count and to iterate.  ORDER UNSPECIFIED.
+     * Note that this returns only keys; if a tag has a value,
+     * the ScriptHelix method getTagValue() must be called.
      */
     public ScriptIteration<String> eachTag() throws ScriptException {
         ScriptIteration<String> result = null;
         try {
-            Set<String> tags = rawHelix.getTags(); // may be null
-            result = new ScriptIteration<String>(new StringSetIterationDelegate(tags));
+            Map<String, String> tags = rawHelix.getTags(); // may be null
+            result = new ScriptIteration<String>(new StringSetIterationDelegate(tags.keySet()));
         } catch (Exception e) {
             ScriptMain.rethrowAsScriptException(e);
         }
@@ -123,6 +136,26 @@ public class ScriptHelix {
     }
 
     /**
+     * Script interface for tag value queries.
+     *
+     * Returns the value of the given tag or null if it does
+     * not have a value.  Note that hasTag() can be used to
+     * tell when a key-only annotation is not set at all.
+     */
+    public String getTagValue(String key) throws ScriptException {
+        String result = null;
+        try {
+            Map<String, String> tags = rawHelix.getTags();
+            if (tags != null) {
+                result = tags.get(key);
+            }
+        } catch (Exception e) {
+            ScriptMain.rethrowAsScriptException(e);
+        }
+        return result;
+    }
+
+    /**
      * Script interface for quick tag queries.
      *
      * Returns true if the eachTag() iteration contains the
@@ -132,9 +165,9 @@ public class ScriptHelix {
     public boolean hasTag(String tag) throws ScriptException {
         boolean result = false;
         try {
-            Set<String> tags = rawHelix.getTags();
+            Map<String, String> tags = rawHelix.getTags();
             if (tags != null) {
-                result = tags.contains(tag);
+                result = tags.containsKey(tag);
             }
         } catch (Exception e) {
             ScriptMain.rethrowAsScriptException(e);

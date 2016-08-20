@@ -59,10 +59,11 @@ extends rheat.filter.Filter {
 
         HelixStore hsNonDiagonal = rna.getHelices();
         Iterator itr = hsNonDiagonal.iterator();
+        String constraintDesc = new String(getComplexDistance() + "," + getSimpleDistance());
         while(itr.hasNext()){
             Helix h = (Helix)itr.next();
             if (complexDistance(h, hsNonIntersecting) <= ComplexDistance){
-                h.addTag(Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE);
+                h.addTag(Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE, constraintDesc);
             } else {
                 h.removeTag(Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE);
             }
@@ -72,7 +73,7 @@ extends rheat.filter.Filter {
         Iterator newitr = hsNonIntersecting.iterator();
         while(newitr.hasNext()) {
             Helix h = (Helix)newitr.next();
-            h.addTag(Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE);
+            h.addTag(Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE, null);
         }
         //HelixStore newhg = pickNonIntersectingDiagonals(hg);
     }

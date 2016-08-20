@@ -68,7 +68,7 @@ extends rheat.filter.Filter {
             
 
              if (Selected) {
-                 h.addTag(Helix.InternalTags.TAG_MATCH_AA_AG);
+                 h.addTag(Helix.InternalTags.TAG_MATCH_AA_AG, null);
              } else {                     
                  h.removeTag(Helix.InternalTags.TAG_MATCH_AA_AG);
              }

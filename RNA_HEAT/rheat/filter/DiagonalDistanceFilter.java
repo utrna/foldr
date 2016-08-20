@@ -9,11 +9,10 @@ package rheat.filter;
 import rheat.base.*;
 
 import java.util.Iterator;
-import java.util.ArrayList;
 
 /**
  * Finds helices whose line distance from the diagonal is
- * in the given range.
+ * in the given range (or NOT in the range, if INVERTED).
  * @author  TEAM MATRIX
  */
 public class DiagonalDistanceFilter
@@ -44,6 +43,7 @@ extends rheat.filter.Filter {
 
     @Override
     public void applyConstraint(RNA rna) {
+        String constraintDesc = new String(getRangeMax() + ":" + getRangeMin());
         Iterator itr = rna.getHelices().iterator();
         while (itr.hasNext()) {
             Helix h = (Helix)itr.next();
@@ -52,14 +52,14 @@ extends rheat.filter.Filter {
             if (isInverted) {
                 // matches if NOT in the given range
                 if (inRange) {
-                    h.addTag(Helix.InternalTags.TAG_MATCH_NON_DIAGONAL_DISTANCE);
+                    h.addTag(Helix.InternalTags.TAG_MATCH_NON_DIAGONAL_DISTANCE, constraintDesc);
                 } else {
                     h.removeTag(Helix.InternalTags.TAG_MATCH_NON_DIAGONAL_DISTANCE);
                 }
             } else {
                 // matches if in the given range
                 if (inRange) {
-                    h.addTag(Helix.InternalTags.TAG_MATCH_DIAGONAL_DISTANCE);
+                    h.addTag(Helix.InternalTags.TAG_MATCH_DIAGONAL_DISTANCE, constraintDesc);
                 } else {
                     h.removeTag(Helix.InternalTags.TAG_MATCH_DIAGONAL_DISTANCE);
                 }
