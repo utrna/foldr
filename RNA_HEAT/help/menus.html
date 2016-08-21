@@ -102,7 +102,11 @@
   range.  One of the values may be omitted to include everything in
   that direction (for instance, omitting the upper value will show
   helices with energy values greater than or equal to the minimum
-  value).
+  value).  Note that this constraint overrides the color spectrum
+  feature, redefining the spectrum (if shown) as the range of
+  energy values in the constraint; therefore, if you have a script
+  that wants to define a different spectrum, the custom definition
+  must be set up <i>after</i> any energy constraints.
   <p><b>Complex Distance</b>:
   Excludes helices with simple or complex distances that are
   greater than the specified maximums.

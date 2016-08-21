@@ -90,6 +90,7 @@
   rheat.setHelixTagColor('PI', '#ff0000')
   rheat.setHelixTagLineWidth('PI', 1.5)
   rheat.setHelixTagColor('PE', '#222222')
+  rheat.setHelixSpectrum('e', -0.01, -20)
   rheat.openTags('test.helixcolor')</pre>
   <p>If openTags() is used (above) to read helix annotations, any
   number of new tags may be created and assigned to helices.  To
@@ -98,7 +99,16 @@
   priority order is implicitly set based on which tags are first
   used with setHelixTagColor() or setHelixTagLineWidth(): the
   earlier assignments have higher precedence in case of conflict.
-
+  <p>A single tag can be assigned to the color spectrum feature,
+  which causes helix colors to be determined by the <i>value</i>
+  of the annotation and not just the presence of its name.  The
+  above example call to setHelixSpectrum() shows how a property
+  named "e" is used to define the spectrum as values of "e"
+  between -20 and -0.01.  One way to set key-value pairs like
+  these is with a ".helixcolor" file.  Remember that the built-in
+  energy constraint also overrides the color spectrum setting so
+  you must either avoid energy constraints or ensure that they
+  are applied <i>before</i> any calls to setHelixSpectrum().
   <br /><br />
   <h3>Display Controls and Animation</h3>
   <pre>
