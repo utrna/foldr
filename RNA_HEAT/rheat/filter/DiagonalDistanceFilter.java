@@ -43,7 +43,7 @@ extends rheat.filter.Filter {
 
     @Override
     public void applyConstraint(RNA rna) {
-        String constraintDesc = String.format("%.2f:%.2f", getRangeMax(), getRangeMin());
+        String constraintDesc = String.format("%d:%d", getRangeMax(), getRangeMin());
         Iterator itr = rna.getHelices().iterator();
         while (itr.hasNext()) {
             Helix h = (Helix)itr.next();
