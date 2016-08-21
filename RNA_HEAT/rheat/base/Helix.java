@@ -209,6 +209,20 @@ implements Comparable<Helix>, java.io.Serializable {
     }
 
     /**
+     * Returns the value of the given tag or null if it does not have
+     * a value.  Note that hasTag() can be used to tell when a
+     * key-only annotation is not set at all.
+     */
+    public String getTagValue(String tagName) {
+        String result = null;
+        Map<String, String> tags = getTags();
+        if (tags != null) {
+            result = tags.get(tagName);
+        }
+        return result;
+    }
+
+    /**
      * Returns true if the annotations of this helix include
      * the given tag, in a search that is faster than manual
      * iteration would be.

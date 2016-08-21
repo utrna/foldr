@@ -137,19 +137,12 @@ public class ScriptHelix {
     }
 
     /**
-     * Script interface for tag value queries.
-     *
-     * Returns the value of the given tag or null if it does
-     * not have a value.  Note that hasTag() can be used to
-     * tell when a key-only annotation is not set at all.
+     * Script interface for Helix.getTagValue().
      */
     public String getTagValue(String key) throws ScriptException {
         String result = null;
         try {
-            Map<String, String> tags = rawHelix.getTags();
-            if (tags != null) {
-                result = tags.get(key);
-            }
+            result = rawHelix.getTagValue(key);
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }

@@ -72,26 +72,19 @@ extends rheat.filter.Filter {
         return h.hasTag(Helix.InternalTags.TAG_MATCH_ENERGY);
     }
 
-    /** for each helix calculate energy and see if in range, if yes keep **/
     @Override
     public void applyConstraint(RNA rna) {
-        String constraintDesc = new String(getMaxEnergy() + ":" + getMinEnergy());
         ArrayList sequence = rna.getSequence();
-        Iterator i = rna.getHelices().iterator();
-        while(i.hasNext())
-        {
-            Helix h = (Helix)i.next();
-            double HelixEnergy = findEnergy(h, rna);
-            h.setEnergy(HelixEnergy);
-            final int numBins = 30; // arbitrary (FIXME: make customizable)
-            int binNumber = AppMain.selectBin(HelixEnergy, numBins, minEnergy, maxEnergy);
-            if (binNumber != -1) {
-                h.addTag(Helix.InternalTags.TAG_MATCH_ENERGY, constraintDesc);
-                h.setBinNumber(binNumber); // may be -1 (no bin)
-            } else {
-                h.removeTag(Helix.InternalTags.TAG_MATCH_ENERGY);
-            }
+        Iterator<Helix> i = rna.getHelices().iterator();
+        while (i.hasNext()) {
+            Helix h = i.next();
+            h.setEnergy(findEnergy(h, rna));
         }
+        rna.setBinMaxValue(maxEnergy);
+        rna.setBinMinValue(minEnergy);
+        rna.setBinCount(30); // arbitrary
+        rna.setBinTag(Helix.InternalTags.TAG_MATCH_ENERGY); // also sets this tag on binned helices
+        rna.processHelixBins();
     }
 
     @Override

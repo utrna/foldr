@@ -362,6 +362,14 @@ implements PropertyChangeListener {
                     sb.append("5' End: " + (info.get5PrimeEnd() + 1) + "\n");
                     sb.append("3' Start: " + (info.get3PrimeStart() + 1) + "\n");
                     sb.append("3' End: " + (info.get3PrimeEnd() + 1) + "\n");
+                    int binNumber = selectedHelix.getBinNumber();
+                    if (this.appMain.rnaData != null) {
+                        if (binNumber != Helix.NO_BIN) {
+                            sb.append("Bin #: " + (binNumber + 1) + " of " + this.appMain.rnaData.getBinCount() + "\n");
+                        } else {
+                            sb.append("Bin #: None\n");
+                        }
+                    }
                     Map<String, String> helixTags = selectedHelix.getTags();
                     if (helixTags != null) {
                         for (String tag : helixTags.keySet()) {

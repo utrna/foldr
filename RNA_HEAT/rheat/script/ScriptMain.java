@@ -348,6 +348,75 @@ public class ScriptMain {
     }
 
     /**
+     * Script interface for RNA.setBinCount().  The effects of this
+     * are NOT seen until processHelixBins() is used.
+     */
+    public void setHelixBinCount(Integer count) throws ScriptException {
+        try {
+            appMain.rnaData.setBinCount(count);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for RNA.setBinMaxValue().  The effects of this
+     * are NOT seen until processHelixBins() is used.
+
+     */
+    public void setHelixBinMaxValue(Double maxValue) throws ScriptException {
+        try {
+            appMain.rnaData.setBinMaxValue(maxValue);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for RNA.setBinMinValue().  The effects of this
+     * are NOT seen until processHelixBins() is used.
+
+     */
+    public void setHelixBinMinValue(Double minValue) throws ScriptException {
+        try {
+            appMain.rnaData.setBinMinValue(minValue);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for RNA.setBinTag().  As with the internal
+     * version, the key "_MATCH_ENERGY_" can be used to restore the
+     * default by-energy-constraint binning behavior; and the null
+     * value can be used to remove all bin assignments.
+     *
+     * The effects of this are NOT seen until processHelixBins() is
+     * used.
+     *
+     * Note that addEnergyFilter() will now set the maximum, minimum,
+     * count and tag values and call processHelixBins() too.
+     */
+    public void setHelixBinTag(String tag) throws ScriptException {
+        try {
+            appMain.rnaData.setBinTag(tag);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
+     * Script interface for RNA.processHelixBins().
+     */
+    public void processHelixBins() throws ScriptException {
+        try {
+            appMain.rnaData.processHelixBins();
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
      * Script interface for AppMain.setHelixTagColor().
      */
     public void setHelixTagColor(String tag, String color) throws ScriptException {

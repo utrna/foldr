@@ -35,10 +35,14 @@ public class RNA implements java.io.Serializable {
         actualHelices = new HelixGrid(seq.size());
         predictedHelices = new HelixGrid(seq.size());
         minimumAnnotationCapacity = ((seq.size() / 10) * (seq.size() / 10)); // arbitrary estimate (can be set later)
+        binTag = null;
+        binCount = 30; // arbitrary default
+        binMinValue = Double.NEGATIVE_INFINITY;
+        binMaxValue = Double.POSITIVE_INFINITY;
     }
 
-    /** Gives a string representation for the RNA object.
-     * @return A string representing this RNA.
+    /**
+     * Gives a string representation for the RNA object.
      */
     public String toString() {
         String ans = "Unique ID: " + uid + "\n";
@@ -182,6 +186,61 @@ public class RNA implements java.io.Serializable {
         }
     }
 
+    /**
+     * Calls setBinNumber() on every Helix appropriately based on
+     * the current binning tag (see setBinTag()), the current
+     * annotations on helices, and other helix properties.
+     */
+    public void processHelixBins() {
+        HelixStore targetHelices = getHelices();
+        Iterator<Helix> helixIter = targetHelices.iterator();
+        int numberErrors = 0;
+        boolean refEnergy = ((this.binTag != null) &&
+                             (this.binTag.equals(Helix.InternalTags.TAG_MATCH_ENERGY)));
+        while (helixIter.hasNext()) {
+            Helix h = helixIter.next();
+            if (h == null) {
+                continue;
+            }
+            int binNumber = Helix.NO_BIN;
+            double referenceValue = 0;
+            boolean valueOK = false;
+            if (!refEnergy) {
+                if (h.hasTag(this.binTag)) {
+                    // use the value of the specified tag for binning purposes
+                    try {
+                        referenceValue = Double.parseDouble(h.getTagValue(this.binTag));
+                        valueOK = true;
+                    } catch (NumberFormatException e) {
+                        ++numberErrors;
+                    }
+                }
+            } else {
+                // use the helix energy for binning purposes
+                referenceValue = h.getEnergy();
+                valueOK = true;
+            }
+            if (valueOK) {
+                binNumber = AppMain.selectBin(referenceValue, this.binCount,
+                                              this.binMinValue, this.binMaxValue);
+            }
+            h.setBinNumber(binNumber); // set new value, or set Helix.NO_BIN value
+            if (refEnergy) {
+                // formerly done by EnergyMaxMinFilter; set or clear tag to
+                // indicate that the energy value is in the required range
+                String constraintDesc = String.format("%.2f:%.2f", this.binMaxValue, this.binMinValue);
+                if (binNumber != Helix.NO_BIN) {
+                    h.addTag(Helix.InternalTags.TAG_MATCH_ENERGY, constraintDesc);
+                } else {
+                    h.removeTag(Helix.InternalTags.TAG_MATCH_ENERGY);
+                }
+            }
+        }
+        if (numberErrors > 0) {
+            AppMain.log(AppMain.ERROR, "Binning is incomplete because some of the values for the helix annotation '" + this.binTag + "' are not numeric; affected helices: " + numberErrors);
+        }
+    }
+
     /** Returns a data structure representing possible basepairs that this RNA forms.
      * It is represented as a two dimentional array of boolean values.  The first array
      * represent the rows and the second represent the columns.  A true is present if
@@ -252,6 +311,86 @@ public class RNA implements java.io.Serializable {
     public void setBasePairs(boolean[][] newBasePairs) {
         this.basePairs = newBasePairs;
         resetPredictedHelices();
+    }
+
+    /**
+     * Changes the number of unique bin numbers there are (meaning
+     * that this number of unique colors are necessary in the final
+     * spectrum in order to see every bin at a glance).
+     *
+     * IMPORTANT: The effects are not seen until processHelixBins() is
+     * called (this allows you to set multiple bin properties before
+     * incurring the cost of updating the RNA).
+     *
+     * @param count the number of bins, which divide the region
+     * between the maximum and minimum values
+     */
+    public void setBinCount(int count) {
+        assert(count > 0);
+        this.binCount = count;
+    }
+
+    /**
+     * See setBinCount().
+     *
+     * @return the number of bins
+     */
+    public int getBinCount() {
+        return this.binCount;
+    }
+
+    /**
+     * Changes the largest numerical value for the binning tag
+     * that is recognized as belonging to a bin.  Anything higher is
+     * assigned to Helix.NO_BIN.
+     *
+     * IMPORTANT: The effects are not seen until processHelixBins() is
+     * called (this allows you to set multiple bin properties before
+     * incurring the cost of updating the RNA).
+     *
+     * @param value the new maximum value
+     */
+    public void setBinMaxValue(double value) {
+        this.binMaxValue = value;
+    }
+
+    /**
+     * Changes the smallest numerical value for the binning tag
+     * that is recognized as belonging to a bin.  Anything lower is
+     * assigned to Helix.NO_BIN.
+     *
+     * IMPORTANT: The effects are not seen until processHelixBins() is
+     * called (this allows you to set multiple bin properties before
+     * incurring the cost of updating the RNA).
+     *
+     * @param value the new minimum value
+     */
+    public void setBinMinValue(double value) {
+        this.binMinValue = value;
+    }
+
+    /**
+     * Specifies the tag to use for binning helices (represented by a
+     * color spectrum in the display).
+     *
+     * IMPORTANT: The effects are not seen until processHelixBins() is
+     * called (this allows you to set multiple bin properties before
+     * incurring the cost of updating the RNA).
+     *
+     * IMPORTANT: Binning is currently only numerical so the string
+     * values for the given tag must successfully convert into Double.
+     * TODO: It is theoretically possible to allow statistical binning
+     * of other types of values, e.g. based on alphabetical sorting of
+     * strings or frequency sorting by number of times a value appears;
+     * for now the binning is strictly a numerical range.
+     *
+     * @param tagName the key-value tag whose value on a helix decides
+     * the bin for that helix; or, Helix.InternalTags.TAG_MATCH_ENERGY
+     * to indicate that the Helix.getEnergy() value should be used to
+     * decide the bin; or, null to remove all bin numbers
+     */
+    public void setBinTag(String tagName) {
+        this.binTag = tagName;
     }
 
     /** Returns the sequence of this RNA in an ArrayList, with each item of the
@@ -362,19 +501,25 @@ public class RNA implements java.io.Serializable {
         // may not be tagged at all (e.g. created anew by filtering);
         // therefore, revisit all annotations and apply them again
         processHelixAnnotations();
+        processHelixBins();
     }
 
     private String uid; // unique ID of the RNA sequence.
     private String organism; // organism where the RNA is from.
     private String accession; // accession number of the RNA.
     private String description; // description of the RNA.
+    private String binTag; // see setBinTag()
     private ArrayList<String> seq; // the sequence of the RNA.
     private ArrayList<SortedPair> tag5Ps; // 5' ranges for tagged helices
     private ArrayList<SortedPair> tag3Ps; // 3' ranges for tagged helices
     private ArrayList<String> tagKeys; // tag keys for tagged helices
     private ArrayList<String> tagValues; // tag values for tagged helices (may contain null)
     private int minimumAnnotationCapacity; // a hint to the likely length of "tagValues", etc.
+    private int binCount; // see processHelixBins()
+    private double binMinValue; // see processHelixBins()
+    private double binMaxValue; // see processHelixBins()
     private boolean[][] basePairs; // the possible basepairs.
     private HelixStore predictedHelices; // the possible helices
     private HelixStore actualHelices; // the actual helices
+
 }
