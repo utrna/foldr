@@ -40,10 +40,10 @@ extends FilterDialog {
         jLabel1 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        minDistanceField = new javax.swing.JTextField();
+        minDistanceField = new FocusingField.SingleLine();
         jPanel3 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
-        maxDistanceField = new javax.swing.JTextField();
+        maxDistanceField = new FocusingField.SingleLine();
 
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
@@ -115,11 +115,11 @@ extends FilterDialog {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JTextField minDistanceField;
+    private FocusingField.SingleLine minDistanceField;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JTextField maxDistanceField;
+    private FocusingField.SingleLine maxDistanceField;
     // End of variables declaration//GEN-END:variables
     private Filter filter; // null unless dialog was accepted by user
 

@@ -1064,7 +1064,7 @@ implements PropertyChangeListener {
                 }
             }
         });
-        jumpFieldX = new JTextField();
+        jumpFieldX = new FocusingField.SingleLine();
         jumpFieldX.setColumns(4);
         jumpFieldX.setToolTipText("Enter a number from 1 to the number of base-pairs to jump to that X position.");
         jumpFieldX.addActionListener(new java.awt.event.ActionListener() {
@@ -1072,7 +1072,7 @@ implements PropertyChangeListener {
                 jumpButton.doClick();
             }
         });
-        jumpFieldY = new JTextField();
+        jumpFieldY = new FocusingField.SingleLine();
         jumpFieldY.setColumns(4);
         jumpFieldY.setToolTipText("Enter a number from 1 to the number of base-pairs to jump to that Y position.  Or, leave blank to copy the X value.");
         jumpFieldY.addActionListener(new java.awt.event.ActionListener() {
@@ -2435,8 +2435,8 @@ implements PropertyChangeListener {
     private JPanel displayControlPanel;
     private JSlider zoomSlider;
     private JLabel zoomLabel;
-    private JTextField jumpFieldX;
-    private JTextField jumpFieldY;
+    private FocusingField.SingleLine jumpFieldX;
+    private FocusingField.SingleLine jumpFieldY;
     private JButton jumpButton;
     private JCheckBox showGridCheckBox;
     private JCheckBox showBinsCheckBox;

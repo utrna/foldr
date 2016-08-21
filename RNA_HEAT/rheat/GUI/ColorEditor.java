@@ -87,7 +87,7 @@ public class ColorEditor extends javax.swing.JPanel {
      * Creates and configures GUI elements.
      */
     private void initComponents() {
-        colorField = new JTextField();
+        colorField = new FocusingField.SingleLine();
         colorDisplay = new JPanel();
         chooseColorButton = new JButton();
         colorField.setColumns(8);
@@ -169,7 +169,7 @@ public class ColorEditor extends javax.swing.JPanel {
         }
     }
 
-    private JTextField colorField;
+    private FocusingField.SingleLine colorField;
     private JPanel colorDisplay;
     private JButton chooseColorButton;
     private String titleText = "New Color"; // see setTitle()

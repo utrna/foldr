@@ -134,16 +134,16 @@ implements ColorEditor.ChangeHandler {
         itemsPane = new javax.swing.JPanel();
 
         jPanel0 = new javax.swing.JPanel();
-        programsDirTextField = new javax.swing.JTextField();
+        programsDirTextField = new FocusingField.SingleLine();
         browse0Btn = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
-        inputDirTextField = new javax.swing.JTextField();
+        inputDirTextField = new FocusingField.SingleLine();
         browse1Btn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
-        runDirTextField = new javax.swing.JTextField();
+        runDirTextField = new FocusingField.SingleLine();
         browse2Btn = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
-        gridSizeField = new javax.swing.JTextField();
+        gridSizeField = new FocusingField.SingleLine();
         defaultHelixColorEditor = new rheat.GUI.ColorEditor();
         defaultTagColorEditor = new rheat.GUI.ColorEditor();
         spectrumStartColorEditor = new rheat.GUI.ColorEditor();
@@ -321,10 +321,10 @@ implements ColorEditor.ChangeHandler {
         }
     }
 
-    private javax.swing.JTextField programsDirTextField;
-    private javax.swing.JTextField inputDirTextField;
-    private javax.swing.JTextField runDirTextField;
-    private javax.swing.JTextField gridSizeField;
+    private FocusingField.SingleLine programsDirTextField;
+    private FocusingField.SingleLine inputDirTextField;
+    private FocusingField.SingleLine runDirTextField;
+    private FocusingField.SingleLine gridSizeField;
     private rheat.GUI.ColorEditor defaultHelixColorEditor;
     private rheat.GUI.ColorEditor defaultTagColorEditor;
     private rheat.GUI.ColorEditor spectrumStartColorEditor;

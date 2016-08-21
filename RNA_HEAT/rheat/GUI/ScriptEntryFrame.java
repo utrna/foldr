@@ -143,7 +143,7 @@ implements PropertyChangeListener {
         padPaneHistory.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         padPaneHistory.add(paneHistory, BorderLayout.CENTER);
         this.scrollCommandPane = new JScrollPane();
-        this.commandPane = new JTextArea();
+        this.commandPane = new FocusingField.MultiLine(this.scrollCommandPane/* border component */);
         this.commandPane.setToolTipText("Type new scripting commands here, and click Run to try them.");
         this.commandPane.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         this.commandPane.setEditable(true);
@@ -262,7 +262,7 @@ implements PropertyChangeListener {
 
     private JScrollPane scrollCommandPane;
     private JScrollPane scrollHistoryPane;
-    private JTextArea commandPane;
+    private FocusingField.MultiLine commandPane;
     private JTextArea historyPane;
     private JButton addDividerButton;
     private JButton addTimeStampButton;

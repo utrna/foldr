@@ -34,6 +34,7 @@ CLASS_PREFIXES += rheat/GUI/DiagonalFilterDialog
 CLASS_PREFIXES += rheat/GUI/ELoopFilterDialog
 CLASS_PREFIXES += rheat/GUI/EnergyFilterDialog
 CLASS_PREFIXES += rheat/GUI/FilterDialog
+CLASS_PREFIXES += rheat/GUI/FocusingField
 CLASS_PREFIXES += rheat/GUI/HelixFilterDialog
 CLASS_PREFIXES += rheat/GUI/HelixImageGenerator
 CLASS_PREFIXES += rheat/GUI/HelpFrame
