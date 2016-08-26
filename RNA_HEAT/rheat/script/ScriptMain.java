@@ -44,7 +44,7 @@ public class ScriptMain {
      * Script interface for AppMain.addFilter() using an AA/AG
      * filter object.
      *
-     * Applies a new filter to show only E loop helices.
+     * Applies a new filter to show helices with AA and AG ends.
      *
      * NOTE: Should be consistent with ScriptFilterInterpreter.
      */

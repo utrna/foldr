@@ -1,0 +1,346 @@
+<html>
+<head>
+<title>RNA HEAT: API Reference</title>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"><!-- HTML 4 -->
+<meta charset="UTF-8"><!-- HTML 5 -->
+<link rel="stylesheet" type="text/css" href="default.css" />
+</head>
+<body>
+  <h1>RNA HEAT: Scripting: API Reference</h1>
+
+  <br /><br />
+  <h2>Common Function Argument Rules</h2>
+
+  <p>Any <b>file arguments</b> may either use absolute pathnames for
+  the current platform (such as Windows or Mac or Linux), or they may
+  be file names that are expected to match something in the current
+  working directory (see setWorkingDir() below).
+
+  <p>Any <b>color arguments</b> are quoted strings that use the HTML
+  hash-RGB convention; for example, '#ff0000' is a bright red, and
+  '#cccccc' is a medium gray.  The Scripting Console, Preferences
+  dialog and other graphical interfaces provide convenient color
+  editors to make it easier to compose these color strings.
+
+  <p>If a function returns an <b>iterator</b>, multiple results can be
+  retrieved as described under "Iterator Object Functions" below.
+
+  <p>If a function returns a <b>helix</b>, properties of the helix can
+  be retrieved as described under "Helix Object Functions" below.
+
+  <br /><br />
+  <h2>"rheat" Functions</h2>
+  <p>The majority of scripting functions in RNA HEAT are accessed
+  through a variable named "rheat".  (This distinguishes them from
+  functions in the JavaScript language that are outside RNA HEAT.)
+
+  <dl>
+  <dt>RNA Management Functions</dt>
+  <dd>
+    <dl>
+    <dt>openRNA(file)</dt>
+    <dd>Opens a ".bpseq" file, closing any currently-displayed RNA
+    automatically (as if closeRNA() had been used).</dd>
+    <dt>openOverlayRNA(file, color)</dt>
+    <dd>Opens a ".bpseq" file WITHOUT closing any currently-displayed
+    RNA; and to keep the new helices distinct, they use the specified
+    color instead of the default color.  The overlay should ideally
+    have the same base-pair length as the currently-displayed RNA,
+    representing a compatible sequence.  Note that overlays can cause
+    performance problems for large data sets, and annotation (tags)
+    may be a better solution.</dd>
+    <dt>openTags(file)</dt>
+    <dd>Opens a ".helixcolor" file with annotations to apply to the
+    currently-displayed RNA.  The 5' and 3' ranges in the annotations
+    will either match existing helices, or cause new helices to be
+    created.</dd>
+    <dt>setBasePairs(bp1[, bp2][, ...])</dt>
+    <dd>After loading an RNA file, base-pairs must be specified so that
+    helices can be identified.  This function accepts as many values as
+    necessary; each value should be a quoted string containing exactly
+    two characters identifying a valid type of base-pair such as 'CG',
+    'AU' or 'GU'.  In the graphical interface, this type of command can
+    also be generated from the Constraints menu.</dd>
+    <dt>closeRNA()</dt>
+    <dd>Closes any current RNA file, clearing the display.</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <dl>
+  <dt>Program-Running Functions</dt>
+  <dd>
+    <dl>
+    <dt>runScript(file)</dt>
+    <dd>Opens a ".js" file or other RNA HEAT script in text format,
+    running it completely before exiting from the runScript() function
+    (this allows you to share common functionality between scripts).</dd>
+    <dt>runProgram(file)</dt>
+    <dd>Opens a program in ".py" or ".jar" format, running it completely
+    before exiting from the runProgram() function.  The program runs in
+    the current experiment tree, set in Preferences, in the date-stamped
+    subdirectory created at the time that RNA HEAT was run.  If you need
+    to force the program into a new experiment area, call newExperiment()
+    (see below).  Prior to running the program, per the protocol, any
+    current RNA will be copied to the experiment area as "input.bpseq";
+    and, after the program ends, any results such as "output.txt" and
+    "output.png" will be displayed, any "output.helixcolor" will be
+    automatically annotated, and any "output.bpseq" will automatically be
+    opened as an overlay.</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <dl>
+  <dt>Logging Functions</dt>
+  <dd>
+    <dl>
+    <dt>log(level, text)</dt>
+    <dd>Writes a message to the console with the specified level, which
+    can be "rheat.INFO", "rheat.WARN" or "rheat.ERROR".</dd>
+    </dl>
+  </dd>
+
+  <dl>
+  <dt>Constraint Functions</dt>
+  <dd>
+    <dl>
+    <dt>addAAandAGFilter()</dt>
+    <dd>In the graphical interface, this type of command can be
+    configured and generated from the Constraints menu.</dd>
+    <dt>addComplexFilter(complex, simple)</dt>
+    <dd>In the graphical interface, this type of command can be
+    configured and generated from the Constraints menu.</dd>
+    <dt>addDiagonalDistanceFilter(maximum, minimum)</dt>
+    <dd>In the graphical interface, this type of command can be
+    configured and generated from the Constraints menu.</dd>
+    <dt>addELoopFilter()</dt>
+    <dd>In the graphical interface, this type of command can be
+    configured and generated from the Constraints menu.</dd>
+    <dt>addEnergyFilter(maximum, minimum)</dt>
+    <dd>In the graphical interface, this type of command can be
+    configured and generated from the Constraints menu.</dd>
+    <dt>addHelixLengthFilter(maximum, minimum)</dt>
+    <dd>In the graphical interface, this type of command can be
+    configured and generated from the Constraints menu.</dd>
+    <dt>removeFilters()</dt>
+    <dd>Clears all constraints from the RNA.</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <dl>
+  <dt>Helix-Finding Functions</dt>
+  <dd>
+    <dl>
+    <dt>eachActualHelix() &rarr; iterator over helices</dt>
+    <dd>Allows access to every helix above the diagonal.</dd>
+    <dt>eachPredictedHelix() &rarr; iterator over helices</dt>
+    <dd>Allows access to every helix below the diagonal.</dd>
+    <dt>getSelectedHelix() &rarr; helix</dt>
+    <dd>If a helix has been selected in the graphical interface, this
+    returns the selected helix object.</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <dl>
+  <dt>Graphical Interface Manipulation Functions</dt>
+  <dd>
+    <dl>
+    <dt>msDelay(milliseconds)</dt>
+    <dd>Pauses the script for at least the specified number of
+    milliseconds; for example, 1000 is one second.  This can be
+    used to perform basic animations; see the annotation functions.</dd>
+    <dt>scrollTo(x, y)</dt>
+    <dd>Moves the graphical RNA display so that the center is on
+    the given location.  The X and Y values should be between 1
+    and the number of base-pairs in the sequence.</dd>
+    <dt>zoomTo(level)</dt>
+    <dd>Changes the graphical zoom level to the specified level
+    of magnification, such as 1.5 for 1.5-times (the limits are
+    the same as in the graphical slider so the maximum is 20.0
+    and the minimum is 0.01).</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <dl>
+  <dt>Annotation Functions</dt>
+  <dd>
+    <dl>
+    <dt>hideHelixTag(tag)</dt>
+    <dd>An alias for hideHelixTags().</dd>
+    <dt>hideHelixTags(tag1[, tag2][, ...])</dt>
+    <dd>Makes the given tags invisible, which could change the appearance
+    of helices (if the now-invisible tags have higher priorities than
+    other tags on those helices).  See also showHelixTags().</dd>
+    <dt>setHelixSpectrum(tag, maximum, minimum)</dt>
+    <dd>Specifies that any helices with the given tag should be
+    colored according to the spectrum given.  The maximum and
+    minimum values determine which numeric values for tags are in
+    range (anything outside is not given a spectrum color).  This
+    is the same spectrum used by energy constraints so setting a
+    new energy constraint will override these settings.</dd>
+    <dt>setHelixTagColor(tag, color)</dt>
+    <dd>Specifies that a helix with the given tag could be drawn
+    in the given color.  Since helices can have more than one tag,
+    the color that is used depends on visibility settings and tag
+    priorities.  Currently, tags are implicitly prioritized based
+    on the order in which setHelixTagColor() or setHelixTagLineWidth()
+    are used for one tag, relative to the other tags.</dd>
+    <dt>setHelixTagLineWidth(tag, width)</dt>
+    <dd>Specifies that a helix with the given tag could be drawn
+    with the given line width.  The same caveats apply here, as for
+    setHelixTagColor().</dd>
+    <dt>showHelixTag(tag)</dt>
+    <dd>An alias for showHelixTags().</dd>
+    <dt>showHelixTags(tag1[, tag2][, ...])</dt>
+    <dd>Makes the given tags visible, which could change the appearance
+    of helices (if the now-visible tags have higher priorities than
+    previously-visible tags on those helices).  See also hideHelixTags().</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <dl>
+  <dt>Directory Path Management Functions</dt>
+  <dd>
+    <dl>
+    <dt>getWorkingDir() &rarr; pathname</dt>
+    <dd>Returns the absolute location of the current working
+    directory, which determines where a file is found if it is
+    specified only by name.  By default, this will be the
+    directory that contains the current script file (though for
+    Scripting Console commands, this may need to be specific).</dd>
+    <dt>makePath(element1[, element2][, ...]) &rarr; pathname</dt>
+    <dd>Given a series of path elements (directory names and possibly
+    an ending file name), returns the platform-specific path (using
+    backslashes on Windows and forward slashes otherwise).  This can
+    be helpful for writing portable scripts.</dd>
+    <dt>setWorkingDir(directory)</dt>
+    <dd>Changes the current directory, after which files given
+    only by name will be assumed to come from that directory.  This
+    also creates a stack of previous values, that can be returned to
+    (in reverse order, automatically) with setWorkingDirToPrevious().</dd>
+    <dt>setWorkingDirToPrevious()</dt>
+    <dd>Returns to whichever directory was current before the most
+    recent call to setWorkingDir().  This can be useful for writing
+    scripts that change the directory in order to perform some
+    temporary action, and then restore it afterward.</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <dl>
+  <dt>Preference Functions</dt>
+  <dd>
+    <dl>
+    <dt>setPreference(name, value)</dt>
+    <dd><i>Permanently</i> changes the specified preference (in that
+    these values are saved to your preferences file when RNA HEAT quits,
+    and restored on the next run).  <b>Direct use of this function by
+    scripts is not recommended</b>; see setTemporaryPreference().</dd>
+    <dt>setTemporaryPreference(name, value)</dt>
+    <dd>In scripts, this is the <b>recommended way</b> to temporarily
+    change settings that are ordinarily set using the Preferences
+    dialog.  This <i>completely overrides</i> the specified preference
+    for the duration of the script but <i>does not save</i> the change
+    to your own preferences file.</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <br /><br />
+  <h2>Iterator Object Functions</h2>
+  <p>Some functions are called directly on Iterator objects; Iterator
+  objects by convention are returned by functions whose names start with
+  the word "each", documented earlier.
+
+  <dl>
+  <dt>Iterator Functions</dt>
+  <dd>
+    <dl>
+    <dt>left() &rarr; number</dt>
+    <dd>Returns the number of items left, which will be zero if the
+    iteration is complete.</dd>
+    <dt>length() &rarr; number</dt>
+    <dd>Returns the number of items that will be iterated over.  NOTE
+    that the efficiency of this request is not guaranteed; it may imply
+    an internal loop over all values to find the total.  It is best to
+    iterate only over values, and count as you go if necessary; do not
+    request a count up front unless you have no other reason to loop
+    over the iterator.</dd>
+    <dt>next() &rarr; value</dt>
+    <dd>Returns the next value (moving the iterator forward) or null to
+    indicate nothing is left.  This is typically called in a loop.  The
+    exact type of value depends on the iteration (for example, it may be
+    a Helix or it may be the name of an annotation tag).</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <br /><br />
+  <h2>Helix Object Functions</h2>
+  <p>Some functions are called directly on Helix objects; Helix
+  objects are returned by certain "rheat" functions that were
+  documented earlier, such as iterators.
+
+  <dl>
+  <dt>Helix Functions: General</dt>
+  <dd>
+    <dl>
+    <dt>energy() &rarr; floating-point number</dt>
+    <dd>Returns the helix energy value, which comes from the energy
+    calculations of an energy constraint.</dd>
+    <dt>length() &rarr; number</dt>
+    <dd>Returns the length of the helix, in base-pairs.</dd>
+    <dt>fivePrimeEnd() &rarr; number</dt>
+    <dd>Returns the location of the end of the 5' sequence.  The number
+    is in the range from 1 to the number of base-pairs in the sequence.</dd>
+    <dt>fivePrimeSequence() &rarr; nucleotide string</dt>
+    <dd>Returns a string containing some combination of the letters A, C,
+    G and U, with the nucleotide sequence on the 5' side.</dd>
+    <dt>fivePrimeStart() &rarr; number</dt>
+    <dd>Returns the location of the start of the 5' sequence.  The number
+    is in the range from 1 to the number of base-pairs in the sequence.</dd>
+    <dt>threePrimeEnd() &rarr; number</dt>
+    <dd>Returns the location of the end of the 3' sequence.  The number
+    is in the range from 1 to the number of base-pairs in the sequence.</dd>
+    <dt>threePrimeSequence() &rarr; nucleotide string</dt>
+    <dd>Returns a string containing some combination of the letters A, C,
+    G and U, with the nucleotide sequence on the 3' side.</dd>
+    <dt>threePrimeStart() &rarr; number</dt>
+    <dd>Returns the location of the start of the 3' sequence.  The number
+    is in the range from 1 to the number of base-pairs in the sequence.</dd>
+    </dl>
+  </dd>
+  </dl>
+
+  <dl>
+  <dt>Helix Functions: Annotation</dt>
+  <dd>
+    <dl>
+    <dt>addTag(name)</dt>
+    <dd>Adds the specified tag name to the tags on the helix.  This
+    is equivalent to annotating the helix using a ".helixcolor" file.</dd>
+    <dt>addTag(name, value)</dt>
+    <dd>Adds the specified tag name to the tags on the helix, mapped to
+    the given value.  This is equivalent to annotating the helix using a
+    ".helixcolor" file, through the "name=value" syntax.</dd>
+    <dt>eachTag() &rarr; iterator over names</dt>
+    <dd>Returns an object that follows the iteration protocol, allowing
+    you to see the name of each annotation on the helix in turn.</dd>
+    <dt>getTagValue(name) &rarr; string</dt>
+    <dd>Returns the value of the specified annotation (tag).  This only
+    makes sense for tags that have values.  The hasTag() method can be
+    used to see if a tag is defined at all.</dd>
+    <dt>hasTag(name) &rarr; true or false</dt>
+    <dd>Returns true only if the specified annotation (tag) is present on
+    the helix.</dd>
+    </dl>
+  </dd>
+  </dl>
+
+</body>
+</html>

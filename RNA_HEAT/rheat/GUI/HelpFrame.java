@@ -70,7 +70,8 @@ public class HelpFrame extends javax.swing.JInternalFrame {
           new BookInfo("Panels", "windows.html"),
           new BookInfo("Menus", "menus.html"),
           new BookInfo("Running Programs", "programs.html"),
-          new BookInfo("Scripting", "scripting.html")
+          new BookInfo("Scripting: General", "scripting.html"),
+          new BookInfo("Scripting: API Reference", "api.html")
         });
         jTree1 = new javax.swing.JTree(root);
         jTree1.setRootVisible(false);
