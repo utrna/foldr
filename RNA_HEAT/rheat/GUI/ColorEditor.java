@@ -1,6 +1,7 @@
 package rheat.GUI;
 
 import rheat.base.AppMain;
+import static rheat.script.JSUtil.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -165,7 +166,7 @@ public class ColorEditor extends javax.swing.JPanel {
         }
         selectedColor = JColorChooser.showDialog(this, this.titleText, selectedColor);
         if (selectedColor != null) {
-            setColorString(String.format("#%02X%02X%02X", selectedColor.getRed(), selectedColor.getGreen(), selectedColor.getBlue()));
+            setColorString(jsColor(selectedColor));
         }
     }
 

@@ -40,6 +40,7 @@ implements PropertyChangeListener {
         // automatically restore any history from last time (may fail silently)
         try (BufferedReader reader = new BufferedReader(new FileReader(this.historyScript))) {
             historyPane.read(reader, this.historyScript/* description object */);
+            scrollToBottom();
         } catch (FileNotFoundException e) {
             // not an error
             this.gui.getAppMain().log(AppMain.INFO, "No previous history file was found.");
@@ -217,11 +218,26 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Normally you should call runCommandLines() to execute the
+     * commands, after which (upon success) they will be added to
+     * history automatically using this command.  In rare cases
+     * though, perhaps because you need to run the command manually,
+     * you can call this directly to add it to history anyway.
+     */
+    public void addCommandToHistory(String scriptingCommands) {
+        this.historyPane.append(scriptingCommands);
+        if (!this.historyPane.getText().endsWith("\n")) {
+            this.historyPane.append("\n");
+        }
+        scrollToBottom();
+    }
+
+    /**
      * Evaluates the specified code and presents any errors to
      * the user.  If there are no errors, the commands are added
      * to the history buffer and the entry pane is cleared.
      */
-    private void runCommandLines(String scriptingCommands) {
+    public void runCommandLines(String scriptingCommands) {
         try {
             // NOTE: the side effects of evaluating code could
             // be almost anything (e.g. this could cause files
@@ -229,15 +245,13 @@ implements PropertyChangeListener {
             // etc.)
             this.gui.evaluateScriptCode(scriptingCommands);
             // success; add to history
-            this.historyPane.append(scriptingCommands);
-            if (!this.historyPane.getText().endsWith("\n")) {
-                this.historyPane.append("\n");
-            }
+            addCommandToHistory(scriptingCommands);
             this.commandPane.setText("");
             saveHistory();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ScriptException e) {
+            AppMain.log(AppMain.INFO, "Script failed: " + scriptingCommands);
             this.gui.showScriptError(e);
         }
     }
@@ -258,6 +272,13 @@ implements PropertyChangeListener {
     private void runSelectedLines() {
         String targetCode = this.historyPane.getSelectedText();
         runCommandLines(targetCode);
+    }
+
+    /**
+     * Scrolls the history to the bottom so new commands are visible.
+     */
+    private void scrollToBottom() {
+        scrollHistoryPane.getVerticalScrollBar().setValue(scrollHistoryPane.getVerticalScrollBar().getMaximum());
     }
 
     private JScrollPane scrollCommandPane;

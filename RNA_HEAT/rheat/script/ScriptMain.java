@@ -353,11 +353,13 @@ public class ScriptMain {
      */
     public void setHelixSpectrum(String tag, Double maxValue, Double minValue) throws ScriptException {
         try {
-            appMain.rnaData.setBinTag(tag);
-            appMain.rnaData.setBinMaxValue(maxValue);
-            appMain.rnaData.setBinMinValue(minValue);
-            appMain.rnaData.setBinCount(30);
-            appMain.rnaData.processHelixBins();
+            synchronized (this.appMain.rnaData) {
+                appMain.rnaData.setBinTag(tag);
+                appMain.rnaData.setBinMaxValue(maxValue);
+                appMain.rnaData.setBinMinValue(minValue);
+                appMain.rnaData.setBinCount(30);
+                appMain.rnaData.processHelixBins();
+            }
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }

@@ -3,6 +3,7 @@ package rheat.GUI;
 import rheat.base.*;
 import rheat.filter.*;
 import rheat.script.ConstraintInterpreter;
+import static rheat.script.JSUtil.*;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -505,12 +506,12 @@ implements PropertyChangeListener {
 
     private void zoomIn() {
         double currentZoom = getZoomLevel();
-        setZoomLevel(getZoomLevel() + 0.25f); // should match zoom-out amount below
+        runConsoleFunction("rheat.zoomTo", "" + (getZoomLevel() + 0.25f)); // should match zoom-out amount below
     }
 
     private void zoomOut() {
         double currentZoom = getZoomLevel();
-        setZoomLevel(getZoomLevel() - 0.25f); // should match zoom-in amount above
+        runConsoleFunction("rheat.zoomTo", "" + (getZoomLevel() - 0.25f)); // should match zoom-out amount below
     }
 
     /**
@@ -1046,21 +1047,12 @@ implements PropertyChangeListener {
         jumpButton = new JButton("Go");
         jumpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                try {
-                    if (jumpFieldY.getText().isEmpty()) {
-                        int xInt = Integer.parseInt(jumpFieldX.getText());
-                        scrollTo(xInt, xInt);
-                    } else if (jumpFieldX.getText().isEmpty()) {
-                        int yInt = Integer.parseInt(jumpFieldY.getText());
-                        scrollTo(yInt, yInt);
-                    } else {
-                        int xInt = Integer.parseInt(jumpFieldX.getText());
-                        int yInt = Integer.parseInt(jumpFieldY.getText());
-                        scrollTo(xInt, yInt);
-                    }
-                } catch (NumberFormatException e) {
-                    log(ERROR, "Expected a number.");
-                    //e.printStackTrace();
+                if (jumpFieldY.getText().isEmpty()) {
+                    runConsoleFunction("rheat.scrollTo", jumpFieldX.getText(), jumpFieldX.getText());
+                } else if (jumpFieldX.getText().isEmpty()) {
+                    runConsoleFunction("rheat.scrollTo", jumpFieldY.getText(), jumpFieldY.getText());
+                } else {
+                    runConsoleFunction("rheat.scrollTo", jumpFieldX.getText(), jumpFieldY.getText());
                 }
             }
         });
@@ -1799,10 +1791,31 @@ implements PropertyChangeListener {
     }
 
     /**
-     * Passes scripting commands to AppMain.
+     * Passes scripting commands to AppMain.  See also
+     * runConsoleScript().
      */
     public void evaluateScriptCode(String scriptingCommands) throws ScriptException {
         this.appMain.evaluateScriptCode(scriptingCommands);
+    }
+
+    /**
+     * Convenience function for when the goal is to run a single
+     * function.  See runConsoleScript() and jsFunction().
+     */
+    public void runConsoleFunction(String funcName, String... args) {
+        runConsoleScript(jsFunction(funcName, args));
+    }
+
+    /**
+     * Runs script commands, automatically presenting any errors
+     * or adding successful commands to the console history.
+     * When generating code from data, it is strongly recommended
+     * that JSUtil methods be used, such as jsEscape() for files.
+     * See also evaluateScriptCode(), which runs scripts
+     * without logging and raises exceptions.
+     */
+    public void runConsoleScript(String scriptingCommands) {
+        this.commandFrame.runCommandLines(scriptingCommands);
     }
 
     /**
@@ -1816,7 +1829,7 @@ implements PropertyChangeListener {
             // by calling appMain.addConstraint() and updateImage() (see
             // "rheat/script/ScriptMain.java" implementations of each)
             String equivalentScriptCommand = ConstraintInterpreter.getScriptCommandFor(filter);
-            evaluateScriptCode(equivalentScriptCommand);
+            runConsoleScript(equivalentScriptCommand);
             appMain.incrementUndo(); // success; next snapshot should use a new number
             // TODO: should the history-update portion be an option?
             addHistoryCommand(equivalentScriptCommand);
@@ -2125,7 +2138,7 @@ implements PropertyChangeListener {
      * Cleans up when closing the current session.
      */
     public void closeRNA() {
-        appMain.closeRNA();
+        runConsoleScript("rheat.closeRNA()");
     }
 
     /**
@@ -2193,9 +2206,14 @@ implements PropertyChangeListener {
                 if (isOverlay) {
                     // in AppMain class, overlay data automatically
                     // uses the same base-pairs as the original
-                    appMain.openOverlayRNA(inputFile.getAbsolutePath(), openOverlayColorPanel.getBackground());
+                    runConsoleFunction("rheat.openOverlayRNA",
+                                       jsQuoteEscape(inputFile.getAbsolutePath()),
+                                       jsQuoteColor(openOverlayColorPanel.getBackground())
+                                       );
                 } else {
-                    appMain.openRNA(inputFile.getAbsolutePath());
+                    runConsoleFunction("rheat.openRNA",
+                                       jsQuoteEscape(inputFile.getAbsolutePath())
+                                       );
                     zoomToFit();
                     // automatically request a base-pair set, since
                     // otherwise the default display is not very useful
@@ -2218,7 +2236,9 @@ implements PropertyChangeListener {
             for (File inputFile : fc.getSelectedFiles()) {
                 try {
                     // openTags() will call refreshForNewRNA()
-                    appMain.openTags(inputFile.getAbsolutePath());
+                    runConsoleFunction("rheat.openTags",
+                                       jsQuoteEscape(inputFile.getAbsolutePath())
+                                       );
                 } catch (Exception e) {
                     e.printStackTrace();
                     showError(e.getMessage(), "Error Opening File");
@@ -2276,9 +2296,7 @@ implements PropertyChangeListener {
     private void runScript(File inputFile) {
         try {
             beginCursor(Cursor.WAIT_CURSOR);
-            appMain.runScript(inputFile.getAbsolutePath());
-        } catch (ScriptException e) {
-            showScriptError(e);
+            runConsoleFunction("rheat.runScript", jsQuoteEscape(inputFile.getAbsolutePath()));
         } catch (Exception e) {
             e.printStackTrace();
             showError(e.getMessage(), "Error Running Script");
@@ -2330,6 +2348,11 @@ implements PropertyChangeListener {
                 if (exitStatus != 0) {
                     throw new RuntimeException("Exit status " + exitStatus + ".");
                 }
+                // in this case, “fake” the history entry (in the
+                // future, it may make sense to bind the result to
+                // a variable and call the JavaScript engine to
+                // read the variable)
+                this.commandFrame.addCommandToHistory("status = rheat.runProgram" + jsParams(jsQuoteEscape(inputFile.getAbsolutePath())));
             } catch (Exception e) {
                 e.printStackTrace();
                 showError(e.getMessage(), "Error Running Program");

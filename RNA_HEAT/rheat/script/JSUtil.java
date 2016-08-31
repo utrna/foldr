@@ -1,5 +1,6 @@
 package rheat.script;
 
+import java.awt.Color;
 import javax.script.*;
 
 /**
@@ -10,6 +11,34 @@ import javax.script.*;
  * that are likely to be unique).
  */
 public class JSUtil {
+
+    /**
+     * Given a Color object, returns an HTML-style version of it
+     * that is a suitable argument for scripting functions.
+     * @return an HTML color string such as "#ab0078"
+     */
+    static public String jsColor(Color c) {
+        return String.format("#%02X%02X%02X", c.getRed(), c.getGreen(), c.getBlue());
+    }
+
+    /**
+     * @return a comma-separated list
+     */
+    static public String jsCSV(String... strArray) {
+        StringBuilder sb = new StringBuilder();
+        jsCSVHelper(sb, strArray);
+        return sb.toString();
+    }
+    static private void jsCSVHelper(StringBuilder sb, String... strArray) {
+        int i = 0;
+        for (String s : strArray) {
+            ++i;
+            sb.append(s);
+            if (i != strArray.length) {
+                sb.append(", ");
+            }
+        }
+    }
 
     /**
      * Helper for warning the user about outdated method names.
@@ -26,12 +55,66 @@ public class JSUtil {
      *
      * NOTE: This is a heuristic that may need to be extended as
      * needed.  Currently handles replacing single backslashes with
-     * double-backslashes (common in Windows pathnames).
+     * double-backslashes (common in Windows pathnames), and fixing
+     * any quotation marks.
      */
     static public String jsEscape(String inputString) {
         String result = inputString;
         result = result.replace("\\", "\\\\"); // backslash -> double-backslash
+        result = result.replace("\"", "\\\""); // double-quote -> backslash double-quote
+        result = result.replace("\'", "\\\'"); // quote -> backslash quote
         return result;
+    }
+
+    /**
+     * Useful for generating complete function calls.
+     * @return a function name and parenthesized comma-separated list
+     */
+    static public String jsFunction(String funcName, String... args) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(funcName);
+        jsParamsHelper(sb, args);
+        return sb.toString();
+    }
+
+    /**
+     * Useful for generating parenthesized function parameter lists.
+     * See also jsFunction().
+     * @return a parenthesized comma-separated list
+     */
+    static public String jsParams(String... strArray) {
+        StringBuilder sb = new StringBuilder();
+        jsParamsHelper(sb, strArray);
+        return sb.toString();
+    }
+    static private void jsParamsHelper(StringBuilder sb, String... strArray) {
+        sb.append("(");
+        jsCSVHelper(sb, strArray);
+        sb.append(")");
+    }
+
+    /**
+     * @return given string, surrounded by quotes
+     */
+    static public String jsQuote(String s) {
+        return ("'" + s + "'");
+    }
+
+    /**
+     * Calls jsColor() automatically on "c", then jsQuote().
+     */
+    static public String jsQuoteColor(Color c) {
+        return jsQuote(jsColor(c));
+    }
+
+    /**
+     * Calls jsEscape() automatically on "s", then jsQuote().
+     * This is almost certainly the appropriate call when converting
+     * raw data into a JavaScript string for later use.
+     * @return given string, escaped, surrounded by quotes
+     */
+    static public String jsQuoteEscape(String s) {
+        return jsQuote(jsEscape(s));
     }
 
     /**
