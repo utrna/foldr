@@ -6,16 +6,31 @@ Written by Kevin Grant (kmgrant@utexas.edu).
 To Do
 ~~~~~
 
-- Allow colors and helix line widths to be configured; perhaps a
-  scripting command to set them for future filters.  It should be
-  possible to see multiple sets of helices in different colors.
-  Also, the default should be customizable (e.g. set to gray).
+- Some capabilities can currently only be accessed from the GUI by
+  writing scripts in the console, and they may benefit from some
+  more dedicated GUI interfaces.  For example, the ability to show
+  or hide certain tags, in tandem with file format extensions to
+  identify the “most useful” tags in a ".helixcolor" file, may be
+  quite helpful.
 
-- Grid lines and numeric/axis labels in display window.
+- There should be more scripting examples, and more documentation
+  that is in “tutorial” form versus “reference” form.
 
-- Filters should have the option of superimposing results in a
-  different color instead of hiding the other helices.  This is
-  particularly desirable for visualizing helix energies.
+- Allow the mini-frame to be clickable; for example, let the user
+  click and drag the rectangle to scroll dynamically, or click a
+  new area to jump to that location.
+
+- When the mouse is clicked and dragged in the main display, show
+  a resizing rectangle and then zoom to the area/magnification
+  implied by the rectangular area of interest.
+
+- Enable selection of multiple helices in certain situations
+  (such as, those nearby).
+
+- It may be interesting to allow arbitrary X/Y drawings from
+  scripts.  (The disadvantage however is that it exposes some
+  implementation details that would then be hard to change if
+  needed.)
 
 - May need options for E-Loop Filter (to use different
   interpretations of this).
@@ -23,13 +38,12 @@ To Do
 - Interface ideas may be found in RNA2DMap (e.g. using a series
   of checkboxes to enable/disable view options).
 
-- Highlight (optionally) predicted helices that match actual
-  helices displayed in the top-right section.
-
 - Separate concept of “filter” from “algorithm”, perhaps using
   different top-level menus for running each.
 
 - Add a “bookmarking” scheme to keep track of interesting areas.
+
+- Categorize the Preferences window, e.g. using tabs.
 
 - Investigate a 45-degree-rotated version of the 2D display.
 
@@ -42,14 +56,6 @@ To Do
 
 - There should be a separate window for statistics, aside from
   the current “Helix Info”.
-
-- Enable selection of multiple helices in certain situations
-  (such as, those nearby).
-
-- Enable animation.  Bare minimum would be something like a delay
-  mechanism in scripts so that a series of effects could be
-  applied at a slow rate.  Another option is the ability to
-  export images via scripts and animate the images later.
 
 - Documentation: Explain meaning of Complex/Simple Distance
   defaults; clearly specify E-Loop.

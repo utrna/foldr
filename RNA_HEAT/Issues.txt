@@ -10,9 +10,50 @@ Issues
 (NOTE: As issues are resolved, they move from this list to the
 “Now Fixed” section that follows.)
 
-The following things were tried and there were problems:
+- Main Display:
 
-- Filters:
+  * Due to the order of drawing in HelixImageGenerator, a
+    priority is implied that may not make sense to the user.
+    Ideally everything that “can” overlap can also be turned
+    on or off independently so the user always has a way to
+    see anything that might be obscured.
+
+- Preferences:
+
+  * If a “temporary preference” has been set from a script,
+    this affects what is displayed in the Preferences GUI
+    until the program ends.  That was not intended, since
+    saving the Preferences dialog will then write PERMANENT
+    preferences (though it makes sense how the dialog got
+    the temporary values, since they have higher priority).
+    There may need to be some special behavior to avoid this
+    GUI behavior, or at least better documentation.
+
+  * The "rheat.setPreference()" API is not intended for
+    casual use by scripts, and documentation should suggest
+    "rheat.setTemporaryPreference()" for normal use (or,
+    just use more appropriate APIs).
+
+- Scripting Only:
+
+  * There is no efficient way for a script to estimate the
+    subset of helices that are near some point.  Internally
+    however, some progress toward a range-based iterator has
+    been made.
+
+  * Helices still seem to have issues matching unless the end
+    points are exactly the same (e.g. partial overlap does not
+    work as expected).
+
+  * Some reports of commands that may work in console but not in
+    script files; investigate and clarify conditions.  (Kevin G.
+    could not reproduce.)
+
+  * Delay mechanism did not seem to work for Dr. Gutell.  (Kevin
+    could not reproduce.)  Investigate using an alternate method
+    such as a condition variable from the concurrency library.
+
+- Filters/Constraints:
 
   * Some actions can cause long pauses without any hints.
 
@@ -20,21 +61,24 @@ The following things were tried and there were problems:
 
   * "Complex Distance Filter": Out-of-bounds exception when used.
 
+  * "Complex Distance Filter": The performance of this test seems
+    to be very bad when using tagging instead of filtering.  The
+    problem may be the difference in volume of helices visited.
+    Region query may be required.
+
+  * Generally, error messages in filter/constraint dialogs could
+    be better.  Also, some failures should be avoidable (e.g.
+    why must length min/max be different?).
+
   * Explanation of E-Loop Filter is not accurate.
 
-- "Display Window":
-
-  (none)
-
-- "Control Window":
-
-  (none)
-
-- "Filter History" (now "Constraint History"):
-
-  (none)
-
 - General:
+
+  * The fundamental design of HelixGrid assumes that a single
+    Helix can be assigned to each X/Y position, and this is not
+    true when overlapping helices can be auto-created from
+    annotations.  A “layering” of grids may be necessary to
+    properly represent all possible helices at an X/Y position.
 
   (none)
 
