@@ -278,7 +278,11 @@ implements PropertyChangeListener {
      * Scrolls the history to the bottom so new commands are visible.
      */
     private void scrollToBottom() {
-        scrollHistoryPane.getVerticalScrollBar().setValue(scrollHistoryPane.getVerticalScrollBar().getMaximum());
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                scrollHistoryPane.getVerticalScrollBar().setValue(scrollHistoryPane.getVerticalScrollBar().getMaximum());
+            }
+        });
     }
 
     private JScrollPane scrollCommandPane;

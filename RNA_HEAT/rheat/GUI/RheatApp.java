@@ -962,6 +962,7 @@ implements PropertyChangeListener {
         subPanel.add(openOverlayColorButton, BorderLayout.EAST);
         customOpenPane.add(subPanel);
 
+        logFrame = new LogFrame();
         helpFrame = new HelpFrame();
         aboutFrame = new AboutFrame();
         commandFrame = new ScriptEntryFrame(this);
@@ -1786,6 +1787,7 @@ implements PropertyChangeListener {
             e.printStackTrace();
         }
         bringToFront(mainWindowFrame);
+        displayLogWindow();
 
         pack();
     }
@@ -2084,6 +2086,11 @@ implements PropertyChangeListener {
     private void displayHelp() {
         addOrReuseComponent(helpFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
         bringToFront(helpFrame);
+    }
+
+    private void displayLogWindow() {
+        addOrReuseComponent(logFrame, javax.swing.JLayeredPane.PALETTE_LAYER);
+        bringToFront(logFrame);
     }
 
     private void displayScriptingWindow() {
@@ -2411,6 +2418,7 @@ implements PropertyChangeListener {
     private javax.swing.JMenuItem basepairConstraintItem;
     private javax.swing.JDesktopPane desktopPane;
     public ScriptEntryFrame commandFrame;
+    public LogFrame logFrame;
     public HelpFrame helpFrame;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenuItem eLoopConstraintItem;

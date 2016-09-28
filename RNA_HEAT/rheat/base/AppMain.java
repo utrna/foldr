@@ -29,6 +29,9 @@ public class AppMain {
      * Sent to PropertyChangeListener registered with addPropertyChangeListener().
      */
     public static String PROPERTY_WORKING_DIR = "PROPERTY_WORKING_DIR";
+    public static String PROPERTY_INFO_LOG_MESSAGE = "PROPERTY_INFO_LOG_MESSAGE";
+    public static String PROPERTY_WARN_LOG_MESSAGE = "PROPERTY_WARN_LOG_MESSAGE";
+    public static String PROPERTY_ERROR_LOG_MESSAGE = "PROPERTY_ERROR_LOG_MESSAGE";
 
     /**
      * For the log() method.
@@ -38,6 +41,7 @@ public class AppMain {
     public static final int ERROR = 2;
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    static private final PropertyChangeSupport classPCS = new PropertyChangeSupport(AppMain.class);
     private String fileSep = System.getProperty("file.separator");
     private HashMap<String, String> preferencesMap = new HashMap<String, String>(); // use setPreference() and getPreference()
     private HashMap<String, String> tmpPrefsMap = new HashMap<String, String>(); // use setTemporaryPreference() and getPreference()
@@ -110,6 +114,14 @@ public class AppMain {
 
     /**
      * Arranges to notify the given listener (via propertyChange())
+     * when the specified class property changes.
+     */
+    static public void addClassPropertyChangeListener(String property, PropertyChangeListener listener) {
+        classPCS.addPropertyChangeListener(property, listener);
+    }
+
+    /**
+     * Arranges to notify the given listener (via propertyChange())
      * when the specified property changes.
      */
     public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
@@ -130,11 +142,18 @@ public class AppMain {
                             : ((messageType == WARN)
                                ? "WARNING: "
                                : "")));
+        String prop = ((messageType == ERROR)
+                       ? PROPERTY_ERROR_LOG_MESSAGE
+                       : ((messageType == WARN)
+                          ? PROPERTY_WARN_LOG_MESSAGE
+                          : PROPERTY_INFO_LOG_MESSAGE));
         sb.append(prefix);
         for (String s : parts) {
             sb.append(s);
         }
-        System.err.println(sb.toString());
+        String messageText = sb.toString();
+        classPCS.firePropertyChange(prop, "", messageText);
+        System.err.println(messageText);
     }
 
     /**
