@@ -345,6 +345,26 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Forces an immediate update to the display.  This is primarily
+     * useful in response to scripts that may want to trigger
+     * multiple updates to the GUI while executing.
+     */
+    public void forceRNADisplayUpdate() {
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    // NOTE: must use paintImmediately() and not repaint() because
+                    // otherwise the runtime might combine multiple calls (e.g.
+                    // animation in a script may be squashed)
+                    displayPane.paintImmediately(displayPane.getBounds());
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Implements PropertyChangeListener; used to update info display.
      */
     public void propertyChange(PropertyChangeEvent event) {
@@ -465,10 +485,7 @@ implements PropertyChangeListener {
             }
         }
         this.updateImage();
-        // NOTE: must use paintImmediately() and not repaint() because
-        // otherwise the runtime might combine multiple calls (e.g.
-        // animation in a script may be squashed)
-        displayPane.paintImmediately(displayPane.getBounds());
+        this.forceRNADisplayUpdate();
     }
 
     /**

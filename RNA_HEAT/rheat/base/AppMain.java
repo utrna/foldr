@@ -178,13 +178,17 @@ public class AppMain {
 
     /**
      * Forces the program to wait for the specified number of
-     * milliseconds before continuing.  Useful for animations.
+     * milliseconds before continuing, and then updates the
+     * display.  Useful for animations.
      */
     public void msDelay(int millisecondCount) throws ScriptException {
         try {
             Thread.sleep(millisecondCount);
         } catch (InterruptedException e) {
             log(WARN, "Request for delay was interrupted.");
+        }
+        if (this.gui != null) {
+            this.gui.forceRNADisplayUpdate();
         }
     }
 
