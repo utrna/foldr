@@ -88,42 +88,36 @@ implements Comparable<Helix>, java.io.Serializable {
     /**
      * In some cases it is useful to be able to compare helices using
      * a subset of their properties; this class compares helices ONLY
-     * using their X, Y and length values.  See TreeSet(Comparator).
+     * using their range values.  See TreeSet(Comparator).
      */
     static public class CompareExtents
     implements Comparator<Helix> {
         public int compare(Helix h1, Helix h2) {
-            // only consider xPosition, yPosition, helixLength
-            if (h1.xPosition < h2.xPosition) {
-                return -1;
-            } else if (h1.xPosition > h2.xPosition) {
-                return 1;
+            // only consider 5'/3' ranges
+            int a, b;
+            a = h1.fivePrimeRange.getA();
+            b = h2.fivePrimeRange.getA();
+            if (a != b) {
+                return ((a < b) ? -1 : 1);
             }
-            // equal X
-            if (h1.yPosition < h2.yPosition) {
-                return -1;
-            } else if (h1.yPosition > h2.yPosition) {
-                return 1;
+            a = h1.fivePrimeRange.getB();
+            b = h2.fivePrimeRange.getB();
+            if (a != b) {
+                return ((a < b) ? -1 : 1);
             }
-            // equal Y
-            if (h1.helixLength < h2.helixLength) {
-                return -1;
-            } else if (h1.helixLength > h2.helixLength) {
-                return 1;
+            a = h1.threePrimeRange.getA();
+            b = h2.threePrimeRange.getA();
+            if (a != b) {
+                return ((a < b) ? -1 : 1);
             }
-            // equal length
+            a = h1.threePrimeRange.getB();
+            b = h2.threePrimeRange.getB();
+            if (a != b) {
+                return ((a < b) ? -1 : 1);
+            }
+            // equal in all checked propreties
             return 0;
         }
-    }
-
-    /** Creates a new instance of Helix given the starting position of X and Y and the
-     * length.  Assumes antiparallel orientation.
-     * @param posx The starting x position.  For example: <B>A</B>GCU____AGCU
-     * @param posy The starting y position.  For example: AGCU____AGC<B>U</B>
-     * @param hlen The length of the helix.  For example: AGCU____AGCU the length is 4.
-     */
-    public Helix(int posx, int posy, int hlen) {
-        this.init(posx, posy, hlen);
     }
 
     /**
@@ -135,58 +129,36 @@ implements Comparable<Helix>, java.io.Serializable {
      * See also get3PrimeRange() and get5PrimeRange().
      */
     public Helix(SortedPair fivePrimeRange, SortedPair threePrimeRange) {
-        // defer to other constructor (translate); this MUST
-        // agree with interpretation in get3PrimeRange()
-        // and get5PrimeRange()
-        final int x = getXForThreePrimeRange(threePrimeRange);
-        final int length3 = getRangeLength(threePrimeRange);
-        final int y = getYForFivePrimeRange(fivePrimeRange);
-        final int length5 = getRangeLength(fivePrimeRange);
+        this.tags = null;
+        this.binNumber = NO_BIN;
+        this.helixEnergy = 0;
+        // IMPORTANT: caller should also assert that the helix range
+        // maximum values do not exceed the base-pair count (the RNA
+        // information is not available from here)
+        if ((fivePrimeRange.getA() < 1) ||
+            (fivePrimeRange.getB() < 1) ||
+            (threePrimeRange.getA() < 1) ||
+            (threePrimeRange.getB() < 1)) {
+            throw new IllegalArgumentException("failed to create helix: 5' or 3' range contains a value less than 1 (given: " + fivePrimeRange + ", " + threePrimeRange + ")");
+        }
+        this.fivePrimeRange = new SortedPair(fivePrimeRange.getA(), fivePrimeRange.getB());
+        this.threePrimeRange = new SortedPair(threePrimeRange.getA(), threePrimeRange.getB());
         // the two ranges must be consistent
+        final int length3 = threePrimeRange.getLength();
+        final int length5 = fivePrimeRange.getLength();
         if (length3 != length5) {
             throw new IllegalArgumentException("failed to create helix: 5' range of length " + length5 + " does not match 3' range of length " + length3 + " (given: " + fivePrimeRange + ", " + threePrimeRange + ")");
         }
-        // store ranges in converted form (X, Y and length)
-        this.init(x, y, length3);
-        // perform one last sanity check; the intersects() method should
+        // perform one last sanity check; the hasRanges() method should
         // always succeed for the given ranges because the new helix
         // definition should represent those same ranges
-        if (!intersects(fivePrimeRange, threePrimeRange)) {
+        if (!hasRanges(fivePrimeRange, threePrimeRange)) {
             SortedPair p1 = new SortedPair(-1, -1);
             SortedPair p2 = new SortedPair(-1, -1);
             get3PrimeRange(p1);
             get5PrimeRange(p2);
             throw new IllegalArgumentException("failed to create helix: intersection test failed for " + p1 + ", " + p2 + " (given: " + fivePrimeRange + ", " + threePrimeRange + ")");
         }
-    }
-
-    static public int getXForThreePrimeRange(SortedPair threePrimeRange) {
-        return (threePrimeRange.getA() - 1);
-    }
-
-    static public void setThreePrimeRangeFromXandLength(int x, int length, SortedPair threePrimeRange) {
-        threePrimeRange.setValues(x + length, x + 1);
-    }
-
-    static public int getYForFivePrimeRange(SortedPair fivePrimeRange) {
-        return (fivePrimeRange.getB() - 1);
-    }
-
-    static public void setFivePrimeRangeFromYandLength(int y, int length, SortedPair fivePrimeRange) {
-        fivePrimeRange.setValues(y + 1 - length + 1, y + 1);
-    }
-
-    static public int getRangeLength(SortedPair fiveOrThreePrimeRange) {
-        return (fiveOrThreePrimeRange.getB() - fiveOrThreePrimeRange.getA() + 1);
-    }
-
-    private void init(int posx, int posy, int hlen) {
-        xPosition = posx;
-        yPosition = posy;
-        helixLength = hlen;
-        tags = null;
-        binNumber = -1;
-        helixEnergy = 0;
     }
 
     /**
@@ -278,25 +250,12 @@ implements Comparable<Helix>, java.io.Serializable {
         this.binNumber = binNumber;
     }
 
-    /** Returns the starting X position.
-     * @return An integer index of the starting X position.
-     */    
-    public int getStartX() {
-        return xPosition;
-    }
-
-    /** Returns the starting Y position.
-     * @return An integer index of the starting Y position.
-     */    
-    public int getStartY() {
-        return yPosition;
-    }
-
-    /** Returns the length of this helix.
-     * @return An integer length of the helix.
+    /**
+     * Returns the number of nucleotide pairs.
      */    
     public int getLength() {
-        return helixLength;
+        // NOTE: constructor guarantees that 5'/3' lengths match
+        return this.threePrimeRange.getLength(); // arbitrary
     }
 
     public void setEnergy(double energy) {
@@ -333,9 +292,8 @@ implements Comparable<Helix>, java.io.Serializable {
                     eqTags = this.tags.equals(other.tags);
                 }
             }
-            if ((this.xPosition == other.xPosition) &&
-                (this.yPosition == other.yPosition) &&
-                (this.helixLength == other.helixLength) &&
+            if (this.threePrimeRange.equals(other.threePrimeRange) &&
+                this.fivePrimeRange.equals(other.fivePrimeRange) &&
                 (this.helixEnergy == other.helixEnergy) &&
                 (eqTags)) {
                 return true;
@@ -347,27 +305,51 @@ implements Comparable<Helix>, java.io.Serializable {
     }
 
     /**
-     * Returns pair representation of 3' range, inclusive.  NOTE that
-     * although values are stored zero-based like array indices, the
-     * pair representations are one-based (as they might appear when
-     * described in a file).  This is because, in files, 0 might have
-     * special meaning.
+     * Returns pair representation of 3' range, inclusive.
+     * Minimum value is 1, as specified in input files.
      */
     public void get3PrimeRange(SortedPair sp) {
-        // IMPORTANT: must agree with translation in Helix constructor (SortedPair)
-        setThreePrimeRangeFromXandLength(xPosition, helixLength, sp);
+        sp.setValues(this.threePrimeRange.getA(), this.threePrimeRange.getB());
     }
 
     /**
-     * Returns pair representation of 5' range, inclusive.  NOTE that
-     * although values are stored zero-based like array indices, the
-     * pair representations are one-based (as they might appear when
-     * described in a file).  This is because, in files, 0 might have
-     * special meaning.
+     * Returns the smaller value of the 3' range.
+     * See also get3PrimeRange().
+     */
+    public int get3PrimeStart() {
+        return threePrimeRange.getA();
+    }
+
+    /**
+     * Returns the larger value of the 3' range.
+     * See also get3PrimeRange().
+     */
+    public int get3PrimeEnd() {
+        return threePrimeRange.getB();
+    }
+
+    /**
+     * Returns pair representation of 5' range, inclusive.
+     * Minimum value is 1, as specified in input files.
      */
     public void get5PrimeRange(SortedPair sp) {
-        // IMPORTANT: must agree with translation in Helix constructor (SortedPair)
-        setFivePrimeRangeFromYandLength(yPosition, helixLength, sp);
+        sp.setValues(this.fivePrimeRange.getA(), this.fivePrimeRange.getB());
+    }
+
+    /**
+     * Returns the smaller value of the 5' range.
+     * See also get5PrimeRange().
+     */
+    public int get5PrimeStart() {
+        return fivePrimeRange.getA();
+    }
+
+    /**
+     * Returns the larger value of the 5' range.
+     * See also get5PrimeRange().
+     */
+    public int get5PrimeEnd() {
+        return fivePrimeRange.getB();
     }
 
     /**
@@ -376,15 +358,10 @@ implements Comparable<Helix>, java.io.Serializable {
      * The values in this helix are compared in sorted order so it
      * does not matter which number is stored as X or Y.
      */
-    public boolean intersects(SortedPair fivePrimeSide, SortedPair threePrimeSide) {
-        // (this should match how HelixInfo interprets the data)
+    public boolean hasRanges(SortedPair fivePrimeSide, SortedPair threePrimeSide) {
         // NOTE: specifications are one-based but storage is zero-based (like an array index)
-        SortedPair p1 = new SortedPair(-1, -1);
-        SortedPair p2 = new SortedPair(-1, -1);
-        get5PrimeRange(p1);
-        get3PrimeRange(p2);
-        final boolean eq5P = p1.equals(fivePrimeSide);
-        final boolean eq3P = p2.equals(threePrimeSide);
+        final boolean eq5P = this.fivePrimeRange.equals(fivePrimeSide);
+        final boolean eq3P = this.threePrimeRange.equals(threePrimeSide);
         //AppMain.log(0, "CHECK: " + p1 + "==" + fivePrimeSide + "," + p2 + "==" + threePrimeSide + ":" + eq5P + "," + eq3P); // debug
         return (eq5P && eq3P);
     }
@@ -394,14 +371,28 @@ implements Comparable<Helix>, java.io.Serializable {
      */    
     @Override
     public String toString() {
-        String ans = "";
-        ans = ans + xPosition + " " + yPosition + " " + helixLength;
-        return ans;
+        StringBuilder sb = new StringBuilder();
+        sb.append("<");
+        sb.append("5'=");
+        sb.append(this.fivePrimeRange.toString());
+        sb.append(" 3'=");
+        sb.append(this.threePrimeRange.toString());
+        sb.append(" bin=");
+        sb.append(this.binNumber);
+        sb.append(" e=");
+        sb.append("" + this.helixEnergy);
+        sb.append(" ntags=");
+        if (tags == null) {
+            sb.append("0");
+        } else {
+            sb.append("" + tags.size());
+        }
+        sb.append(">");
+        return sb.toString();
     }
 
-    private int xPosition;
-    private int yPosition;
-    private int helixLength;
+    private SortedPair fivePrimeRange;
+    private SortedPair threePrimeRange;
     private int binNumber;
     private double helixEnergy;
     private HashMap<String, String> tags; // created on demand

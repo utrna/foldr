@@ -42,7 +42,7 @@ extends rheat.filter.Filter {
         bprf.setArguments(0, SimpleDistance);
         bprf.applyConstraint(rna);
         
-        HelixStore hsDiagonal = rna.getHelices();
+        HelixStore hsDiagonal = rna.getPredictedHelices();
         //HelixStore hsSorted = SortHelicesByEnergy(hsDiagonal); //james
         HelixStore hsNonIntersecting = pickNonIntersectingDiagonals(hsDiagonal);
         
@@ -57,7 +57,7 @@ extends rheat.filter.Filter {
         ndf.applyConstraint(rna);
 //////////        
 
-        HelixStore hsNonDiagonal = rna.getHelices();
+        HelixStore hsNonDiagonal = rna.getPredictedHelices();
         Iterator itr = hsNonDiagonal.iterator();
         String constraintDesc = new String(getComplexDistance() + "," + getSimpleDistance());
         while(itr.hasNext()){
@@ -83,7 +83,7 @@ extends rheat.filter.Filter {
         removeTagAllPredictedHelices(rna, Helix.InternalTags.TAG_MATCH_COMPLEX_DISTANCE);
     }
 
-    private boolean noninterfering(HelixInfo h1, HelixInfo h2){
+    private boolean noninterfering(Helix h1, Helix h2) {
         if (h1.get5PrimeStart() >= h2.get5PrimeStart() && h1.get5PrimeStart() <= h2.get5PrimeEnd()){
             return false;
         }
@@ -117,29 +117,26 @@ extends rheat.filter.Filter {
         if (!helixList.isEmpty()) {
             permanent.add(helixList.get(0));
         }
-        HelixInfo hinfo_1;
-        HelixInfo hinfo_2;
         boolean good = true;
-        for (int i = 1; i < helixList.size(); i++){
-            hinfo_1 = new HelixInfo((Helix)helixList.get(i), r);
-            for (int j = 0; j < permanent.size(); j++){
-                hinfo_2 = new HelixInfo((Helix)permanent.get(j), r);
-                if (noninterfering(hinfo_1, hinfo_2)){
+        for (int i = 1; i < helixList.size(); i++) {
+            Helix h1 = (Helix)helixList.get(i);
+            for (int j = 0; j < permanent.size(); j++) {
+                Helix h2 = (Helix)permanent.get(j);
+                if (noninterfering(h1, h2)){
                     good = true;
-                }
-                else {
+                } else {
                     good = false;
                     break;
                 }
             }
-            if (good){
+            if (good) {
                 permanent.add((Helix)helixList.get(i));
             }
             else {
                 good = true;
             }
         }
-        for (int i = 0; i < permanent.size(); i++){
+        for (int i = 0; i < permanent.size(); i++) {
             result.addHelix((Helix)permanent.get(i));
         }
         return result;
@@ -178,14 +175,12 @@ extends rheat.filter.Filter {
  */
     private int CalculateComplexDistance(HelixStore hs, Helix h) {
         
-        HelixInfo hi = new HelixInfo(h, r);
-        int distance = ( hi.get5PrimeEnd() - hi.get3PrimeStart() );
+        int distance = ( h.get5PrimeEnd() - h.get3PrimeStart() );
         Iterator itrWithin = hs.iterator();
         //find the compex distance using 'hsWithin'
         while(itrWithin.hasNext()){
             Helix hWithin = (Helix)itrWithin.next();
-            HelixInfo hiWithin = new HelixInfo(hWithin, r);
-            distance = ( distance - ( hiWithin.get3PrimeEnd() - hiWithin.get5PrimeStart() ) );
+            distance = ( distance - ( hWithin.get3PrimeEnd() - hWithin.get5PrimeStart() ) );
         }
         return(distance);
     }
@@ -193,14 +188,12 @@ extends rheat.filter.Filter {
 /* Function that returns true if slave is within master
  */
     private boolean within(Helix slave, Helix master) {
-        HelixInfo hiSlave = new HelixInfo(slave, r);
-        HelixInfo hiMaster = new HelixInfo(master, r);
-        
-        if ( ( hiMaster.get5PrimeEnd() < hiSlave.get5PrimeStart() ) &&
-        ( hiMaster.get3PrimeStart() > hiSlave.get3PrimeEnd() ) )
+        if ( ( master.get5PrimeEnd() < slave.get5PrimeStart() ) &&
+             ( master.get3PrimeStart() > slave.get3PrimeEnd() ) ) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 
     /** Removes Overlappin Helices from hs

@@ -7,7 +7,7 @@
 var i = 0
 
 rheat.openRNA('test.bpseq')
-rheat.addBasePairFilter('CG', 'AU', 'GU')
+rheat.setBasePairs('CG', 'AU', 'GU')
 rheat.openTags('test.helixcolor')
 
 // look at predicted helices (would appear bottom-left of diagonal)

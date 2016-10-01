@@ -26,44 +26,45 @@ extends rheat.filter.Filter {
 
     @Override
     public void applyConstraint(RNA rna) {
-        Iterator itr = rna.getHelices().iterator();
+        Iterator itr = rna.getPredictedHelices().iterator();
         boolean atStart = false, atEnd = false, Selected = false;        
-        String a = " ", b = " ", c = " ", d = " ";        
+        char a = ' ', b = ' ', c = ' ', d = ' ';        
 
-        ArrayList sequence = rna.getSequence();
+        String sequence = rna.getSequence();
         
         while(itr.hasNext()){
             Helix h = (Helix)itr.next();
-            HelixInfo hi = new HelixInfo(h, rna);                        
-                            
+
             Selected = false;
             atStart = false;
             atEnd = false;
 
             //Check for AU or AA at the end of the helix
             try {
-                    a = ((String)sequence.get(hi.get5PrimeStart() - 1)).toLowerCase();
-                    b = ((String)sequence.get(hi.get3PrimeEnd() + 1)).toLowerCase();
+                    a = Character.toLowerCase(rna.getSequenceAt(h.get5PrimeStart() - 1));
+                    b = Character.toLowerCase(rna.getSequenceAt(h.get3PrimeEnd() + 1));
                 } catch (Exception e) { atStart = true;}
 
             try {
-                    c = ((String)sequence.get(hi.get5PrimeEnd() + 1)).toLowerCase();
-                    d = ((String)sequence.get(hi.get3PrimeStart() - 1)).toLowerCase();
+                    c = Character.toLowerCase(rna.getSequenceAt(h.get5PrimeEnd() + 1));
+                    d = Character.toLowerCase(rna.getSequenceAt(h.get3PrimeStart() - 1));
                 } catch (Exception e) { atEnd = true;}
               
                     
              if (!atStart) {
-                        if ( (a.equals("a") && b.equals("a")) ||
-                             (a.equals("a") && b.equals("g")) ||
-                             (a.equals("g") && b.equals("a"))  )
+                        if ( ((a == 'a') && (b == 'a')) ||
+                             ((a == 'a') && (b == 'g')) ||
+                             ((a == 'g') && (b == 'a')) ) {
                                 Selected = true;
+                        }
                 }
 
              if (!atEnd) {
-                        if ( (c.equals("a") && d.equals("a")) ||
-                             (c.equals("a") && d.equals("g")) ||
-                             (c.equals("g") && d.equals("a"))  )
+                        if ( ((c == 'a') && (d == 'a')) ||
+                             ((c == 'a') && (d == 'g')) ||
+                             ((c == 'g') && (d == 'a')) ) {
                                 Selected = true;
+                        }
                 }            
             
 

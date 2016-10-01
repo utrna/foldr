@@ -192,6 +192,8 @@ implements PropertyChangeListener {
     private JFileChooser fc = new JFileChooser();
     private BufferedImage img = null;
     private Rectangle tmpRect = new Rectangle(); // reused as needed to repaint
+    private SortedPair tmpPair = new SortedPair(); // reused as needed
+    private SortedPair tmpPair2 = new SortedPair(); // reused as needed
 
     /**
      * Main window, using an AppMain object to manage
@@ -354,31 +356,58 @@ implements PropertyChangeListener {
                 if (selectedHelix == null) {
                     sb.append("You did not select a helix.\n");
                 } else {
-                    HelixInfo info = new HelixInfo(selectedHelix, appMain.rnaData);
-                    sb.append("Helix Length: " + info.getLength() + "\n");
-                    sb.append("Helix Energy: " + String.format("%.5f", info.getEnergy()) + "\n");
-                    sb.append("5'...." + info.get5PrimeSequence() + "....3'\n");
-                    sb.append("3'...." + info.get3PrimeSequence() + "....5'\n");
-                    sb.append("5' Start: " + (info.get5PrimeStart() + 1) + "\n");
-                    sb.append("5' End: " + (info.get5PrimeEnd() + 1) + "\n");
-                    sb.append("3' Start: " + (info.get3PrimeStart() + 1) + "\n");
-                    sb.append("3' End: " + (info.get3PrimeEnd() + 1) + "\n");
+                    selectedHelix.get5PrimeRange(this.tmpPair);
+                    selectedHelix.get3PrimeRange(this.tmpPair2);
+                    final int start5p = this.tmpPair.getA();
+                    final int end5p = this.tmpPair.getB();
+                    final int start3p = this.tmpPair2.getA();
+                    final int end3p = this.tmpPair2.getB();
+                    //sb.append("5' Start: " + start5p + "\n");
+                    //sb.append("5'   End: " + end5p + "\n");
+                    //sb.append("5'  Seq.: " + appMain.rnaData.getSequenceInRange(this.tmpPair) + "\n");
+                    sb.append("5' Side: " + String.format("%4d ", start5p) +
+                              appMain.rnaData.getSequenceInRange(this.tmpPair) +
+                              String.format(" %-4d\n", end5p));
+                    // the 3' side should be shown backwards so pairs line up
+                    sb.append("3' Side: " + String.format("%4d ", end3p) +
+                              new StringBuilder(appMain.rnaData.getSequenceInRange(this.tmpPair2)).reverse().toString() +
+                              String.format(" %-4d\n", start3p));
+                    //sb.append("3'  Seq.: " + new StringBuilder(appMain.rnaData.getSequenceInRange(this.tmpPair2)).reverse().toString() + "\n");
+                    //sb.append("3' Start: " + start3p + "\n");
+                    //sb.append("3'   End: " + end3p + "\n");
+                    sb.append("\n");
+                    sb.append("Length: " + selectedHelix.getLength() + "\n");
+                    sb.append("Distance from Diagonal: " + DiagonalDistanceFilter.getDistanceFromDiagonal(selectedHelix) + "\n");
+                    if (EnergyMaxMinFilter.isInfinite(selectedHelix.getEnergy())) {
+                        sb.append("Energy: Infinite\n");
+                    } else {
+                        sb.append("Energy: " + String.format("%.5f", selectedHelix.getEnergy()) + "\n");
+                    }
                     int binNumber = selectedHelix.getBinNumber();
                     if (this.appMain.rnaData != null) {
                         if (binNumber != Helix.NO_BIN) {
-                            sb.append("Bin #: " + (binNumber + 1) + " of " + this.appMain.rnaData.getBinCount() + "\n");
+                            sb.append("Bin #:  " + (binNumber + 1) + " of " + this.appMain.rnaData.getBinCount() + "\n");
                         } else {
-                            sb.append("Bin #: None\n");
+                            sb.append("Bin #:  None\n");
                         }
                     }
                     Map<String, String> helixTags = selectedHelix.getTags();
                     if (helixTags != null) {
+                        sb.append("Tags:\n");
+                        int maxWidth = 5; // fixed below
+                        // first find the longest tag name for alignment purposes
                         for (String tag : helixTags.keySet()) {
-                            sb.append("Tag: ");
-                            sb.append(tag);
+                           if (tag.length() > maxWidth) {
+                               maxWidth = tag.length();
+                           }
+                        }
+                        // show all tag names (and values, if any)
+                        for (String tag : new TreeSet<String>(helixTags.keySet())/* sort */) {
+                            sb.append("  ");
+                            sb.append(String.format("%-" + maxWidth + "s", tag));
                             String value = helixTags.get(tag);
                             if (value != null) { 
-                                sb.append("=");
+                                sb.append(" = ");
                                 sb.append(value);
                             }
                             sb.append("\n");
@@ -1288,7 +1317,7 @@ implements PropertyChangeListener {
         JScrollPane scrollSelectedHelixInfo = new JScrollPane();
         scrollSelectedHelixInfo.setViewportView(helixInfoTextPane);
         scrollSelectedHelixInfo.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.white));
-        scrollSelectedHelixInfo.setMinimumSize(new Dimension(200, 100));
+        scrollSelectedHelixInfo.setMinimumSize(new Dimension(250, 100));
         JPanel paneSelectedHelix = new JPanel();
         paneSelectedHelix.setLayout(new BorderLayout());
         paneSelectedHelix.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
@@ -1857,7 +1886,7 @@ implements PropertyChangeListener {
             showError("Please open an RNA file first.", "No RNA Loaded");
             return true;
         }
-        if ((!noHelicesOK) && this.appMain.rnaData.getHelices().isEmpty()) {
+        if ((!noHelicesOK) && this.appMain.rnaData.getPredictedHelices().isEmpty()) {
             showError("There are no helices defined; please apply a base-pair constraint first.", "No Base-Pairs Chosen");
             return true;
         }
@@ -1886,7 +1915,7 @@ implements PropertyChangeListener {
         Filter newFilter = fd.getNewFilter();
         if (newFilter != null) {
             addConstraint(newFilter);
-            HelixStore helices = appMain.rnaData.getHelices();
+            HelixStore helices = appMain.rnaData.getPredictedHelices();
             int count = ((helices != null) ? helices.getHelixCount() : 0);
             this.helixTotalField.setText("" + count);
         }
@@ -2173,9 +2202,9 @@ implements PropertyChangeListener {
             this.setTitle("RNA HEAT: " + rna.getUID());
             this.helixImgGen.setBaseWidth(rna.getLength());
             this.helixImgGen.setBaseHeight(rna.getLength());
-            HelixStore helices = rna.getHelices();
+            HelixStore helices = rna.getPredictedHelices();
             int count = ((helices != null) ? helices.getHelixCount() : 0);
-            this.helixActualField.setText("" + rna.getActual().getHelixCount());
+            this.helixActualField.setText("" + rna.getActualHelices().getHelixCount());
             this.helixNumField.setText("" + count);
             this.helixTotalField.setText("");
         } else {

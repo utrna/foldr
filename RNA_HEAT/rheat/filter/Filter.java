@@ -36,7 +36,7 @@ public abstract class Filter {
      * tag name(s).
      */
     protected void removeTagsAllPredictedHelices(RNA rna, String... tagNames) {
-        Iterator<Helix> iter = rna.getHelices().iterator();
+        Iterator<Helix> iter = rna.getPredictedHelices().iterator();
         while (iter.hasNext()) {
             Helix h = (Helix)(iter.next());
             for (String tagName : tagNames) {

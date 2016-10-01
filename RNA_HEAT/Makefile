@@ -13,7 +13,6 @@ CLASS_PREFIXES += rheat/base/BPSeqReader
 CLASS_PREFIXES += rheat/base/Helix
 CLASS_PREFIXES += rheat/base/HelixColorReader
 CLASS_PREFIXES += rheat/base/HelixGrid
-CLASS_PREFIXES += rheat/base/HelixInfo
 CLASS_PREFIXES += rheat/base/HelixStore
 CLASS_PREFIXES += rheat/base/RNA
 CLASS_PREFIXES += rheat/base/SortedPair

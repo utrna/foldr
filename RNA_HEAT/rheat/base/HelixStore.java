@@ -32,11 +32,6 @@ public interface HelixStore extends java.io.Serializable {
     public int getHelixCount();
 
     /**
-     * @return the maximum number of Helix references that can be stored
-     */
-    public int getHelixStoreSize();
-
-    /**
      * @return the length of the longest helix added using addHelix()
      * (reset to zero after a clear())
      */
@@ -69,7 +64,7 @@ public interface HelixStore extends java.io.Serializable {
      * them), allowing an operation in a certain region to
      * check fewer helices overall; in NO PARTICULAR ORDER
      */
-    public Iterator<Helix> iterator(SortedPair threePrimeRange,
-                                    SortedPair fivePrimeRange);
+    public Iterator<Helix> iterator(SortedPair fivePrimeRange,
+                                    SortedPair threePrimeRange);
 
 }

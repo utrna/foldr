@@ -31,7 +31,7 @@ public class BPSeqReader {
      */
     static public RNA parse(BufferedReader dataSource) {
         RNA result = null;
-        final ArrayList<String> alist = new ArrayList<String>();
+        final StringBuilder sb = new StringBuilder();
         final ArrayList<SortedPair> realBP = new ArrayList<SortedPair>();
         final BufferedReader threadDataSource = dataSource;
         try {
@@ -74,7 +74,7 @@ public class BPSeqReader {
                                 SortedPair p = new SortedPair(pos, align);
                                 realBP.add(p);
                             }
-                            alist.add(nucleotide);
+                            sb.append(nucleotide);
                             temp = threadDataSource.readLine();
                         }
                     } catch (IOException e) {
@@ -84,8 +84,10 @@ public class BPSeqReader {
             };
             t.start();
             t.join();
-            result = new RNA(uid, org, acc, otherInfo, alist);
-            boolean[][] actual = new boolean[alist.size()][alist.size()];
+            String nucleotideSequence = sb.toString();
+            final int sequenceLength = nucleotideSequence.length();
+            result = new RNA(uid, org, acc, otherInfo, nucleotideSequence);
+            boolean[][] actual = new boolean[sequenceLength][sequenceLength];
             Iterator itr = realBP.iterator();
             while (itr.hasNext()) {
                 SortedPair p = (SortedPair)itr.next();

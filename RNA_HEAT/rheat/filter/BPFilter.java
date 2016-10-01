@@ -30,12 +30,12 @@ extends rheat.filter.Filter {
 
     @Override
     public void applyConstraint(RNA rna) {
-        ArrayList sequence = rna.getSequence();
-        boolean[][] bp = new boolean[sequence.size()][sequence.size()];
-        for (int i = 0; i < sequence.size(); i++) {
+        final int seqLength = rna.getLength();
+        boolean[][] bp = new boolean[seqLength][seqLength];
+        for (int i = 0; i < seqLength; i++) {
             for (int j = 0; j < i; j++) {
-                String a = ((String)sequence.get(i)).toLowerCase();
-                String b = ((String)sequence.get(j)).toLowerCase();
+                char a = Character.toLowerCase(rna.getSequenceAt(i + 1));
+                char b = Character.toLowerCase(rna.getSequenceAt(j + 1));
                 int r = BasepairType.getBasepairType(a, b);
                 if (bprules.get(r)) {
                     bp[i][j] = true;

@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Construct pairing with canonical ordering.
  */
-class SortedPair implements Serializable {
+public class SortedPair implements Serializable {
 
     public SortedPair() {
         setValues(0, 0);
@@ -26,6 +26,10 @@ class SortedPair implements Serializable {
 
     public int getB() {
         return b;
+    }
+
+    public int getLength() {
+        return (b - a + 1);
     }
 
     public void setValues(int i, int j) {

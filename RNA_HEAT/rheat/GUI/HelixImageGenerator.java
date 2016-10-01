@@ -664,19 +664,22 @@ public class HelixImageGenerator {
             }
         }
         // baseline: place helix in lower-left section, not mirrored
-        double x0 = h.getStartY() + 1;
-        double y0 = h.getStartX() + 1;
-        double x1 = x0 - (helixLength - 1);
-        double y1 = y0 + (helixLength - 1);
+        // (note: origin of graphics is upper-left corner going right/down)
+        double x0 = h.get5PrimeStart();
+        double x1 = h.get5PrimeEnd();
+        double y0 = h.get3PrimeEnd();
+        double y1 = h.get3PrimeStart();
         if (helixType == HelixType.ACTUAL) {
             // place helix in upper-right section, mirrored on diagonal;
             // note that this is a visual choice only, as the original helix
             // data remains relative to the same origin as predicted helices
             // (this makes them easy to compare)
-            x0 = h.getStartX() + 1;
-            y0 = h.getStartY() + 1;
-            x1 = x0 + (helixLength - 1); // grow line in opposite direction from point (away from diagonal)
-            y1 = y0 - (helixLength - 1);
+            double tmp = x0;
+            x0 = y0;
+            y0 = tmp;
+            tmp = x1;
+            x1 = y1;
+            y1 = tmp;
         }
         // IMPORTANT: if the stroke is cap-butt, length-1 helices
         // will be INVISIBLE because the start and end points are
@@ -767,7 +770,7 @@ public class HelixImageGenerator {
         helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         // draw the predicted helices in the lower-left triangle
-        HelixStore hstore = rna.getHelices();
+        HelixStore hstore = rna.getPredictedHelices();
         if (hstore != null) {
             Iterator itr = hstore.iterator();
             while (itr.hasNext()) {
@@ -786,7 +789,7 @@ public class HelixImageGenerator {
             }
         }
         // draw the actual helices in the top-right triangle
-        HelixStore actual = rna.getActual();
+        HelixStore actual = rna.getActualHelices();
         if (actual != null) {
             Iterator itr = actual.iterator();
             while (itr.hasNext()) {
@@ -809,7 +812,7 @@ public class HelixImageGenerator {
         }
         helixGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         helixGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        HelixStore hstore = rna.getHelices();
+        HelixStore hstore = rna.getPredictedHelices();
         // FIXME: make colors customizable
         helixGraphics.setColor(Color.red);
         if (hstore != null) {
@@ -819,13 +822,13 @@ public class HelixImageGenerator {
                 Helix h = (Helix)itr.next();
                 int x0, x1, y, hi, wi;
                 wi = h.getLength();
-                hi = (h.getStartX() - h.getStartY());
-                x0 = h.getStartX();
+                hi = (h.get3PrimeStart() - h.get5PrimeEnd());
+                x0 = h.get3PrimeStart();
                 y = (int)(this.baseHeight) - hi;
                 // FIXME: make colors customizable
                 helixGraphics.setColor(Color.red);
                 helixGraphics.drawLine(x0, y - 1, x0, (int)(this.baseHeight));
-                x1 = h.getStartY();
+                x1 = h.get5PrimeEnd();
                 helixGraphics.setColor(Color.blue);
                 helixGraphics.drawLine(x1, y - 1, x1, (int)(this.baseHeight));
                 helixGraphics.setColor(Color.green);

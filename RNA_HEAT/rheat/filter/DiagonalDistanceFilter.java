@@ -41,14 +41,19 @@ extends rheat.filter.Filter {
         return rangeMin;
     }
 
+    static public int getDistanceFromDiagonal(Helix h) {
+        return (h.get3PrimeEnd() - h.get5PrimeStart());
+    }
+
     @Override
     public void applyConstraint(RNA rna) {
         String constraintDesc = String.format("%d:%d", getRangeMax(), getRangeMin());
-        Iterator itr = rna.getHelices().iterator();
+        Iterator itr = rna.getPredictedHelices().iterator();
         while (itr.hasNext()) {
             Helix h = (Helix)itr.next();
-            final boolean inRange = (((h.getStartX() - h.getStartY()) <= rangeMax) &&
-                                     ((h.getStartX() - h.getStartY()) >= rangeMin));
+            final int distanceFromDiagonal = getDistanceFromDiagonal(h);
+            final boolean inRange = ((distanceFromDiagonal <= rangeMax) &&
+                                     (distanceFromDiagonal >= rangeMin));
             if (isInverted) {
                 // matches if NOT in the given range
                 if (inRange) {

@@ -41,8 +41,8 @@ public class HelixGrid implements HelixStore {
 
     @Override
     public void addHelix(Helix h) {
-        int x = h.getStartX();
-        int y = h.getStartY();
+        int x = h.get5PrimeStart() - 1; // convert one-based to zero-based for array
+        int y = h.get3PrimeEnd() - 1;
         final int helixLength = h.getLength();
         helices.add(h);
         int l = helixLength;
@@ -67,14 +67,6 @@ public class HelixGrid implements HelixStore {
     @Override
     public int getHelixCount() {
         return helices.size();
-    }
-
-    @Override
-    public int getHelixStoreSize() {
-        if (pairings.length == 0) {
-            return 0;
-        }
-        return (pairings.length * pairings[0].length);
     }
 
     @Override
@@ -103,15 +95,16 @@ public class HelixGrid implements HelixStore {
     }
 
     @Override
-    public Iterator<Helix> iterator(SortedPair threePrimeRange,
-                                    SortedPair fivePrimeRange) {
+    public Iterator<Helix> iterator(SortedPair fivePrimeRange,
+                                    SortedPair threePrimeRange) {
         if (isEmpty()) {
             // short-cut for base case
             return this.iterator();
         }
-        final int xStart = Helix.getXForThreePrimeRange(threePrimeRange);
-        final int yStart = Helix.getYForFivePrimeRange(fivePrimeRange);
-        final int length = (threePrimeRange.getB() - threePrimeRange.getA() + 1); // should not matter which range is chosen (should be the same)
+        // should agree with interpretation in addHelix()
+        final int xStart = fivePrimeRange.getA() - 1; // convert one-based to zero-based for array
+        final int yStart = threePrimeRange.getA() - 1;
+        final int length = threePrimeRange.getLength(); // should not matter which range is chosen (should be the same)
         final int xPastEnd = (xStart + length);
         final int yPastEnd = (yStart + length);
         Set<Helix> helicesInRange = new HashSet<Helix>();
@@ -124,7 +117,7 @@ public class HelixGrid implements HelixStore {
                     // out of range (should not happen...)
                     continue;
                 }
-                Helix h = this.pairings[j][i];
+                Helix h = this.pairings[i][j];
                 if (h != null) {
                     helicesInRange.add(h);
                 }

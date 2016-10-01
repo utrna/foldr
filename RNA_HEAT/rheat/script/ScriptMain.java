@@ -209,7 +209,7 @@ public class ScriptMain {
         ScriptIteration<ScriptHelix> result = null;
         try {
             final RNA sourceRNA = appMain.rnaData;
-            final HelixStore actualHelices = sourceRNA.getActual();
+            final HelixStore actualHelices = sourceRNA.getActualHelices();
             result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(actualHelices, sourceRNA));
         } catch (Exception e) {
             rethrowAsScriptException(e);
@@ -227,7 +227,7 @@ public class ScriptMain {
         ScriptIteration<ScriptHelix> result = null;
         try {
             final RNA sourceRNA = appMain.rnaData;
-            final HelixStore predictedHelices = sourceRNA.getHelices(); // FIXME: bad name
+            final HelixStore predictedHelices = sourceRNA.getPredictedHelices();
             result = new ScriptIteration<ScriptHelix>(new HelixStoreIterationDelegate(predictedHelices, sourceRNA));
         } catch (Exception e) {
             rethrowAsScriptException(e);

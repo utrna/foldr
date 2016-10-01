@@ -38,7 +38,7 @@ extends rheat.filter.Filter {
     @Override
     public void applyConstraint(RNA rna) {
         String constraintDesc = String.format("%d:%d", getMaxLength(), getMinLength());
-        Iterator itr = rna.getHelices().iterator();
+        Iterator itr = rna.getPredictedHelices().iterator();
         while (itr.hasNext()) {
             Helix h = (Helix)itr.next();
             if ((h.getLength() >= MinLength) && (h.getLength() <= MaxLength)) {

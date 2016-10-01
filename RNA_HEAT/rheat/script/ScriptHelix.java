@@ -61,7 +61,11 @@ public class ScriptHelix {
         ScriptIteration<String> result = null;
         try {
             Map<String, String> tags = rawHelix.getTags(); // may be null
-            result = new ScriptIteration<String>(new StringSetIterationDelegate(tags.keySet()));
+            if (tags == null) {
+                result = new ScriptIteration<String>(new StringSetIterationDelegate(new HashSet<String>()));
+            } else {
+                result = new ScriptIteration<String>(new StringSetIterationDelegate(tags.keySet()));
+            }
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -98,12 +102,12 @@ public class ScriptHelix {
     }
 
     /**
-     * Script interface for HelixInfo.get5PrimeEnd().
+     * Script interface for Helix.get5PrimeEnd().
      */
     public int fivePrimeEnd() throws ScriptException {
         int result = 0;
         try {
-            result = getHelixInfo().get5PrimeEnd();
+            result = rawHelix.get5PrimeEnd();
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -111,12 +115,14 @@ public class ScriptHelix {
     }
 
     /**
-     * Script interface for HelixInfo.get5PrimeSequence().
+     * Script interface for RNA.getSequenceInRange() for helix 5' range.
      */
     public String fivePrimeSequence() throws ScriptException {
         String result = "";
         try {
-            result = getHelixInfo().get5PrimeSequence();
+            SortedPair range = new SortedPair();
+            rawHelix.get5PrimeRange(range);
+            result = sourceRNA.getSequenceInRange(range);
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -129,7 +135,7 @@ public class ScriptHelix {
     public int fivePrimeStart() throws ScriptException {
         int result = 0;
         try {
-            result = getHelixInfo().get5PrimeStart();
+            result = rawHelix.get5PrimeStart();
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -184,7 +190,7 @@ public class ScriptHelix {
     public int threePrimeEnd() throws ScriptException {
         int result = 0;
         try {
-            result = getHelixInfo().get3PrimeEnd();
+            result = rawHelix.get3PrimeEnd();
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -192,12 +198,14 @@ public class ScriptHelix {
     }
 
     /**
-     * Script interface for HelixInfo.get3PrimeSequence().
+     * Script interface for RNA.getSequenceInRange() for helix 3' range.
      */
     public String threePrimeSequence() throws ScriptException {
         String result = "";
         try {
-            result = getHelixInfo().get3PrimeSequence();
+            SortedPair range = new SortedPair();
+            rawHelix.get3PrimeRange(range);
+            result = sourceRNA.getSequenceInRange(range);
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
@@ -210,27 +218,14 @@ public class ScriptHelix {
     public int threePrimeStart() throws ScriptException {
         int result = 0;
         try {
-            result = getHelixInfo().get3PrimeStart();
+            result = rawHelix.get3PrimeStart();
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
         return result;
     }
 
-    /**
-     * Since there is a small cost to finding helix info
-     * (constructing sequences, etc.), only do it when it
-     * is actually required for something.
-     */
-    private HelixInfo getHelixInfo() {
-        if (helixInfo == null) {
-            helixInfo = new HelixInfo(rawHelix, sourceRNA);
-        }
-        return helixInfo;
-    }
-
     private Helix rawHelix = null;
-    private HelixInfo helixInfo = null;
     private RNA sourceRNA = null;
 
 }

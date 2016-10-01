@@ -24,13 +24,11 @@ extends rheat.filter.Filter {
     double minEnergy;
     double maxEnergy;
     double[][] EnergyData;
-    double INF;
+    static double INF = 10.0; // from original implementation; appears to be arbitrary
   
     public EnergyMaxMinFilter() {
         maxEnergy = Double.POSITIVE_INFINITY;
         minEnergy = Double.NEGATIVE_INFINITY;
-        
-        INF = 10.0;
         
         double[][] DefaultEnergyData = {
            // AA     AC     AG     AU     CA     CC     CG     CU     GA     GC     GG     GU     UA     UC     UG     UU
@@ -55,6 +53,10 @@ extends rheat.filter.Filter {
         EnergyData = DefaultEnergyData;
     }    
 
+    static public boolean isInfinite(double energy) {
+        return (energy >= INF);
+    }
+
     public double getMinEnergy() {
         return this.minEnergy;
     }
@@ -74,8 +76,7 @@ extends rheat.filter.Filter {
 
     @Override
     public void applyConstraint(RNA rna) {
-        ArrayList sequence = rna.getSequence();
-        Iterator<Helix> i = rna.getHelices().iterator();
+        Iterator<Helix> i = rna.getPredictedHelices().iterator();
         while (i.hasNext()) {
             Helix h = i.next();
             h.setEnergy(findEnergy(h, rna));
@@ -113,20 +114,20 @@ extends rheat.filter.Filter {
 
     private double findEnergy(Helix h, RNA rna)
     {
-        HelixInfo hinfo = new HelixInfo(h, rna);
-        
-        String ThreePrimeSequence;
-        String FivePrimeSequence;
+        String threePrimeSequence;
+        String fivePrimeSequence;
         int length;
         int i = 0;
-        double HelixEnergy = 0;
+        double result = 0;
         
-        FivePrimeSequence = hinfo.get5PrimeSequence();
-        ThreePrimeSequence = hinfo.get3PrimeSequence();
-        length = hinfo.getLength();
-        
-        while( i < (length-1) )
-        {   
+        SortedPair range = new SortedPair();
+        h.get5PrimeRange(range);
+        fivePrimeSequence = rna.getSequenceInRange(range);
+        h.get3PrimeRange(range);
+        threePrimeSequence = new StringBuilder(rna.getSequenceInRange(range)).reverse().toString();
+        length = h.getLength();
+       
+        while (i < (length-1)) {
             char first;     //1st letter of basepair
             char second;    //2nd letter of basepair
             
@@ -134,21 +135,20 @@ extends rheat.filter.Filter {
             int colIndex;
             
             //Find row index
-            first = FivePrimeSequence.charAt(i);
-            second = ThreePrimeSequence.charAt(i);
-            
+            first = fivePrimeSequence.charAt(i);
+            second = threePrimeSequence.charAt(i);
             rowIndex = getBasepairIndex(first, second);
-
+            
             //Find column index
-            first = ThreePrimeSequence.charAt(i+1);
-            second = FivePrimeSequence.charAt(i+1);
+            first = threePrimeSequence.charAt(i + 1);
+            second = fivePrimeSequence.charAt(i + 1);
             colIndex = getBasepairIndex(first, second);
             
             //Get energy at (row, column), add to total
-            HelixEnergy += getValueAt(rowIndex, colIndex);            
+            result += getValueAt(rowIndex, colIndex);
             i++;
-        }        
-        return HelixEnergy;        
+        }
+        return result;
     }
 
 /** Sets Arguments for the Filter
