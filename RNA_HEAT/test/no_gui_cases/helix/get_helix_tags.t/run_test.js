@@ -38,3 +38,18 @@ for (i = 0; i < helices.length(); ++i) {
         ++current_test
     }
 }
+
+// perform basic test of removal API
+helices = rheat.eachPredictedHelix()
+while (true) {
+    helix = helices.next()
+    if (helix == null) {
+        break
+    }
+    if (helix.hasTag('1')) {
+        helix.removeTag('1')
+        if (helix.hasTag('1')) {
+            throw "TEST FAILED: helix tag found when it should have been removed"
+        }
+    }
+}

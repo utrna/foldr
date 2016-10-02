@@ -345,23 +345,38 @@ implements PropertyChangeListener {
     }
 
     /**
+     * Invokes the specified code on the event dispatch thread and
+     * waits for completion.  Unlike SwingUtilities.invokeAndWait(),
+     * this does not trigger a pointless exception if the current
+     * thread is already the event dispatch thread; it just runs
+     * the routine directly in that situation.
+     */
+    static public void invokeAndWait(Runnable proc) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            proc.run();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(proc);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
      * Forces an immediate update to the display.  This is primarily
      * useful in response to scripts that may want to trigger
      * multiple updates to the GUI while executing.
      */
     public void forceRNADisplayUpdate() {
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    // NOTE: must use paintImmediately() and not repaint() because
-                    // otherwise the runtime might combine multiple calls (e.g.
-                    // animation in a script may be squashed)
-                    displayPane.paintImmediately(displayPane.getBounds());
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.invokeAndWait(new Runnable() {
+            public void run() {
+                // NOTE: must use paintImmediately() and not repaint() because
+                // otherwise the runtime might combine multiple calls (e.g.
+                // animation in a script may be squashed)
+                displayPane.paintImmediately(displayPane.getBounds());
+            }
+        });
     }
 
     /**

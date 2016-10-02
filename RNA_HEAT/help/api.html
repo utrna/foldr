@@ -289,6 +289,17 @@
   objects are returned by certain "rheat" functions that were
   documented earlier, such as iterators.
 
+  <p><b>IMPORTANT:</b>  Functions that <i>change</i> properties on a
+  Helix object (currently: addTag() and removeTag()) WILL NOT cause the
+  display to be redrawn immediately!  The Helix object does not have
+  enough information to trigger updates.  Instead, if you need to see an
+  immediate change, you must cause the main display to be updated by
+  calling some other function on the "rheat" variable (such as the
+  rheat.showHelixTag() function).  This turns out to be most efficient
+  anyway; for example, if you decide to write a loop to remove tags from
+  several helices, it is really best to update the display once at the
+  end of the loop.
+
   <dl>
   <dt>Helix Functions: General</dt>
   <dd>
@@ -341,6 +352,8 @@
     <dt>hasTag(name) &rarr; true or false</dt>
     <dd>Returns true only if the specified annotation (tag) is present on
     the helix.</dd>
+    <dt>removeTag(name)</dt>
+    <dd>Deletes the specified annotation (tag) if present on the helix.</dd>
     </dl>
   </dd>
   </dl>

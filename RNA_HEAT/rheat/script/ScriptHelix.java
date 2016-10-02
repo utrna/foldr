@@ -29,6 +29,12 @@ public class ScriptHelix {
 
     /**
      * Script interface for Helix.addTag().
+     *
+     * IMPORTANT: This does not trigger a display update
+     * because individual helices do not have enough
+     * information to do so.  You must perform a display
+     * action of some kind on the "rheat" variable to
+     * see changes rendered.
      */
     public void addTag(String tagName) throws ScriptException {
         try {
@@ -40,6 +46,12 @@ public class ScriptHelix {
 
     /**
      * Script interface for Helix.addTag().
+     *
+     * IMPORTANT: This does not trigger a display update
+     * because individual helices do not have enough
+     * information to do so.  You must perform a display
+     * action of some kind on the "rheat" variable to
+     * see changes rendered.
      */
     public void addTag(String tagName, String tagValue) throws ScriptException {
         try {
@@ -173,6 +185,23 @@ public class ScriptHelix {
             rethrowAsScriptException(e);
         }
         return result;
+    }
+
+    /**
+     * Script interface for Helix.removeTag().
+     *
+     * IMPORTANT: This does not trigger a display update
+     * because individual helices do not have enough
+     * information to do so.  You must perform a display
+     * action of some kind on the "rheat" variable to
+     * see changes rendered.
+     */
+    public void removeTag(String tagName) throws ScriptException {
+        try {
+            rawHelix.removeTag(tagName);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
     }
 
     /**
