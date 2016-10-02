@@ -1009,9 +1009,24 @@ implements PropertyChangeListener {
         customOpenPane.add(subPanel);
 
         logFrame = new LogFrame();
+        Rectangle savedLogBounds = appMain.getPrefWindowLayoutLog();
+        if (savedLogBounds != null) {
+            logFrame.setNormalBounds(savedLogBounds);
+            logFrame.setBounds(savedLogBounds);
+        }
         helpFrame = new HelpFrame();
+        Rectangle savedHelpBounds = appMain.getPrefWindowLayoutHelp();
+        if (savedHelpBounds != null) {
+            helpFrame.setNormalBounds(savedHelpBounds);
+            helpFrame.setBounds(savedHelpBounds);
+        }
         aboutFrame = new AboutFrame();
         commandFrame = new ScriptEntryFrame(this);
+        Rectangle savedConsoleBounds = appMain.getPrefWindowLayoutScriptingConsole();
+        if (savedConsoleBounds != null) {
+            commandFrame.setNormalBounds(savedConsoleBounds);
+            commandFrame.setBounds(savedConsoleBounds);
+        }
         miniFrame = new MiniFrame();
         mainWindowFrame = new javax.swing.JInternalFrame();
 
@@ -2416,7 +2431,36 @@ implements PropertyChangeListener {
     }
 
     private void exitProgram() {
+        // save the location and size of certain sub-windows
+        if (logFrame != null) {
+            Rectangle toSave = logFrame.getBounds();
+            String asCSV = "" + toSave.getX() + "," + toSave.getY() + "," +
+                                toSave.getWidth() + "," + toSave.getHeight();
+            appMain.setPreference("WindowLayoutLog", asCSV);
+            log(INFO, "Saved location and size of log window.");
+        }
+        if (commandFrame != null) {
+            Rectangle toSave = commandFrame.getBounds();
+            String asCSV = "" + toSave.getX() + "," + toSave.getY() + "," +
+                                toSave.getWidth() + "," + toSave.getHeight();
+            appMain.setPreference("WindowLayoutScriptingConsole", asCSV);
+            log(INFO, "Saved location and size of scripting console.");
+        }
+        if (helpFrame != null) {
+            Rectangle toSave = helpFrame.getBounds();
+            String asCSV = "" + toSave.getX() + "," + toSave.getY() + "," +
+                                toSave.getWidth() + "," + toSave.getHeight();
+            appMain.setPreference("WindowLayoutHelp", asCSV);
+            log(INFO, "Saved location and size of help window.");
+        }
+        try {
+            appMain.savePreferences();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // close any open file
         closeRNA();
+        // exit the process
         System.exit(0);
     }
 

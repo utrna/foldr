@@ -7,6 +7,7 @@ import static rheat.script.JSUtil.*;
 import rheat.script.ScriptMain;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.*;
@@ -78,6 +79,9 @@ public class AppMain {
         validPrefKeys.add("SpectrumStartColor");
         validPrefKeys.add("Spectrum50PercentColor");
         validPrefKeys.add("SpectrumEndColor");
+        validPrefKeys.add("WindowLayoutHelp");
+        validPrefKeys.add("WindowLayoutLog");
+        validPrefKeys.add("WindowLayoutScriptingConsole");
         try {
             initScriptingEngine();
         } catch (ScriptException e) {
@@ -426,6 +430,55 @@ public class AppMain {
      */
     public String getPrefSpectrumEndColor() {
         return getPreference("SpectrumEndColor");
+    }
+
+    /**
+     * Returns user-specified location and size for the help
+     * window.
+     */
+    public Rectangle getPrefWindowLayoutHelp() {
+        return getRectangleFromString(getPreference("WindowLayoutHelp"));
+    }
+
+    /**
+     * Returns user-specified location and size for the log
+     * window.
+     */
+    public Rectangle getPrefWindowLayoutLog() {
+        return getRectangleFromString(getPreference("WindowLayoutLog"));
+    }
+
+    /**
+     * Returns user-specified location and size for the
+     * scripting console window.
+     */
+    public Rectangle getPrefWindowLayoutScriptingConsole() {
+        return getRectangleFromString(getPreference("WindowLayoutScriptingConsole"));
+    }
+
+    /**
+     * Parses a string with a comma-separated integer list
+     * and returns a Rectangle; useful for layout preferences.
+     * The result is null if the string is not valid, and the
+     * exception trace is printed if the format is in error.
+     */
+    private Rectangle getRectangleFromString(String csv) {
+        Rectangle result = null;
+        if (csv != null) {
+            Scanner scanner = new Scanner(csv);
+            scanner.useDelimiter(",");
+            try {
+                double a = scanner.nextDouble();
+                double b = scanner.nextDouble();
+                double c = scanner.nextDouble();
+                double d = scanner.nextDouble();
+                result = new Rectangle((int)a, (int)b, (int)c, (int)d);
+            } catch (Exception e) {
+                e.printStackTrace();
+                result = null;
+            }
+        }
+        return result;
     }
 
     /**

@@ -28,6 +28,9 @@ if "darwin" in sys.platform.lower():
     # "apple.laf.useScreenMenuBar" moves menu items into the
     # main Mac menu bar if the system look-and-feel is in use
     new_argv.append('-Dapple.laf.useScreenMenuBar=true')
+    # "apple.eawt.quitStrategy" allows the system Quit item to
+    # map automatically to the in-window Quit menu item
+    new_argv.append('-Dapple.eawt.quitStrategy=CLOSE_ALL_WINDOWS')
     # "-Xdock:name=" sets the application menu name
     new_argv.append('-Xdock:name=RNA Heat')
 
