@@ -162,20 +162,25 @@
   <h3>Experiments</h3>
   <pre>
   rheat.openRNA('test.bpseq')
+  rheat.copyFilesToExperimentDir('one-input.txt', 'another-input.txt')
   status = rheat.runProgram('prog1.py', 'arg1', 'arg2')
   status = rheat.runProgram('prog2.py', 'argument')
+  expDir = rheat.getCurrentExperimentDir()
   rheat.newExperiment()
+  newExpDir = rheat.getCurrentExperimentDir()
   status = rheat.runProgram('prog3.py')</pre>
   <p>Preferences can be used to set the location of the experiment
   tree and the first search location for programs.  Programs run in
-  the current experiment, via runProgram().  If a file has been
+  the current experiment area, via runProgram().  If a file has been
   loaded into the display view, it is copied into the experiment
   area as "input" with the same extension (e.g. "input.bpseq"),
-  allowing programs to easily find input data.  All output from the
-  program is captured in a "log.txt" file.  The current experiment
-  subdirectory is automatically chosen by date and time for the
-  first experiment of a session; if you want to put results in a
-  new subdirectory, call newExperiment().
+  allowing programs to easily find input data.  Other important files
+  can be copied using copyFilesToExperimentDir() before calling
+  runProgram().  All output from the program is captured in a "log.txt"
+  file.  The current experiment subdirectory is automatically chosen by
+  date and time for the first experiment of a session; if you want to
+  put results in a new subdirectory, call newExperiment() (but realize
+  that you must then re-copy any custom input files to the new area).
 
   <br /><br />
   <h3>Logging</h3>

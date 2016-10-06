@@ -71,6 +71,21 @@
   <dt>Program-Running Functions</dt>
   <dd>
     <dl>
+    <dt>copyFilesToExperimentDir(file1[, file2][...])</dt>
+    <dd>Copies one or more files from their current locations into the
+    current experiment tree.  Files given only by name or relative path
+    will be found relative to getWorkingDir().  The file name is the same
+    in both locations; if the file already exists, it is overwritten.  If
+    newExperiment() is called, the target directory of this function is
+    changed so that future copies go to the new experiment location but
+    previously-copied files are not automatically moved.  For other
+    operations, see getCurrentExperimentDir().
+    <dt>getCurrentExperimentDir() &rarr; pathname</dt>
+    <dd>Returns the absolute path for the current experiment, which will
+    be a date-stamped subdirectory from the output tree location that was
+    set in Preferences.  If newExperiment() is called, this location will
+    change to a different date-stamp so you should not assume that the
+    experiment area will remain the same.
     <dt>runScript(file)</dt>
     <dd>Opens a ".js" file or other RNA HEAT script in text format,
     running it completely before exiting from the runScript() function

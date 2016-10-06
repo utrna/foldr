@@ -452,6 +452,17 @@ public class ScriptMain {
     }
 
     /**
+     * Script interface for AppMain.copyFilesToExperimentDir().
+     */
+    public void copyFilesToExperimentDir(String... fileArray) throws ScriptException {
+        try {
+            appMain.copyFilesToExperimentDir(fileArray);
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+    }
+
+    /**
      * Script interface for AppMain.runProgram().
      */
     public int runProgram(String... arguments) throws ScriptException {
@@ -473,6 +484,19 @@ public class ScriptMain {
         } catch (Exception e) {
             rethrowAsScriptException(e);
         }
+    }
+
+    /**
+     * Script interface for AppMain.getCurrentExperimentDir().
+     */
+    public String getCurrentExperimentDir() throws ScriptException {
+        String result = null;
+        try {
+            result = appMain.getCurrentExperimentDir();
+        } catch (Exception e) {
+            rethrowAsScriptException(e);
+        }
+        return result;
     }
 
     /**

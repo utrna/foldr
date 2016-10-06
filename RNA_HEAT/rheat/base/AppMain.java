@@ -911,6 +911,43 @@ public class AppMain {
     }
 
     /**
+     * Helper for copyFilesToExperimentDir(); instead of assuming
+     * that files have the same names, allows each source to map to
+     * a different destination file name.
+     */
+    public void copyFilesToDirWithNames(String targetDir, Map<String, String> origPathsNewNames) throws IOException {
+        for (Map.Entry<String, String> entry : origPathsNewNames.entrySet()) {
+            String filePath = entry.getKey();
+            if (! new File(filePath).isAbsolute()) {
+                filePath = getWorkingDir() + File.separator + filePath;
+            }
+            String newName = entry.getValue();
+            String copiedLocation = makePath(targetDir, newName);
+            log(INFO, "Copying '" + filePath + "' to '" + copiedLocation + "'.");
+            Files.copy(Paths.get(filePath), Paths.get(copiedLocation),
+                       REPLACE_EXISTING, COPY_ATTRIBUTES);
+        }
+    }
+
+    /**
+     * Copies the specified files into the current experiment tree,
+     * allowing them to be used by programs invoked by runProgram().
+     * File names or relative paths are based on working directory.
+     * Note that runProgram() automatically copies certain files; see
+     * its documentation for details.  If the specified files already
+     * exist in the experiment tree, they will be replaced.  If you
+     * call newExperiment(), the target directory changes.  See also
+     * getCurrentExperimentDir().
+     */
+    public void copyFilesToExperimentDir(String... fileArray) throws IOException {
+        Map<String, String> oldNew = new HashMap<String, String>();
+        for (String filePath : fileArray) {
+            oldNew.put(filePath, new File(filePath).getName());
+        }
+        copyFilesToDirWithNames(getCurrentExperimentDir(), oldNew);
+    }
+
+    /**
      * Runs the specified program, in the current experiment space.
      * Waits for termination and returns exit status (0 = success).
      * Output from the program is automatically logged; if more than
@@ -925,16 +962,17 @@ public class AppMain {
         // current RNA data; for simplicity, copy the original file into
         // the experiment directory so that the program can assume the
         // name and location instead of requiring a parameter
+        Map<String, String> toCopy = new HashMap<String, String>();
         String extension = "";
         if (currentRNAFilePath != null) {
             int i = currentRNAFilePath.lastIndexOf('.');
             if (i > 0) {
                 extension = currentRNAFilePath.substring(i);
             }
-            String copiedLocation = makePath(runDir, "input" + extension);
-            log(INFO, "Copying '" + currentRNAFilePath + "' to '" + copiedLocation + "'.");
-            Files.copy(Paths.get(currentRNAFilePath), Paths.get(copiedLocation),
-                       REPLACE_EXISTING, COPY_ATTRIBUTES);
+            toCopy.put(currentRNAFilePath, "input" + extension);
+        }
+        if (!toCopy.isEmpty()) {
+            copyFilesToDirWithNames(runDir, toCopy);
         }
         // by default, search the preferred program space; if the program
         // is found then run it from that location (otherwise, the system
