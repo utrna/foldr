@@ -3,6 +3,10 @@
 // The purpose of this test is to try the interface for reading
 // helix lists from an RNA.
 
+function println (s) {
+    java.lang.System.out.println(s)
+}
+
 var i = 0
 
 rheat.openRNA('test.bpseq')

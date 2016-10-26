@@ -3,4 +3,4 @@
 // This is run by "run_test.js" to show that other scripts
 // can be successfully launched.
 
-println("(This print-out is a test of the script-running API.  If you can see this, it works.)");
+java.lang.System.out.println("(This print-out is a test of the script-running API.  If you can see this, it works.)");
