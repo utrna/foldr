@@ -1,0 +1,18 @@
+// rheat.closeRNA()
+rheat.openRNA('d.16.b.E.coli.bpseq')
+rheat.setPreference('SpectrumStartColor', '#EFEFFF')
+// rheat.msDelay(1000)
+rheat.addBasePairFilter('AU', 'CG', 'GU')
+rheat.setHelixTagColor('_ACTUAL_', '#FF0000') //RED
+rheat.openTags('PieSie_E_coli16SrRNA-v2-2016-07-19.helixcolor')
+rheat.runScript('scr_color_PieSie_1.txt')
+rheat.openTags('PieSie_Transient_Ian_test.helixcolor')
+rheat.setHelixTagLineWidth('TR', 5.5)
+//rheat.openTags("Ian_Transient_E_coli16SrRNA_EnergyTest_1.txt")
+rheat.openTags("E_coli_16s_transientHelices_new.txt")
+rheat.setHelixSpectrum('ME', .50, -1.5)
+//rheat.setHelixSpectrum('e', 2.00, -20)
+// why won’t the above command work from the get-go?
+// currently you have to run last commented common in scripting console
+
+// remember to click spectrum

@@ -1,0 +1,3 @@
+experimentDir = rheat.getCurrentExperimentDir()
+// next line is specific to experiments conducted in Ian_testing directory
+rheat.runProgram("iterate_transients.py", "../E_coli_16s_transientHelices_new.txt",experimentDir)
