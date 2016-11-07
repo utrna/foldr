@@ -1222,6 +1222,10 @@ implements PropertyChangeListener {
         openTagsMenuItem = new javax.swing.JMenuItem();
         openDataMenuItem = new javax.swing.JMenuItem();
         runScriptMenuItem = new javax.swing.JMenuItem();
+// new menu item by Ian
+	runScriptSequenceMenuItem = new javax.swing.JMenuItem();
+    iterateScriptSequenceMenuItem = new javax.swing.JMenuItem();
+// end Ian edits
         scriptWindowMenuItem = new javax.swing.JMenuItem();
         runProgramMenuItem = new javax.swing.JMenuItem();
         closeRNAMenuItem = new javax.swing.JMenuItem();
@@ -1465,6 +1469,39 @@ implements PropertyChangeListener {
         });
 
         fileMenu.add(openDataMenuItem);
+
+        // begin new Ian edits
+        // q for seQuence
+        runScriptSequenceMenuItem.setMnemonic('Q');
+        setKey(runScriptSequenceMenuItem, KeyEvent.VK_Q);
+        runScriptSequenceMenuItem.setText("Read Script Sequence…");
+        runScriptSequenceMenuItem.setToolTipText("Reads Sequence of commands from a JavaScript ('.js') file, such as a series of constraints.");
+
+        runScriptSequenceMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt){
+                iterate_scripts = runSequenceScriptMenuItemActionPerformed(evt);
+                System.out.println(Arrays.toString(iterate_scripts));
+            }
+        });
+
+        fileMenu.add(runScriptSequenceMenuItem);
+        // t for iTerate or nexT
+        iterateScriptSequenceMenuItem.setMnemonic('T');
+
+        setKey(iterateScriptSequenceMenuItem, KeyEvent.VK_T); //check to make sure T hasn't been taken yet
+        iterateScriptSequenceMenuItem.setText("Iterate Script Sequence…");
+        iterateScriptSequenceMenuItem.setToolTipText("Iterates sequence of commands from a JavaScript ('.js') file, such as a series of constraints.");
+        iterateScriptSequenceMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+
+                    iterateScriptMenuItemActionPerformed(evt, iterate_scripts[index]);
+                    index += 1;
+                }
+            });
+
+
+        fileMenu.add(iterateScriptSequenceMenuItem);
+        // end new Ian edits
 
         runScriptMenuItem.setMnemonic('R');
         setKey(runScriptMenuItem, KeyEvent.VK_R);
@@ -2414,6 +2451,72 @@ implements PropertyChangeListener {
             this.runScript(fc.getSelectedFile());
         }
     }
+    // begin Ian edits
+    private String[] runSequenceScriptMenuItemActionPerformed(java.awt.event.ActionEvent evt){//} throws IOException{
+        File inputFile;
+        java.util.List<String> return_list = new ArrayList<String>();
+
+        fc = new JFileChooser(appMain.getCurrentExperimentDir());
+        fc.setMultiSelectionEnabled(false);
+        fc.setAcceptAllFileFilterUsed(true);
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("JavaScript Files", "js", "txt"));
+        int returnVal = fc.showOpenDialog(this);
+        if (returnVal == fc.APPROVE_OPTION) {
+            // iterate through the file line by line to read in all the scripts to run
+            inputFile = fc.getSelectedFile();
+            // have to do try, catch etc.
+
+            String line = null;
+            try {
+                System.out.println("input file is"+inputFile.getName());
+                BufferedReader in = new BufferedReader(new FileReader(inputFile.getPath()));
+                String str;
+                while ((str = in.readLine()) != null) {
+
+                    str = str.replace("\\s+","");
+                    return_list.add(str);
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+
+        String[] linesArray = return_list.toArray(new String[return_list.size()]);
+        System.out.println("the lines array is" + Arrays.toString(linesArray));
+        // return list of all file to be run if the script sequence should be called
+        return (linesArray);
+
+    }
+
+
+    private void iterateScriptMenuItemActionPerformed(java.awt.event.ActionEvent evt, String iterate_file) {
+        //File inputFile;
+        iterate_file = iterate_file.replaceAll("\\s+","");
+        String tran_dir = "/transient_script_sequence/";
+        System.out.println("ATTENTION, THE name of the file is" + appMain.getCurrentExperimentDir() + tran_dir+iterate_file+"test");
+        String filepath = ""+appMain.getCurrentExperimentDir()+tran_dir + iterate_file+"end";
+        System.out.println(filepath);
+        if (iterate_file!=null) {
+            //try {
+                File file = new File(appMain.getCurrentExperimentDir()+tran_dir + iterate_file);
+// need to make this into a file
+                this.runScript(file);
+
+            //} //catch (IOException e) {
+                //e.printStackTrace();
+            //}
+        }
+    }
+
+
+
+
+
+    // end Ian edits
+
 
     private void runProgramMenuItemActionPerformed(java.awt.event.ActionEvent evt) {
         File inputFile;
@@ -2536,6 +2639,8 @@ implements PropertyChangeListener {
     private javax.swing.JMenuItem openTagsMenuItem;
     private javax.swing.JMenuItem openDataMenuItem;
     private javax.swing.JMenuItem runScriptMenuItem;
+    private javax.swing.JMenuItem runScriptSequenceMenuItem;
+    private javax.swing.JMenuItem iterateScriptSequenceMenuItem;
     private javax.swing.JMenuItem scriptWindowMenuItem;
     private javax.swing.JMenuItem runProgramMenuItem;
     private javax.swing.JMenuItem goBackMenuItem;
@@ -2582,6 +2687,10 @@ implements PropertyChangeListener {
     private AboutFrame aboutFrame;
     private MiniFrame miniFrame;
     private ArrayList<File> recentScriptFiles = new ArrayList<File>();
+    //new ian edits
+    private String[] iterate_scripts = new String[1];
+    private int index=0;
+    // end ian edits
     private ArrayList<String> recentScriptCanonPaths = new ArrayList<String>(); // same size
 
 }
