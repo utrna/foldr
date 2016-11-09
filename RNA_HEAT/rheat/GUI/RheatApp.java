@@ -1225,7 +1225,7 @@ implements PropertyChangeListener {
 // new menu item by Ian edits:
 	runScriptSequenceMenuItem = new javax.swing.JMenuItem();
     iterateScriptSequenceMenuItem = new javax.swing.JMenuItem();
-// end Ian edits
+// end menu Ian edits
         scriptWindowMenuItem = new javax.swing.JMenuItem();
         runProgramMenuItem = new javax.swing.JMenuItem();
         closeRNAMenuItem = new javax.swing.JMenuItem();
