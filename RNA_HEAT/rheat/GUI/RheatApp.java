@@ -1222,10 +1222,10 @@ implements PropertyChangeListener {
         openTagsMenuItem = new javax.swing.JMenuItem();
         openDataMenuItem = new javax.swing.JMenuItem();
         runScriptMenuItem = new javax.swing.JMenuItem();
-// new menu item by Ian edits:
+// new menu item by Ian
 	runScriptSequenceMenuItem = new javax.swing.JMenuItem();
     iterateScriptSequenceMenuItem = new javax.swing.JMenuItem();
-// end menu Ian edits
+//
         scriptWindowMenuItem = new javax.swing.JMenuItem();
         runProgramMenuItem = new javax.swing.JMenuItem();
         closeRNAMenuItem = new javax.swing.JMenuItem();
@@ -1475,7 +1475,7 @@ implements PropertyChangeListener {
         runScriptSequenceMenuItem.setMnemonic('Q');
         setKey(runScriptSequenceMenuItem, KeyEvent.VK_Q);
         runScriptSequenceMenuItem.setText("Read Script Sequence…");
-        runScriptSequenceMenuItem.setToolTipText("Reads Sequence of commands from a JavaScript ('.js') file, such as a series of constraints.");
+        runScriptSequenceMenuItem.setToolTipText(" A '.txt' file that sets the sequence of file names through which to iterate every time iterate script sequence is called.");
 
         runScriptSequenceMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt){
@@ -1490,12 +1490,13 @@ implements PropertyChangeListener {
 
         setKey(iterateScriptSequenceMenuItem, KeyEvent.VK_T); //check to make sure T hasn't been taken yet
         iterateScriptSequenceMenuItem.setText("Iterate Script Sequence…");
-        iterateScriptSequenceMenuItem.setToolTipText("Iterates sequence of commands from a JavaScript ('.js') file, such as a series of constraints.");
+        iterateScriptSequenceMenuItem.setToolTipText("Calls runScript on a JavaScript ('.js') files iteratively in the order defined by Read Script Sequence '.txt' file");
         iterateScriptSequenceMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
 
                     iterateScriptMenuItemActionPerformed(evt, iterate_scripts[index]);
                     index += 1;
+                System.out.println(index);
                 }
             });
 
